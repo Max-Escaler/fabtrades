@@ -25,8 +25,8 @@ const CardPanel = ({
       elevation={1}
       sx={{ 
         flex: 1,
-        width: '100%',
-        maxWidth: '100%',
+        width: '98%',
+        maxWidth: '98%',
         minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
         p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
         display: 'flex',

@@ -193,18 +193,18 @@ function App() {
       flexDirection: 'column', 
       height: '100vh',
       minHeight: '100vh',
-      width: '100%'
+      width: '98%'
     }}>
       {/* Header */}
       <AppBar position="static" sx={{ 
         backgroundColor: '#000000',
         flexShrink: 0,
-        width: '100%'
+        width: '98%'
       }}>
         <Toolbar sx={{ 
           px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
           py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-          width: '100%'
+          width: '98%'
         }}>
           <Typography 
             variant="h4" 
@@ -269,8 +269,8 @@ function App() {
         transition: 'all 0.3s ease-in-out',
         minHeight: 0, // Important for flexbox to work properly
         alignItems: 'stretch',
-        width: '100%',
-        maxWidth: '100vw',
+        width: '98%',
+        maxWidth: '98vw',
         height: '100%'
       }}>
         {/* Top Panel - Cards I Have */}
@@ -305,7 +305,7 @@ function App() {
             backgroundColor: '#f8f9fa',
             borderTop: '1px solid #e9ecef',
             borderBottom: '1px solid #e9ecef',
-            width: '100%'
+            width: '98%'
           }}>
             {/* My Cards Summary */}
             <Box sx={{ 

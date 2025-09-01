@@ -54,7 +54,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
       flexGrow: 1,
       overflow: 'auto',
       maxHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '500px' },
-      width: '100%'
+      width: '98%'
     }}>
       {cards.map((card, index) => (
         <ListItem
@@ -70,7 +70,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
             p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
             position: 'relative',
             cursor: 'pointer',
-            width: '100%',
+            width: '98%',
             '&:hover': {
               backgroundColor: '#f5f5f5',
               borderColor: '#d0d0d0',
@@ -100,7 +100,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            width: '100%',
+            width: '98%',
             gap: 1
           }}>
             {/* Card Name and Edition Info */}
