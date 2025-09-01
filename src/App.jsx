@@ -311,7 +311,7 @@ function App() {
               px: 1,
               py: 1
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'medium', color: 'black' }}>
                 My {haveList.length} cards
               </Typography>
               <Chip
@@ -333,7 +333,7 @@ function App() {
               borderTop: '1px solid #dee2e6',
               borderBottom: '1px solid #dee2e6'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'black' }}>
                 Current Value
               </Typography>
               <Chip
@@ -355,7 +355,7 @@ function App() {
               px: 1,
               py: 1
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'medium', color: 'black' }}>
                 Their {wantList.length} cards
               </Typography>
               <Chip
