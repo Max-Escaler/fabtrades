@@ -1,18 +1,20 @@
 import React from 'react';
 
-const AddCardButton = ({ onClick, color = '#1976d2', children = 'Add Card' }) => {
+const AddCardButton = ({ onClick, color = '#1976d2', children = 'Add Card', disabled = false }) => {
   return (
     <button 
       onClick={onClick}
+      disabled={disabled}
       style={{
         width: '100%',
         padding: '10px',
-        backgroundColor: color,
+        backgroundColor: disabled ? '#cccccc' : color,
         color: 'white',
         border: 'none',
         borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px'
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: '14px',
+        opacity: disabled ? 0.6 : 1
       }}
     >
       {children}

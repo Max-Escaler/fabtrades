@@ -16,24 +16,39 @@ const CardPanel = ({
   onUpdateEdition,
   isMobile, 
   buttonColor = '#1976d2',
-  totalColor = 'primary'
+  totalColor = 'primary',
+  disabled = false
 }) => {
   return (
     <Paper 
       elevation={3} 
       sx={{ 
-        width: { xs: '100%', md: 600 },
-        minHeight: { xs: '300px', md: 'auto' },
-        p: { xs: 1.5, sm: 2 },
+        flex: 1,
+        minWidth: { xs: '100%', sm: '280px', md: '320px', lg: '400px', xl: '500px' },
+        maxWidth: { xs: '100%', lg: 'none' },
+        minHeight: { xs: '300px', sm: '350px', md: '400px', lg: '500px', xl: '600px' },
+        p: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 },
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          elevation: 4,
+          transform: 'translateY(-2px)'
+        }
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 },
+        transition: 'all 0.3s ease'
+      }}>
         <Typography 
           variant="h6" 
           sx={{ 
-            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.375rem', lg: '1.5rem', xl: '1.75rem' },
+            transition: 'font-size 0.3s ease'
           }}
         >
           {title}
@@ -42,17 +57,27 @@ const CardPanel = ({
           label={`Total: $${cards.reduce((sum, item) => sum + item.price, 0).toFixed(2)}`}
           color={totalColor}
           size="small"
-          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+          sx={{ 
+            fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem' },
+            transition: 'all 0.3s ease'
+          }}
         />
       </Box>
       
       {/* Autocomplete Input */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ 
+        mb: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 }, 
+        transition: 'all 0.3s ease' 
+      }}>
         <Autocomplete
           freeSolo
           options={cardOptions}
-          sx={{ width: '100%', mb: 1 }}
-          renderInput={(params) => <TextField {...params} label="Search Cards" />}
+          sx={{ 
+            width: '100%', 
+            mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5 },
+            transition: 'all 0.3s ease'
+          }}
+          renderInput={(params) => <TextField {...params} label="Search Cards" disabled={disabled} />}
           value={inputValue}
           onChange={(event, newValue) => {
             // Handle selection from dropdown
@@ -97,10 +122,12 @@ const CardPanel = ({
           blurOnSelect
           openOnFocus
           disableClearable={false}
+          disabled={disabled}
         />
         <AddCardButton 
           onClick={onAddCard} 
           color={buttonColor}
+          disabled={disabled}
         />
       </Box>
 

@@ -276,7 +276,8 @@ const groupCardsByEdition = (cards) => {
 export const CardDataProvider = ({ children }) => {
   const [cards, setCards] = useState([]);
   const [cardGroups, setCardGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed to false for instant page load
+  const [dataReady, setDataReady] = useState(false); // New state to track when data is fully loaded
   const [error, setError] = useState(null);
   const [usingLocalFiles, setUsingLocalFiles] = useState(false);
 
@@ -348,9 +349,11 @@ export const CardDataProvider = ({ children }) => {
         setError(err.message);
       } finally {
         setLoading(false);
+        setDataReady(true); // Mark data as ready when loading completes
       }
     };
 
+    // Start loading immediately in the background
     loadCardData();
   }, []);
 
@@ -358,9 +361,10 @@ export const CardDataProvider = ({ children }) => {
     cards,
     cardGroups,
     loading,
+    dataReady, // Expose the new dataReady state
     error,
     usingLocalFiles
-  }), [cards, cardGroups, loading, error, usingLocalFiles]);
+  }), [cards, cardGroups, loading, dataReady, error, usingLocalFiles]);
   
   return (
     <CardDataContext.Provider value={value}>

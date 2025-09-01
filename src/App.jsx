@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCardData } from './inputs/cardDataProvider.jsx';
-import { Box, AppBar, Toolbar, Typography, useTheme, useMediaQuery, CircularProgress, Chip } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, useTheme, useMediaQuery, CircularProgress, Chip, Alert } from '@mui/material';
 import CardPanel from './components/CardPanel';
 
 function App() {
@@ -8,13 +8,25 @@ function App() {
   const [wantInput, setWantInput] = useState("");
   const [haveList, setHaveList] = useState([]);
   const [wantList, setWantList] = useState([]);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
-  const { cardGroups, loading, error } = useCardData();
+  const { cardGroups, loading, dataReady, error } = useCardData();
   const cardNames = cardGroups.map(group => group.name);
+
+  // Auto-hide success alert after 3 seconds
+  useEffect(() => {
+    if (dataReady && !loading) {
+      setShowSuccessAlert(true);
+      const timer = setTimeout(() => {
+        setShowSuccessAlert(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [dataReady, loading]);
 
   // Get card group data from the loaded card data
   const getCardGroup = (cardName) => {
@@ -145,17 +157,7 @@ function App() {
 
   const valueComparison = getValueComparison();
 
-  // Show loading state
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Loading Flesh and Blood card data...
-        </Typography>
-      </Box>
-    );
-  }
+  // No more blocking loading screen - page loads instantly
 
   // Show error state
   if (error) {
@@ -172,12 +174,21 @@ function App() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100vh',
+      minHeight: '100vh',
+      width: '100%'
+    }}>
       {/* Header */}
-      <AppBar position="static" sx={{ backgroundColor: '#000000' }}>
+      <AppBar position="static" sx={{ 
+        backgroundColor: '#000000',
+        flexShrink: 0
+      }}>
         <Toolbar sx={{ 
-          px: { xs: 1, sm: 2, md: 3 },
-          py: { xs: 1, sm: 1.5 }
+          px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
+          py: { xs: 1, sm: 1.5, md: 2 }
         }}>
           <Typography 
             variant="h4" 
@@ -185,13 +196,50 @@ function App() {
             sx={{ 
               flexGrow: 1, 
               fontWeight: 'bold',
-              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem', lg: '2.5rem', xl: '3rem' }
             }}
           >
             FAB Trades
           </Typography>
         </Toolbar>
       </AppBar>
+
+      {/* Loading Alert - Shows while data is loading in background */}
+      {loading && !dataReady && (
+        <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
+          <Alert 
+            severity="info" 
+            icon={<CircularProgress size={20} />}
+            sx={{ 
+              '& .MuiAlert-message': { 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1 
+              } 
+            }}
+          >
+            Loading card data in the background... You can start adding cards once data is ready.
+          </Alert>
+        </Box>
+      )}
+
+      {/* Data Ready Alert - Shows briefly when data is fully loaded */}
+      {showSuccessAlert && dataReady && !loading && (
+        <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
+          <Alert 
+            severity="success" 
+            sx={{ 
+              '& .MuiAlert-message': { 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1 
+              } 
+            }}
+          >
+            Card data loaded successfully! You can now search and add cards.
+          </Alert>
+        </Box>
+      )}
 
       {/* Value Comparison Chip */}
       {(haveList.length > 0 || wantList.length > 0) && (
@@ -219,9 +267,13 @@ function App() {
       <Box sx={{ 
         display: 'flex', 
         flexGrow: 1, 
-        p: { xs: 1, sm: 2, md: 3 },
+        p: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
         flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 2, sm: 3 }
+        gap: { xs: 2, sm: 2.5, md: 3, lg: 4, xl: 5 },
+        transition: 'all 0.3s ease-in-out',
+        minHeight: 0, // Important for flexbox to work properly
+        alignItems: { xs: 'stretch', md: 'flex-start' },
+        height: '100%'
       }}>
         {/* Left Panel */}
         <CardPanel
@@ -241,6 +293,7 @@ function App() {
           isMobile={isMobile}
           buttonColor="#1976d2"
           totalColor="primary"
+          disabled={!dataReady} // Disable until data is ready
         />
 
         {/* Right Panel */}
@@ -261,6 +314,7 @@ function App() {
           isMobile={isMobile}
           buttonColor="#2e7d32"
           totalColor="success"
+          disabled={!dataReady} // Disable until data is ready
         />
       </Box>
     </Box>
