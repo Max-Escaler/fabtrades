@@ -1,50 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   List,
   ListItem,
-  ListItemText,
   IconButton,
   Chip,
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Box,
-  Typography,
-  Popover,
-  ListItemButton
+  Typography
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 
-const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMobile }) => {
-  const [editionAnchorEl, setEditionAnchorEl] = useState(null);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
-
-  const handleEditionClick = (event, cardIndex) => {
-    setEditionAnchorEl(event.currentTarget);
-    setSelectedCardIndex(cardIndex);
-  };
-
-  const handleEditionClose = () => {
-    setEditionAnchorEl(null);
-    setSelectedCardIndex(null);
-  };
-
-  const handleEditionChange = (editionName) => {
-    if (selectedCardIndex !== null) {
-      onUpdateEdition(selectedCardIndex, editionName);
-    }
-    handleEditionClose();
-  };
+const CardList = ({ cards, onRemoveCard, onUpdateQuantity, isMobile }) => {
 
   const handleQuantityChange = (cardIndex, newQuantity) => {
     if (onUpdateQuantity) {
       onUpdateQuantity(cardIndex, newQuantity);
     }
   };
-
-  const open = Boolean(editionAnchorEl);
 
   // Generate quantity options (1-20)
   const quantityOptions = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -93,7 +67,6 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
               backgroundColor: 'primary.main'
             }
           }}
-          onClick={(event) => handleEditionClick(event, index)}
         >
           {/* Main Card Info Row */}
           <Box sx={{
@@ -156,22 +129,6 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 >
                   {card.name}
                 </Typography>
-                
-                {/* Edition Display - Small text next to name */}
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.7rem', lg: '0.75rem', xl: '0.8rem' },
-                    color: 'text.secondary',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    flexShrink: 0
-                  }}
-                >
-                  <EditIcon sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.7rem', lg: '0.75rem', xl: '0.8rem' } }} />
-                  {card.selectedEdition || 'No edition'}
-                </Typography>
               </Box>
             </Box>
 
@@ -217,55 +174,6 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
 
         </ListItem>
       ))}
-
-      {/* Edition Picker Popover */}
-      <Popover
-        open={open}
-        anchorEl={editionAnchorEl}
-        onClose={handleEditionClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        PaperProps={{
-          sx: {
-            maxHeight: 200,
-            minWidth: 200
-          }
-        }}
-      >
-        <FormControl fullWidth>
-          <InputLabel sx={{ 
-            fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
-          }}>
-            Select Edition
-          </InputLabel>
-          <Select
-            value=""
-            label="Select Edition"
-            onChange={(e) => handleEditionChange(e.target.value)}
-            sx={{ 
-              fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
-            }}
-          >
-                          {selectedCardIndex !== null && cards[selectedCardIndex]?.availableEditions?.map((edition) => (
-                <MenuItem
-                  key={`${cards[selectedCardIndex].name}-${edition.subTypeName}-${edition.productId}`}
-                  value={edition.subTypeName}
-                  sx={{ 
-                    fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
-                  }}
-                >
-                  {edition.subTypeName}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-      </Popover>
     </List>
   );
 };

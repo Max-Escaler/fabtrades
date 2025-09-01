@@ -13,7 +13,6 @@ const CardPanel = ({
   onInputChange, 
   onAddCard, 
   onRemoveCard, 
-  onUpdateEdition,
   onUpdateQuantity,
   isMobile, 
   buttonColor = '#1976d2',
@@ -132,7 +131,6 @@ const CardPanel = ({
       <CardList 
         cards={cards}
         onRemoveCard={onRemoveCard}
-        onUpdateEdition={onUpdateEdition}
         onUpdateQuantity={onUpdateQuantity}
         isMobile={isMobile}
       />

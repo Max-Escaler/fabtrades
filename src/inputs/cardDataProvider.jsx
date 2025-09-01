@@ -229,39 +229,69 @@ const processCardsInBatches = (csvResults, csvUrls, batchSize = 100) => {
   return allCards;
 };
 
-// Function to remove duplicates efficiently
-const removeDuplicates = (cards) => {
-  const seen = new Set();
-  return cards.filter(card => {
-    // Use productId + subTypeName as unique key to allow multiple editions
-    const key = `${card.productId}-${card.subTypeName}`;
-    if (seen.has(key)) {
-      return false;
+// Function to identify duplicates and enhance display names
+const enhanceDisplayNames = (cards) => {
+  // Group cards by name to identify duplicates
+  const nameGroups = {};
+  cards.forEach(card => {
+    if (!nameGroups[card.name]) {
+      nameGroups[card.name] = [];
     }
-    seen.add(key);
-    return true;
+    nameGroups[card.name].push(card);
+  });
+  
+  // Enhance display names for cards with multiple editions
+  return cards.map(card => {
+    const sameNameCards = nameGroups[card.name];
+    if (sameNameCards.length > 1) {
+      // Multiple editions exist, include extNumber in display name
+      const extNumber = card.extNumber || '';
+      const subTypeName = card.subTypeName || '';
+      
+      // Create enhanced display name
+      let enhancedName = card.name;
+      if (extNumber) {
+        enhancedName += ` (${extNumber})`;
+      }
+      if (subTypeName && subTypeName !== 'Normal') {
+        enhancedName += ` - ${subTypeName}`;
+      }
+      
+      return {
+        ...card,
+        displayName: enhancedName
+      };
+    } else {
+      // Single edition, keep original name
+      return {
+        ...card,
+        displayName: card.name
+      };
+    }
   });
 };
 
-// Function to group cards by name and their editions
+// Function to group cards by display name and their editions
 const groupCardsByEdition = (cards) => {
   const grouped = {};
   
   cards.forEach(card => {
-    if (!grouped[card.name]) {
-      grouped[card.name] = {
-        name: card.name,
+    const displayName = card.displayName || card.name;
+    
+    if (!grouped[displayName]) {
+      grouped[displayName] = {
+        name: displayName,
         editions: []
       };
     }
     
     // Check if this edition already exists
-    const existingEdition = grouped[card.name].editions.find(
-      e => e.subTypeName === card.subTypeName
+    const existingEdition = grouped[displayName].editions.find(
+      e => e.subTypeName === card.subTypeName && e.productId === card.productId
     );
     
     if (!existingEdition) {
-      grouped[card.name].editions.push({
+      grouped[displayName].editions.push({
         subTypeName: card.subTypeName,
         productId: card.productId,
         cardPrice: (card.marketPrice && card.marketPrice > 0) ? card.marketPrice : card.lowPrice
@@ -303,10 +333,10 @@ export const CardDataProvider = ({ children }) => {
           
           // Process the cards
           const allCards = processCardsInBatches(csvResults, Array(localStatus.totalFiles).fill('local'));
-          const uniqueCards = removeDuplicates(allCards);
-          const groupedCards = groupCardsByEdition(uniqueCards);
+          const enhancedCards = enhanceDisplayNames(allCards);
+          const groupedCards = groupCardsByEdition(enhancedCards);
           
-          setCards(uniqueCards);
+          setCards(enhancedCards);
           setCardGroups(groupedCards);
           
         } else {
@@ -337,10 +367,10 @@ export const CardDataProvider = ({ children }) => {
 
           // Process the cards
           const allCards = processCardsInBatches(csvResults, csvUrls);
-          const uniqueCards = removeDuplicates(allCards);
-          const groupedCards = groupCardsByEdition(uniqueCards);
+          const enhancedCards = enhanceDisplayNames(allCards);
+          const groupedCards = groupCardsByEdition(enhancedCards);
           
-          setCards(uniqueCards);
+          setCards(enhancedCards);
           setCardGroups(groupedCards);
         }
 

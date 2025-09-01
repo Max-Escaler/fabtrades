@@ -53,7 +53,6 @@ function App() {
         const newCard = {
           name: haveInput, 
           price: defaultEdition.cardPrice,
-          selectedEdition: defaultEdition.subTypeName,
           cardGroup: cardGroup,
           availableEditions: cardGroup.editions,
           quantity: 1 // Add default quantity
@@ -84,7 +83,6 @@ function App() {
         setWantList([...wantList, { 
           name: wantInput, 
           price: defaultEdition.cardPrice,
-          selectedEdition: defaultEdition.subTypeName, // Use subTypeName instead of name
           cardGroup: cardGroup,
           availableEditions: cardGroup.editions,
           quantity: 1 // Add default quantity
@@ -102,29 +100,7 @@ function App() {
     setWantList(wantList.filter((_, i) => i !== index));
   };
 
-  const updateHaveCardEdition = (index, editionName) => {
-    const updatedList = [...haveList];
-    const card = updatedList[index];
-    const selectedEdition = card.availableEditions.find(e => e.subTypeName === editionName);
-    
-    if (selectedEdition) {
-      card.selectedEdition = editionName;
-      card.price = selectedEdition.cardPrice;
-      setHaveList(updatedList);
-    }
-  };
 
-  const updateWantCardEdition = (index, editionName) => {
-    const updatedList = [...wantList];
-    const card = updatedList[index];
-    const selectedEdition = card.availableEditions.find(e => e.subTypeName === editionName);
-    
-    if (selectedEdition) {
-      card.selectedEdition = editionName;
-      card.price = selectedEdition.cardPrice;
-      setWantList(updatedList);
-    }
-  };
 
   const updateHaveCardQuantity = (index, newQuantity) => {
     const updatedList = [...haveList];
@@ -287,7 +263,6 @@ function App() {
           }}
           onAddCard={addHaveCard}
           onRemoveCard={removeHaveCard}
-          onUpdateEdition={updateHaveCardEdition}
           onUpdateQuantity={updateHaveCardQuantity}
           isMobile={isMobile}
           buttonColor="#1976d2"
@@ -410,7 +385,6 @@ function App() {
           }}
           onAddCard={addWantCard}
           onRemoveCard={removeWantCard}
-          onUpdateEdition={updateWantCardEdition}
           onUpdateQuantity={updateWantCardQuantity}
           isMobile={isMobile}
           buttonColor="#2e7d32"
