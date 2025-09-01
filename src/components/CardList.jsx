@@ -8,11 +8,24 @@ import {
   MenuItem,
   FormControl,
   Box,
-  Typography
+  Typography,
+  TextField,
+  Autocomplete
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const CardList = ({ cards, onRemoveCard, onUpdateQuantity, isMobile }) => {
+const CardList = ({ 
+  cards, 
+  onRemoveCard, 
+  onUpdateQuantity, 
+  isMobile, 
+  cardOptions, 
+  inputValue, 
+  onInputChange, 
+  onAddCard, 
+  title,
+  disabled = false 
+}) => {
 
   const handleQuantityChange = (cardIndex, newQuantity) => {
     if (onUpdateQuantity) {
@@ -21,7 +34,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateQuantity, isMobile }) => {
   };
 
   // Generate quantity options (1-20)
-  const quantityOptions = Array.from({ length: 20 }, (_, i) => i + 1);
+  const quantityOptions = Array.from({ length: 6 }, (_, i) => i + 1);
 
   return (
     <List sx={{
@@ -174,6 +187,70 @@ const CardList = ({ cards, onRemoveCard, onUpdateQuantity, isMobile }) => {
 
         </ListItem>
       ))}
+      
+      {/* Search Input at End of List */}
+      <ListItem sx={{ 
+        border: '1px solid #e0e0e0',
+        borderRadius: 1,
+        mb: 0.75,
+        backgroundColor: '#ffffff',
+        p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
+        width: '98%'
+      }}>
+        <Autocomplete
+          freeSolo
+          options={cardOptions || []}
+          sx={{ 
+            width: '100%', 
+            transition: 'all 0.3s ease'
+          }}
+          renderInput={(params) => <TextField {...params} label={"Search for Cards"} disabled={disabled} />}
+          inputValue={inputValue || ""}
+          onChange={(event, newValue) => {
+            // Handle selection from dropdown - add immediately
+            if (newValue) {
+              // Add the card with the selected value
+              onAddCard(newValue);
+            }
+          }}
+          onInputChange={(event, newInputValue) => {
+            // Handle typing in the input field
+            onInputChange(event, newInputValue);
+          }}
+          filterOptions={(options, { inputValue }) => {
+            // Custom filtering logic
+            if (!inputValue) {
+              return options.slice(0, 20); // Show first 20 options when no input
+            }
+            
+            const searchTerm = inputValue.toLowerCase();
+            const filtered = options.filter((option) => {
+              const cardName = option.toLowerCase();
+              return cardName.includes(searchTerm);
+            });
+            
+            // Limit results to improve performance
+            return filtered.slice(0, 50);
+          }}
+          getOptionLabel={(option) => {
+            // Handle both string and object options
+            return typeof option === 'string' ? option : option.displayName || option.name || '';
+          }}
+          isOptionEqualToValue={(option, value) => {
+            // Compare options properly
+            return option === value;
+          }}
+          selectOnFocus
+          clearOnBlur={false}
+          handleHomeEndKeys
+          autoComplete
+          autoHighlight
+          blurOnSelect
+          openOnFocus
+          disableClearable={false}
+          disabled={disabled}
+        />
+      </ListItem>
     </List>
   );
 };

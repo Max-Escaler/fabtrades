@@ -33,40 +33,22 @@ function App() {
     return cardGroups.find(group => group.name === cardName) || null;
   };
 
-  const addHaveCard = () => {
-    if (haveInput && !haveList.some(item => item.name === haveInput)){
-      const cardGroup = getCardGroup(haveInput);
-      
-      // Debug: Log card data for Arknight Shard
-      if (haveInput === 'Arknight Shard') {
-        console.log('Adding Arknight Shard:', {
-          input: haveInput,
-          cardGroup: cardGroup,
-          editions: cardGroup?.editions?.map(e => ({ name: e.name, price: e.cardPrice }))
-        });
-      }
+  const addHaveCard = (cardName = null) => {
+    const cardToAdd = cardName || haveInput;
+    if (cardToAdd && !haveList.some(item => item.name === cardToAdd)){
+      const cardGroup = getCardGroup(cardToAdd);
       
       if (cardGroup && cardGroup.editions.length > 0) {
         // Use the first edition as default
         const defaultEdition = cardGroup.editions[0];
         
         const newCard = {
-          name: haveInput, 
+          name: cardToAdd, 
           price: defaultEdition.cardPrice,
           cardGroup: cardGroup,
           availableEditions: cardGroup.editions,
           quantity: 1 // Add default quantity
         };
-        
-        // Debug: Log the new card object
-        if (haveInput === 'Arknight Shard') {
-          console.log('New card object:', newCard);
-          console.log('All editions with prices:', cardGroup.editions.map(e => ({
-            name: e.subTypeName,
-            cardPrice: e.cardPrice,
-            lowPrice: e.lowPrice
-          })));
-        }
         
         setHaveList([...haveList, newCard]);
         setHaveInput("");
@@ -74,14 +56,15 @@ function App() {
     }
   };
 
-  const addWantCard = () => {
-    if (wantInput && !wantList.some(item => item.name === wantInput)) {
-      const cardGroup = getCardGroup(wantInput);
+  const addWantCard = (cardName = null) => {
+    const cardToAdd = cardName || wantInput;
+    if (cardToAdd && !wantList.some(item => item.name === cardToAdd)) {
+      const cardGroup = getCardGroup(cardToAdd);
       if (cardGroup && cardGroup.editions.length > 0) {
         // Use the first edition as default
         const defaultEdition = cardGroup.editions[0];
         setWantList([...wantList, { 
-          name: wantInput, 
+          name: cardToAdd, 
           price: defaultEdition.cardPrice,
           cardGroup: cardGroup,
           availableEditions: cardGroup.editions,
@@ -256,16 +239,13 @@ function App() {
           cardOptions={cardNames}
           inputValue={haveInput}
           onInputChange={(event, newValue) => {
-            // Handle both onChange and onInputChange events
-            if (newValue !== null && newValue !== undefined) {
-              setHaveInput(newValue);
-            }
+            // Handle typing in the input field
+            setHaveInput(newValue || "");
           }}
           onAddCard={addHaveCard}
           onRemoveCard={removeHaveCard}
           onUpdateQuantity={updateHaveCardQuantity}
           isMobile={isMobile}
-          buttonColor="#1976d2"
           totalColor="primary"
           disabled={!dataReady} // Disable until data is ready
         />
@@ -378,16 +358,13 @@ function App() {
           cardOptions={cardNames}
           inputValue={wantInput}
           onInputChange={(event, newValue) => {
-            // Handle both onChange and onInputChange events
-            if (newValue !== null && newValue !== undefined) {
-              setWantInput(newValue);
-            }
+            // Handle typing in the input field
+            setWantInput(newValue || "");
           }}
           onAddCard={addWantCard}
           onRemoveCard={removeWantCard}
           onUpdateQuantity={updateWantCardQuantity}
           isMobile={isMobile}
-          buttonColor="#2e7d32"
           totalColor="success"
           disabled={!dataReady} // Disable until data is ready
         />
