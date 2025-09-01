@@ -180,7 +180,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
             }}>
               {/* Price Chip */}
               <Chip
-                label={`$${card.price.toFixed(2)}`}
+                label={`$${(card.price || 0).toFixed(2)}`}
                 color="primary"
                 size="small"
                 sx={{
@@ -196,6 +196,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                   onRemoveCard(index);
                 }}
                 size="small"
+                aria-label={`Delete ${card.name || 'card'}`}
                 sx={{
                   color: 'error.main',
                   p: 0.5,
