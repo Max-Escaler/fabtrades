@@ -41,7 +41,13 @@ const CardList = ({
       flexGrow: 1,
       overflow: 'auto',
       maxHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '500px' },
-      width: '98%'
+      width: '100%',
+      p: 0,
+      m: 0,
+      '& .MuiListItem-root': {
+        width: '100%',
+        maxWidth: '100%'
+      }
     }}>
       {cards.map((card, index) => (
         <ListItem
@@ -57,7 +63,7 @@ const CardList = ({
             p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
             position: 'relative',
             cursor: 'pointer',
-            width: '98%',
+            width: '100%',
             '&:hover': {
               backgroundColor: '#f5f5f5',
               borderColor: '#d0d0d0',
@@ -82,33 +88,36 @@ const CardList = ({
           }}
         >
           {/* Main Card Info Row */}
-          <Box sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            width: '98%',
-            gap: 1
-          }}>
-            {/* Card Name and Edition Info */}
-            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 0.5
-              }}>
+                       <Box sx={{
+               display: 'flex',
+               justifyContent: 'space-between',
+               alignItems: 'flex-start',
+               width: '100%',
+               gap: 1,
+               minWidth: 0
+             }}>
+                         {/* Card Name and Edition Info */}
+             <Box sx={{ flexGrow: 1, minWidth: 0, width: '100%' }}>
+                             <Box sx={{
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: 1,
+                 mb: 0.5,
+                 width: '100%'
+               }}>
                 {/* Quantity Dropdown */}
-                <FormControl
-                  size="small"
-                  sx={{
-                    minWidth: { xs: 50, sm: 55, md: 60, lg: 65, xl: 70 },
-                    '& .MuiOutlinedInput-root': {
-                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem', lg: '0.85rem', xl: '0.9rem' },
-                      height: { xs: 26, sm: 28, md: 30, lg: 32, xl: 34 }
-                    }
-                  }}
-                  onClick={(event) => event.stopPropagation()}
-                >
+                                 <FormControl
+                   size="small"
+                   sx={{
+                     minWidth: { xs: 50, sm: 55, md: 60, lg: 65, xl: 70 },
+                     flexShrink: 0,
+                     '& .MuiOutlinedInput-root': {
+                       fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem', lg: '0.85rem', xl: '0.9rem' },
+                       height: { xs: 26, sm: 28, md: 30, lg: 32, xl: 34 }
+                     }
+                   }}
+                   onClick={(event) => event.stopPropagation()}
+                 >
                   <Select
                     value={card.quantity || 1}
                     onChange={(e) => handleQuantityChange(index, e.target.value)}
@@ -130,28 +139,32 @@ const CardList = ({
                   </Select>
                 </FormControl>
 
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.95rem', lg: '1rem', xl: '1.125rem' },
-                    fontWeight: 'medium',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {card.name}
-                </Typography>
+                                 <Typography
+                   variant="body2"
+                   sx={{
+                     fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.95rem', lg: '1rem', xl: '1.125rem' },
+                     fontWeight: 'medium',
+                     overflow: 'hidden',
+                     textOverflow: 'ellipsis',
+                     whiteSpace: 'nowrap',
+                     flex: 1,
+                     minWidth: 0,
+                     maxWidth: '100%'
+                   }}
+                 >
+                   {card.name}
+                 </Typography>
               </Box>
             </Box>
 
-            {/* Price and Delete Button */}
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              flexShrink: 0
-            }}>
+                         {/* Price and Delete Button */}
+             <Box sx={{
+               display: 'flex',
+               alignItems: 'center',
+               gap: 1,
+               flexShrink: 0,
+               minWidth: 'fit-content'
+             }}>
               {/* Price Chip */}
               <Chip
                 label={`$${(card.price || 0).toFixed(2)}`}
@@ -188,15 +201,15 @@ const CardList = ({
         </ListItem>
       ))}
       
-      {/* Search Input at End of List */}
-      <ListItem sx={{ 
-        border: '1px solid #e0e0e0',
-        borderRadius: 1,
-        mb: 0.75,
-        backgroundColor: '#ffffff',
-        p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
-        width: '98%'
-      }}>
+             {/* Search Input at End of List */}
+       <ListItem sx={{ 
+         border: '1px solid #e0e0e0',
+         borderRadius: 1,
+         mb: 0.75,
+         backgroundColor: '#ffffff',
+         p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
+         width: '100%'
+       }}>
         <Autocomplete
           freeSolo
           options={cardOptions || []}

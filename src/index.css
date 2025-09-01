@@ -29,8 +29,8 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  width: 98%;
-  max-width: 98vw;
+  width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
 }
 
@@ -72,7 +72,7 @@ button:focus-visible {
 }
 
 #root {
-  width: 98%;
-  max-width: 98vw;
+  width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
 }

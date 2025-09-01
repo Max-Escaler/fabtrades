@@ -18,34 +18,35 @@ const CardPanel = ({
   disabled = false
 }) => {
   return (
-    <Paper 
-      elevation={1}
-      sx={{ 
-        flex: 1,
-        width: '98%',
-        maxWidth: '98%',
-        minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
-        p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        borderRadius: 0,
-        border: '1px solid #e0e0e0',
-        borderTop: '1px solid #e0e0e0',
-        '&:hover': {
-          backgroundColor: '#fafafa',
-          elevation: 2
-        }
-      }}
-    >
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
-        transition: 'all 0.3s ease',
-        width: '100%'
-      }}>
+         <Paper 
+       elevation={1}
+       sx={{ 
+         flex: 1,
+         width: '100%',
+         maxWidth: '100%',
+         minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
+         p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+         display: 'flex',
+         flexDirection: 'column',
+         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+         borderRadius: 0,
+         border: '1px solid #e0e0e0',
+         borderTop: '1px solid #e0e0e0',
+         boxSizing: 'border-box',
+         '&:hover': {
+           backgroundColor: '#fafafa',
+           elevation: 2
+         }
+       }}
+     >
+             <Box sx={{ 
+         display: 'flex', 
+         justifyContent: 'space-between', 
+         alignItems: 'center', 
+         mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+         transition: 'all 0.3s ease',
+         width: '100%'
+       }}>
         <Typography 
           variant="h6" 
           sx={{ 

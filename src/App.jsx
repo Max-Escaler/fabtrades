@@ -147,24 +147,24 @@ function App() {
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100vh',
-      minHeight: '100vh',
-      width: '98%'
-    }}>
+         <Box sx={{ 
+       display: 'flex', 
+       flexDirection: 'column', 
+       height: '100vh',
+       minHeight: '100vh',
+       width: '100%'
+     }}>
       {/* Header */}
-      <AppBar position="static" sx={{ 
-        backgroundColor: '#000000',
-        flexShrink: 0,
-        width: '98%'
-      }}>
-        <Toolbar sx={{ 
-          px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
-          py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-          width: '98%'
-        }}>
+             <AppBar position="static" sx={{ 
+         backgroundColor: '#000000',
+         flexShrink: 0,
+         width: '100%'
+       }}>
+                 <Toolbar sx={{ 
+           px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
+           py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+           width: '100%'
+         }}>
           <Typography 
             variant="h4" 
             component="div" 
@@ -219,19 +219,19 @@ function App() {
 
 
       {/* Main Content */}
-      <Box sx={{ 
-        display: 'flex', 
-        flexGrow: 1, 
-        p: 0,
-        flexDirection: 'column',
-        gap: 0,
-        transition: 'all 0.3s ease-in-out',
-        minHeight: 0, // Important for flexbox to work properly
-        alignItems: 'stretch',
-        width: '98%',
-        maxWidth: '98vw',
-        height: '100%'
-      }}>
+             <Box sx={{ 
+         display: 'flex', 
+         flexGrow: 1, 
+         p: 0,
+         flexDirection: 'column',
+         gap: 0,
+         transition: 'all 0.3s ease-in-out',
+         minHeight: 0, // Important for flexbox to work properly
+         alignItems: 'stretch',
+         width: '100%',
+         maxWidth: '100vw',
+         height: '100%'
+       }}>
         {/* Top Panel - Cards I Have */}
         <CardPanel
           title="Cards I Have"
@@ -251,25 +251,29 @@ function App() {
         />
 
         {/* Trade Summary Section - Middle */}
-        {(haveList.length > 0 || wantList.length > 0) && (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: 0,
-            p: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
-            backgroundColor: '#f8f9fa',
-            borderTop: '1px solid #e9ecef',
-            borderBottom: '1px solid #e9ecef',
-            width: '98%'
-          }}>
+                 {(haveList.length > 0 || wantList.length > 0) && (
+           <Box sx={{ 
+             display: 'flex', 
+             flexDirection: 'column',
+             gap: 0,
+             p: 0,
+             backgroundColor: '#f8f9fa',
+             borderTop: '1px solid #e9ecef',
+             borderBottom: '1px solid #e9ecef',
+             width: '100%',
+             boxSizing: 'border-box'
+           }}>
             {/* My Cards Summary */}
             <Box sx={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              justifyContent: 'center', 
               alignItems: 'center',
+              gap: 2,
               px: { xs: 0.5, sm: 0.75, md: 1, lg: 1.25, xl: 1.5 },
               py: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
-              width: '100%'
+              width: '100%',
+              boxSizing: 'border-box',
+              minWidth: 0
             }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'medium', 
@@ -284,7 +288,9 @@ function App() {
                 variant="filled"
                 sx={{ 
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' }
+                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' },
+                  flexShrink: 0,
+                  minWidth: 'fit-content'
                 }}
               />
             </Box>
@@ -292,14 +298,17 @@ function App() {
             {/* Trade Differential */}
             <Box sx={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              justifyContent: 'center', 
               alignItems: 'center',
+              gap: 2,
               px: { xs: 0.5},
               py: { xs: 0.25},
               backgroundColor: 'white',
               borderTop: '1px solid #dee2e6',
               borderBottom: '1px solid #dee2e6',
-              width: '100%'
+              width: '100%',
+              boxSizing: 'border-box',
+              minWidth: 0
             }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'bold', 
@@ -316,8 +325,9 @@ function App() {
                   px: { xs: 0.1},
                   py: { xs: 0.25},
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.7rem'}
-                 
+                  fontSize: { xs: '0.7rem'},
+                  flexShrink: 0,
+                  minWidth: 'fit-content'
                 }}
               />
             </Box>
@@ -325,11 +335,14 @@ function App() {
             {/* Their Cards Summary */}
             <Box sx={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              justifyContent: 'center', 
               alignItems: 'center',
+              gap: 2,
               px: { xs: 0.5, sm: 0.75, md: 1, lg: 1.25, xl: 1.5 },
               py: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
-              width: '100%'
+              width: '100%',
+              boxSizing: 'border-box',
+              minWidth: 0
             }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'medium', 
@@ -344,7 +357,9 @@ function App() {
                 variant="filled"
                 sx={{ 
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' }
+                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' },
+                  flexShrink: 0,
+                  minWidth: 'fit-content'
                 }}
               />
             </Box>
