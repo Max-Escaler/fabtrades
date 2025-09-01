@@ -251,7 +251,7 @@ function App() {
         />
 
         {/* Trade Summary Section - Middle */}
-                 {(haveList.length > 0 || wantList.length > 0) && (
+                 {(haveList.length >= 0 || wantList.length >= 0) && (
            <Box sx={{ 
              display: 'flex', 
              flexDirection: 'column',
