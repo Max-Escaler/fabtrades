@@ -301,7 +301,7 @@ function App() {
             display: 'flex', 
             flexDirection: 'column',
             gap: 0,
-            p: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+            p: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
             backgroundColor: '#f8f9fa',
             borderTop: '1px solid #e9ecef',
             borderBottom: '1px solid #e9ecef',
@@ -312,14 +312,14 @@ function App() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              px: { xs: 0.5, sm: 0.75, md: 1, lg: 1.25, xl: 1.5 },
+              py: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
               width: '100%'
             }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'medium', 
                 color: 'black',
-                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
               }}>
                 My {haveList.length} cards
               </Typography>
@@ -329,7 +329,7 @@ function App() {
                 variant="filled"
                 sx={{ 
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
+                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' }
                 }}
               />
             </Box>
@@ -339,8 +339,8 @@ function App() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              px: { xs: 0.5},
+              py: { xs: 0.25},
               backgroundColor: 'white',
               borderTop: '1px solid #dee2e6',
               borderBottom: '1px solid #dee2e6',
@@ -349,7 +349,7 @@ function App() {
               <Typography variant="h6" sx={{ 
                 fontWeight: 'bold', 
                 color: 'black',
-                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+                fontSize: { xs: '0.8rem' }
               }}>
                 Trade Differential
               </Typography>
@@ -358,8 +358,11 @@ function App() {
                 color={diff > 0 ? 'primary' : diff < 0 ? 'success' : 'default'}
                 variant="filled"
                 sx={{ 
+                  px: { xs: 0.1},
+                  py: { xs: 0.25},
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+                  fontSize: { xs: '0.7rem'}
+                 
                 }}
               />
             </Box>
@@ -369,14 +372,14 @@ function App() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              px: { xs: 0.5, sm: 0.75, md: 1, lg: 1.25, xl: 1.5 },
+              py: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
               width: '100%'
             }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'medium', 
                 color: 'black',
-                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
               }}>
                 Their {wantList.length} cards
               </Typography>
@@ -386,7 +389,7 @@ function App() {
                 variant="filled"
                 sx={{ 
                   fontWeight: 'bold',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
+                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' }
                 }}
               />
             </Box>
