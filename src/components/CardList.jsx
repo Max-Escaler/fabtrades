@@ -53,7 +53,8 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
     <List sx={{
       flexGrow: 1,
       overflow: 'auto',
-      maxHeight: { xs: '300px', sm: '350px', md: '400px', lg: '500px', xl: '600px' }
+      maxHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '500px' },
+      width: '100%'
     }}>
       {cards.map((card, index) => (
         <ListItem
@@ -61,14 +62,15 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
           sx={{
             border: '1px solid #e0e0e0',
             borderRadius: 1,
-            mb: 1,
+            mb: 0.75,
             backgroundColor: '#fafafa',
             flexDirection: 'column',
             alignItems: 'stretch',
             gap: 0.5,
-            p: { xs: 1, sm: 1.25, md: 1.5 },
+            p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
             position: 'relative',
             cursor: 'pointer',
+            width: '100%',
             '&:hover': {
               backgroundColor: '#f5f5f5',
               borderColor: '#d0d0d0',
@@ -113,10 +115,10 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 <FormControl
                   size="small"
                   sx={{
-                    minWidth: 60,
+                    minWidth: { xs: 50, sm: 55, md: 60, lg: 65, xl: 70 },
                     '& .MuiOutlinedInput-root': {
-                      fontSize: '0.75rem',
-                      height: 28
+                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem', lg: '0.85rem', xl: '0.9rem' },
+                      height: { xs: 26, sm: 28, md: 30, lg: 32, xl: 34 }
                     }
                   }}
                   onClick={(event) => event.stopPropagation()}
@@ -125,15 +127,17 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                     value={card.quantity || 1}
                     onChange={(e) => handleQuantityChange(index, e.target.value)}
                     sx={{
-                      fontSize: '0.75rem',
+                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem', lg: '0.85rem', xl: '0.9rem' },
                       '& .MuiSelect-select': {
-                        py: 0.5,
-                        px: 1
+                        py: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
+                        px: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 }
                       }
                     }}
                   >
                     {quantityOptions.map((qty) => (
-                      <MenuItem key={qty} value={qty} sx={{ fontSize: '0.75rem' }}>
+                      <MenuItem key={qty} value={qty} sx={{ 
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem', lg: '0.85rem', xl: '0.9rem' }
+                      }}>
                         {qty}
                       </MenuItem>
                     ))}
@@ -143,7 +147,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 <Typography
                   variant="body2"
                   sx={{
-                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.95rem', lg: '1rem', xl: '1.125rem' },
                     fontWeight: 'medium',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -157,7 +161,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 <Typography
                   variant="caption"
                   sx={{
-                    fontSize: '0.7rem',
+                    fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.7rem', lg: '0.75rem', xl: '0.8rem' },
                     color: 'text.secondary',
                     display: 'flex',
                     alignItems: 'center',
@@ -165,7 +169,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                     flexShrink: 0
                   }}
                 >
-                  <EditIcon sx={{ fontSize: '0.7rem' }} />
+                  <EditIcon sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.7rem', lg: '0.75rem', xl: '0.8rem' } }} />
                   {card.selectedEdition || 'No edition'}
                 </Typography>
               </Box>
@@ -184,7 +188,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 color="primary"
                 size="small"
                 sx={{
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem', lg: '0.8rem', xl: '0.875rem' },
                   minWidth: 'fit-content'
                 }}
               />
@@ -199,7 +203,7 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
                 aria-label={`Delete ${card.name || 'card'}`}
                 sx={{
                   color: 'error.main',
-                  p: 0.5,
+                  p: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1, xl: 1.25 },
                   '&:hover': {
                     backgroundColor: 'rgba(244, 67, 54, 0.1)'
                   }
@@ -235,24 +239,30 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMo
         }}
       >
         <FormControl fullWidth>
-          <InputLabel sx={{ fontSize: '0.875rem' }}>
+          <InputLabel sx={{ 
+            fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
+          }}>
             Select Edition
           </InputLabel>
           <Select
             value=""
             label="Select Edition"
             onChange={(e) => handleEditionChange(e.target.value)}
-            sx={{ fontSize: '0.875rem' }}
+            sx={{ 
+              fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
+            }}
           >
-            {selectedCardIndex !== null && cards[selectedCardIndex]?.availableEditions?.map((edition) => (
-              <MenuItem
-                key={`${cards[selectedCardIndex].name}-${edition.subTypeName}-${edition.productId}`}
-                value={edition.subTypeName}
-                sx={{ fontSize: '0.875rem' }}
-              >
-                {edition.subTypeName}
-              </MenuItem>
-            ))}
+                          {selectedCardIndex !== null && cards[selectedCardIndex]?.availableEditions?.map((edition) => (
+                <MenuItem
+                  key={`${cards[selectedCardIndex].name}-${edition.subTypeName}-${edition.productId}`}
+                  value={edition.subTypeName}
+                  sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem', lg: '0.95rem', xl: '1rem' }
+                  }}
+                >
+                  {edition.subTypeName}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
       </Popover>

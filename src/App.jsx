@@ -198,11 +198,13 @@ function App() {
       {/* Header */}
       <AppBar position="static" sx={{ 
         backgroundColor: '#000000',
-        flexShrink: 0
+        flexShrink: 0,
+        width: '100%'
       }}>
         <Toolbar sx={{ 
           px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
-          py: { xs: 1, sm: 1.5, md: 2 }
+          py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+          width: '100%'
         }}>
           <Typography 
             variant="h4" 
@@ -210,7 +212,7 @@ function App() {
             sx={{ 
               flexGrow: 1, 
               fontWeight: 'bold',
-              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem', lg: '2.5rem', xl: '3rem' }
+              fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2rem', xl: '2.5rem' }
             }}
           >
             FAB Trades
@@ -267,7 +269,8 @@ function App() {
         transition: 'all 0.3s ease-in-out',
         minHeight: 0, // Important for flexbox to work properly
         alignItems: 'stretch',
-        width: { xs: 500, sm: 800, md: 1100, lg: 1300, xl: 2000 },
+        width: '100%',
+        maxWidth: '100vw',
         height: '100%'
       }}>
         {/* Top Panel - Cards I Have */}
@@ -298,27 +301,36 @@ function App() {
             display: 'flex', 
             flexDirection: 'column',
             gap: 0,
-            p: { xs: 1, sm: 1.5, md: 2 },
+            p: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
             backgroundColor: '#f8f9fa',
             borderTop: '1px solid #e9ecef',
-            borderBottom: '1px solid #e9ecef'
+            borderBottom: '1px solid #e9ecef',
+            width: '100%'
           }}>
             {/* My Cards Summary */}
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: 1,
-              py: 1
+              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              width: '100%'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'medium', color: 'black' }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 'medium', 
+                color: 'black',
+                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+              }}>
                 My {haveList.length} cards
               </Typography>
               <Chip
                 label={`$${haveTotal.toFixed(2)}`}
                 color="primary"
                 variant="filled"
-                sx={{ fontWeight: 'bold' }}
+                sx={{ 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
+                }}
               />
             </Box>
 
@@ -327,14 +339,19 @@ function App() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: 1,
-              py: 1,
+              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
               backgroundColor: 'white',
               borderTop: '1px solid #dee2e6',
-              borderBottom: '1px solid #dee2e6'
+              borderBottom: '1px solid #dee2e6',
+              width: '100%'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'black' }}>
-                Current Value
+              <Typography variant="h6" sx={{ 
+                fontWeight: 'bold', 
+                color: 'black',
+                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+              }}>
+                Trade Differential
               </Typography>
               <Chip
                 label={diff > 0 ? `+$${diff.toFixed(2)}` : `$${diff.toFixed(2)}`}
@@ -342,7 +359,7 @@ function App() {
                 variant="filled"
                 sx={{ 
                   fontWeight: 'bold',
-                  fontSize: '1.1rem'
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
                 }}
               />
             </Box>
@@ -352,17 +369,25 @@ function App() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              px: 1,
-              py: 1
+              px: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
+              width: '100%'
             }}>
-              <Typography variant="h6" sx={{ fontWeight: 'medium', color: 'black' }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 'medium', 
+                color: 'black',
+                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem', lg: '1.25rem', xl: '1.375rem' }
+              }}>
                 Their {wantList.length} cards
               </Typography>
               <Chip
                 label={`$${wantTotal.toFixed(2)}`}
                 color="success"
                 variant="filled"
-                sx={{ fontWeight: 'bold' }}
+                sx={{ 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem', xl: '1.25rem' }
+                }}
               />
             </Box>
           </Box>

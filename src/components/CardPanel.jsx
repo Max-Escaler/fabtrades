@@ -26,8 +26,9 @@ const CardPanel = ({
       sx={{ 
         flex: 1,
         width: '100%',
-        minHeight: { xs: '300px', sm: '350px', md: '400px', lg: '450px', xl: '500px' },
-        p: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 },
+        maxWidth: '100%',
+        minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
+        p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -44,24 +45,25 @@ const CardPanel = ({
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        mb: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 },
-        transition: 'all 0.3s ease'
+        mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+        transition: 'all 0.3s ease',
+        width: '100%'
       }}>
         <Typography 
           variant="h6" 
           sx={{ 
-            fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.375rem', lg: '1.5rem', xl: '1.75rem' },
+            fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem', lg: '1.375rem', xl: '1.5rem' },
             transition: 'font-size 0.3s ease'
           }}
         >
           {title}
         </Typography>
         <Chip 
-          label={`Total: $${cards.reduce((sum, item) => sum + item.price, 0).toFixed(2)}`}
+          label={`Total: $${cards.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0).toFixed(2)}`}
           color={totalColor}
           size="small"
           sx={{ 
-            fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem', lg: '1.125rem' },
+            fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' },
             transition: 'all 0.3s ease'
           }}
         />
@@ -69,15 +71,16 @@ const CardPanel = ({
       
       {/* Autocomplete Input */}
       <Box sx={{ 
-        mb: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 }, 
-        transition: 'all 0.3s ease' 
+        mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 }, 
+        transition: 'all 0.3s ease',
+        width: '100%'
       }}>
         <Autocomplete
           freeSolo
           options={cardOptions}
           sx={{ 
             width: '100%', 
-            mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5 },
+            mb: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
             transition: 'all 0.3s ease'
           }}
           renderInput={(params) => <TextField {...params} label="Search Cards" disabled={disabled} />}
