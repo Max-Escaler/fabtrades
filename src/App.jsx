@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useCardData } from './inputs/cardDataProvider.jsx';
 import { Box, AppBar, Toolbar, Typography, useTheme, useMediaQuery, CircularProgress, Chip, Alert } from '@mui/material';
 import CardPanel from './components/CardPanel';
+import { GoogleLogin } from '@react-oauth/google';
+
 
 function App() {
   const [haveInput, setHaveInput] = useState("");
@@ -176,6 +178,10 @@ function App() {
           >
             FAB Trades
           </Typography>
+          <GoogleLogin 
+          onSuccess={(credentialresponse) =>{console.log(credentialresponse)} } 
+          onError={() => console.log("Login Failed")}
+          />
         </Toolbar>
       </AppBar>
 
