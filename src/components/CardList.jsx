@@ -17,7 +17,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-const CardList = ({ cards, onRemoveCard, onUpdateEdition, isMobile }) => {
+const CardList = ({ cards, onRemoveCard, onUpdateEdition, onUpdateQuantity, isMobile }) => {
   const [editionAnchorEl, setEditionAnchorEl] = useState(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
 
@@ -38,7 +38,16 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, isMobile }) => {
     handleEditionClose();
   };
 
+  const handleQuantityChange = (cardIndex, newQuantity) => {
+    if (onUpdateQuantity) {
+      onUpdateQuantity(cardIndex, newQuantity);
+    }
+  };
+
   const open = Boolean(editionAnchorEl);
+
+  // Generate quantity options (1-20)
+  const quantityOptions = Array.from({ length: 20 }, (_, i) => i + 1);
 
   return (
     <List sx={{
@@ -100,6 +109,37 @@ const CardList = ({ cards, onRemoveCard, onUpdateEdition, isMobile }) => {
                 gap: 1,
                 mb: 0.5
               }}>
+                {/* Quantity Dropdown */}
+                <FormControl
+                  size="small"
+                  sx={{
+                    minWidth: 60,
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '0.75rem',
+                      height: 28
+                    }
+                  }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Select
+                    value={card.quantity || 1}
+                    onChange={(e) => handleQuantityChange(index, e.target.value)}
+                    sx={{
+                      fontSize: '0.75rem',
+                      '& .MuiSelect-select': {
+                        py: 0.5,
+                        px: 1
+                      }
+                    }}
+                  >
+                    {quantityOptions.map((qty) => (
+                      <MenuItem key={qty} value={qty} sx={{ fontSize: '0.75rem' }}>
+                        {qty}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 <Typography
                   variant="body2"
                   sx={{

@@ -14,6 +14,7 @@ const CardPanel = ({
   onAddCard, 
   onRemoveCard, 
   onUpdateEdition,
+  onUpdateQuantity,
   isMobile, 
   buttonColor = '#1976d2',
   totalColor = 'primary',
@@ -21,19 +22,21 @@ const CardPanel = ({
 }) => {
   return (
     <Paper 
-      elevation={3} 
+      elevation={1}
       sx={{ 
         flex: 1,
-        minWidth: { xs: '100%', sm: '280px', md: '320px', lg: '400px', xl: '500px' },
-        maxWidth: { xs: '100%', lg: 'none' },
-        minHeight: { xs: '300px', sm: '350px', md: '400px', lg: '500px', xl: '600px' },
+        width: '100%',
+        minHeight: { xs: '300px', sm: '350px', md: '400px', lg: '450px', xl: '500px' },
         p: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 4 },
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        borderRadius: 0,
+        border: '1px solid #e0e0e0',
+        borderTop: '1px solid #e0e0e0',
         '&:hover': {
-          elevation: 4,
-          transform: 'translateY(-2px)'
+          backgroundColor: '#fafafa',
+          elevation: 2
         }
       }}
     >
@@ -136,6 +139,7 @@ const CardPanel = ({
         cards={cards}
         onRemoveCard={onRemoveCard}
         onUpdateEdition={onUpdateEdition}
+        onUpdateQuantity={onUpdateQuantity}
         isMobile={isMobile}
       />
     </Paper>

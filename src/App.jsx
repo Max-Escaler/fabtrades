@@ -55,7 +55,8 @@ function App() {
           price: defaultEdition.cardPrice,
           selectedEdition: defaultEdition.subTypeName,
           cardGroup: cardGroup,
-          availableEditions: cardGroup.editions
+          availableEditions: cardGroup.editions,
+          quantity: 1 // Add default quantity
         };
         
         // Debug: Log the new card object
@@ -85,7 +86,8 @@ function App() {
           price: defaultEdition.cardPrice,
           selectedEdition: defaultEdition.subTypeName, // Use subTypeName instead of name
           cardGroup: cardGroup,
-          availableEditions: cardGroup.editions
+          availableEditions: cardGroup.editions,
+          quantity: 1 // Add default quantity
         }]);
         setWantInput("");
       }
@@ -124,13 +126,25 @@ function App() {
     }
   };
 
+  const updateHaveCardQuantity = (index, newQuantity) => {
+    const updatedList = [...haveList];
+    updatedList[index].quantity = newQuantity;
+    setHaveList(updatedList);
+  };
+
+  const updateWantCardQuantity = (index, newQuantity) => {
+    const updatedList = [...wantList];
+    updatedList[index].quantity = newQuantity;
+    setWantList(updatedList);
+  };
+
   const showHaveList = () => {
     console.log(haveList);
   }
 
   // Calculate total values
-  const haveTotal = haveList.reduce((sum, item) => sum + item.price, 0);
-  const wantTotal = wantList.reduce((sum, item) => sum + item.price, 0);
+  const haveTotal = haveList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const wantTotal = wantList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const diff = haveTotal - wantTotal;
 
@@ -241,41 +255,22 @@ function App() {
         </Box>
       )}
 
-      {/* Value Comparison Chip */}
-      {(haveList.length > 0 || wantList.length > 0) && (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          py: 2,
-          px: { xs: 1, sm: 2, md: 3 }
-        }}>
-          <Chip
-            label={valueComparison.text}
-            color={valueComparison.color}
-            variant="filled"
-            sx={{
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-              fontWeight: 'medium',
-              px: 2,
-              py: 1
-            }}
-          />
-        </Box>
-      )}
+
 
       {/* Main Content */}
       <Box sx={{ 
         display: 'flex', 
         flexGrow: 1, 
-        p: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 2, sm: 2.5, md: 3, lg: 4, xl: 5 },
+        p: 0,
+        flexDirection: 'column',
+        gap: 0,
         transition: 'all 0.3s ease-in-out',
         minHeight: 0, // Important for flexbox to work properly
-        alignItems: { xs: 'stretch', md: 'flex-start' },
+        alignItems: 'stretch',
+        width: { xs: 500, sm: 800, md: 1100, lg: 1300, xl: 2000 },
         height: '100%'
       }}>
-        {/* Left Panel */}
+        {/* Top Panel - Cards I Have */}
         <CardPanel
           title="Cards I Have"
           cards={haveList}
@@ -290,13 +285,90 @@ function App() {
           onAddCard={addHaveCard}
           onRemoveCard={removeHaveCard}
           onUpdateEdition={updateHaveCardEdition}
+          onUpdateQuantity={updateHaveCardQuantity}
           isMobile={isMobile}
           buttonColor="#1976d2"
           totalColor="primary"
           disabled={!dataReady} // Disable until data is ready
         />
 
-        {/* Right Panel */}
+        {/* Trade Summary Section - Middle */}
+        {(haveList.length > 0 || wantList.length > 0) && (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 0,
+            p: { xs: 1, sm: 1.5, md: 2 },
+            backgroundColor: '#f8f9fa',
+            borderTop: '1px solid #e9ecef',
+            borderBottom: '1px solid #e9ecef'
+          }}>
+            {/* My Cards Summary */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              px: 1,
+              py: 1
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                My {haveList.length} cards
+              </Typography>
+              <Chip
+                label={`$${haveTotal.toFixed(2)}`}
+                color="primary"
+                variant="filled"
+                sx={{ fontWeight: 'bold' }}
+              />
+            </Box>
+
+            {/* Trade Differential */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              px: 1,
+              py: 1,
+              backgroundColor: 'white',
+              borderTop: '1px solid #dee2e6',
+              borderBottom: '1px solid #dee2e6'
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Current Value
+              </Typography>
+              <Chip
+                label={diff > 0 ? `+$${diff.toFixed(2)}` : `$${diff.toFixed(2)}`}
+                color={diff > 0 ? 'primary' : diff < 0 ? 'success' : 'default'}
+                variant="filled"
+                sx={{ 
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem'
+                }}
+              />
+            </Box>
+
+            {/* Their Cards Summary */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              px: 1,
+              py: 1
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                Their {wantList.length} cards
+              </Typography>
+              <Chip
+                label={`$${wantTotal.toFixed(2)}`}
+                color="success"
+                variant="filled"
+                sx={{ fontWeight: 'bold' }}
+              />
+            </Box>
+          </Box>
+        )}
+
+        {/* Bottom Panel - Cards I Want */}
         <CardPanel
           title="Cards I Want"
           cards={wantList}
@@ -311,6 +383,7 @@ function App() {
           onAddCard={addWantCard}
           onRemoveCard={removeWantCard}
           onUpdateEdition={updateWantCardEdition}
+          onUpdateQuantity={updateWantCardQuantity}
           isMobile={isMobile}
           buttonColor="#2e7d32"
           totalColor="success"
