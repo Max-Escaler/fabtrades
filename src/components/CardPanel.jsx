@@ -58,15 +58,6 @@ const CardPanel = ({
         >
           {title}
         </Typography>
-        <Chip 
-          label={`Total: $${cards.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0).toFixed(2)}`}
-          color={totalColor}
-          size="small"
-          sx={{ 
-            fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.125rem' },
-            transition: 'all 0.3s ease'
-          }}
-        />
       </Box>
       
       {/* Autocomplete Input */}
