@@ -1,10 +1,11 @@
-// CSV Downloader Utility
+// CSV Downloader Utility with Diffing Support
 import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
 import https from 'https';
 import http from 'http';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -15,6 +16,7 @@ const CSV_URLS_FILE = path.join(__dirname, '../../public/csv-urls.csv');
 const PRICE_GUIDE_DIR = path.join(__dirname, '../../public/price-guide');
 const MANIFEST_FILE = path.join(PRICE_GUIDE_DIR, 'manifest.json');
 const LAST_UPDATE_FILE = path.join(PRICE_GUIDE_DIR, 'last-update.json');
+const DIFF_CACHE_FILE = path.join(PRICE_GUIDE_DIR, 'diff-cache.json');
 
 // Ensure directories exist
 if (!fs.existsSync(PRICE_GUIDE_DIR)) {
@@ -31,6 +33,131 @@ function readCSVUrls() {
     console.error('Error reading CSV URLs file:', error);
     return [];
   }
+}
+
+// Load diff cache
+function loadDiffCache() {
+  try {
+    if (fs.existsSync(DIFF_CACHE_FILE)) {
+      return JSON.parse(fs.readFileSync(DIFF_CACHE_FILE, 'utf8'));
+    }
+  } catch (error) {
+    console.warn('Error loading diff cache, starting fresh');
+  }
+  return {};
+}
+
+// Save diff cache
+function saveDiffCache(cache) {
+  try {
+    fs.writeFileSync(DIFF_CACHE_FILE, JSON.stringify(cache, null, 2));
+  } catch (error) {
+    console.error('Error saving diff cache:', error);
+  }
+}
+
+// Get file hash (MD5)
+function getFileHash(filePath) {
+  try {
+    const content = fs.readFileSync(filePath);
+    return crypto.createHash('md5').update(content).digest('hex');
+  } catch (error) {
+    return null;
+  }
+}
+
+// Check if remote file has changed using HEAD request
+async function checkRemoteFileChanged(url, localFilePath, diffCache) {
+  return new Promise((resolve) => {
+    const protocol = url.startsWith('https:') ? https : http;
+    const urlObj = new URL(url);
+    
+    const options = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (url.startsWith('https:') ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: 'HEAD',
+      timeout: 10000
+    };
+
+    const request = protocol.request(options, (response) => {
+      const remoteInfo = {
+        lastModified: response.headers['last-modified'],
+        etag: response.headers['etag'],
+        contentLength: response.headers['content-length'],
+        statusCode: response.statusCode
+      };
+
+      // If file doesn't exist locally, it needs to be downloaded
+      if (!fs.existsSync(localFilePath)) {
+        resolve({ changed: true, reason: 'File does not exist locally' });
+        return;
+      }
+
+      const localHash = getFileHash(localFilePath);
+      const cacheKey = url;
+      const cachedInfo = diffCache[cacheKey];
+
+      // Check ETag first (most reliable)
+      if (remoteInfo.etag && cachedInfo?.etag) {
+        if (remoteInfo.etag !== cachedInfo.etag) {
+          resolve({ changed: true, reason: 'ETag changed', remoteInfo });
+          return;
+        }
+      }
+
+      // Check Last-Modified header
+      if (remoteInfo.lastModified && cachedInfo?.lastModified) {
+        const remoteDate = new Date(remoteInfo.lastModified);
+        const cachedDate = new Date(cachedInfo.lastModified);
+        if (remoteDate.getTime() > cachedDate.getTime()) {
+          resolve({ changed: true, reason: 'Last-Modified changed', remoteInfo });
+          return;
+        }
+      }
+
+      // Check content length as fallback
+      if (remoteInfo.contentLength && cachedInfo?.contentLength) {
+        const localStats = fs.statSync(localFilePath);
+        if (parseInt(remoteInfo.contentLength) !== parseInt(cachedInfo.contentLength) ||
+            parseInt(remoteInfo.contentLength) !== localStats.size) {
+          resolve({ changed: true, reason: 'Content length changed', remoteInfo });
+          return;
+        }
+      }
+
+      // If we have a cached hash, compare it
+      if (cachedInfo?.hash && localHash) {
+        if (cachedInfo.hash !== localHash) {
+          resolve({ changed: true, reason: 'Local file hash changed', remoteInfo });
+          return;
+        }
+      }
+
+      // Update cache with current info
+      diffCache[cacheKey] = {
+        ...remoteInfo,
+        hash: localHash,
+        lastChecked: new Date().toISOString()
+      };
+
+      resolve({ changed: false, reason: 'No changes detected', remoteInfo });
+    });
+
+    request.on('error', (error) => {
+      console.warn(`Error checking remote file ${url}:`, error.message);
+      // If we can't check, assume it needs to be downloaded
+      resolve({ changed: true, reason: 'Error checking remote file' });
+    });
+
+    request.on('timeout', () => {
+      request.destroy();
+      console.warn(`Timeout checking remote file ${url}`);
+      resolve({ changed: true, reason: 'Timeout checking remote file' });
+    });
+
+    request.end();
+  });
 }
 
 // Download a single CSV file
@@ -172,7 +299,7 @@ function updateLastUpdateTimestamp() {
   fs.writeFileSync(LAST_UPDATE_FILE, JSON.stringify(timestamp, null, 2));
 }
 
-// Download all CSVs
+// Download all CSVs with diffing
 async function downloadAllCSVs(force = false) {
   const urls = readCSVUrls();
   
@@ -187,7 +314,7 @@ async function downloadAllCSVs(force = false) {
     return;
   }
 
-  console.log(`Starting download of ${urls.length} CSV files...`);
+  console.log(`Starting diff-based download of ${urls.length} CSV files...`);
   
   const manifest = {
     lastUpdated: new Date().toISOString(),
@@ -195,8 +322,11 @@ async function downloadAllCSVs(force = false) {
     files: []
   };
 
+  const diffCache = loadDiffCache();
   let successCount = 0;
   let errorCount = 0;
+  let skippedCount = 0;
+  let downloadedCount = 0;
 
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
@@ -205,7 +335,28 @@ async function downloadAllCSVs(force = false) {
     const tempPath = path.join(PRICE_GUIDE_DIR, `temp_${fileName}`);
 
     try {
-      console.log(`Downloading ${fileName} (${i + 1}/${urls.length})...`);
+      console.log(`Checking ${fileName} (${i + 1}/${urls.length})...`);
+      
+      // Check if file needs to be downloaded
+      const changeResult = await checkRemoteFileChanged(url, outputPath, diffCache);
+      
+      if (!changeResult.changed && !force) {
+        console.log(`⏭️  Skipped ${fileName} (${changeResult.reason})`);
+        skippedCount++;
+        
+        // Still add to manifest if file exists
+        if (fs.existsSync(outputPath)) {
+          manifest.files.push({
+            name: fileName,
+            url: url,
+            downloadedAt: new Date().toISOString(),
+            status: 'skipped'
+          });
+        }
+        continue;
+      }
+
+      console.log(`📥 Downloading ${fileName} (${changeResult.reason})...`);
       await downloadCSV(url, tempPath);
       
       // Clean the CSV (remove extDescription)
@@ -214,13 +365,23 @@ async function downloadAllCSVs(force = false) {
       // Remove temp file
       fs.unlinkSync(tempPath);
       
+      // Update cache with new file info
+      const newHash = getFileHash(outputPath);
+      diffCache[url] = {
+        ...diffCache[url],
+        hash: newHash,
+        lastDownloaded: new Date().toISOString()
+      };
+      
       manifest.files.push({
         name: fileName,
         url: url,
-        downloadedAt: new Date().toISOString()
+        downloadedAt: new Date().toISOString(),
+        status: 'downloaded'
       });
       
       successCount++;
+      downloadedCount++;
       console.log(`✓ Downloaded and cleaned ${fileName}`);
     } catch (error) {
       errorCount++;
@@ -233,21 +394,23 @@ async function downloadAllCSVs(force = false) {
     }
   }
 
-  // Save manifest
+  // Save manifest and cache
   fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
+  saveDiffCache(diffCache);
   
   // Update timestamp
   updateLastUpdateTimestamp();
 
   console.log(`\nDownload complete!`);
-  console.log(`✓ Successfully downloaded: ${successCount} files`);
+  console.log(`✓ Successfully downloaded: ${downloadedCount} files`);
+  console.log(`⏭️  Skipped (no changes): ${skippedCount} files`);
   console.log(`✗ Failed downloads: ${errorCount} files`);
   console.log(`📁 Files saved to: ${PRICE_GUIDE_DIR}`);
   console.log(`📋 Manifest saved to: ${MANIFEST_FILE}`);
   console.log(`🕒 Last updated: ${new Date().toLocaleString()}`);
 }
 
-// Check CSV status
+// Check CSV status with diff information
 function checkCSVStatus() {
   try {
     if (!fs.existsSync(MANIFEST_FILE)) {
@@ -257,11 +420,17 @@ function checkCSVStatus() {
 
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_FILE, 'utf8'));
     const lastUpdate = JSON.parse(fs.readFileSync(LAST_UPDATE_FILE, 'utf8'));
+    const diffCache = loadDiffCache();
     
     console.log('📊 CSV Data Status:');
     console.log(`📅 Last Updated: ${lastUpdate.date} at ${lastUpdate.time}`);
     console.log(`📁 Total Files: ${manifest.totalFiles}`);
-    console.log(`✅ Successfully Downloaded: ${manifest.files.length}`);
+    
+    const downloadedFiles = manifest.files.filter(f => f.status !== 'skipped').length;
+    const skippedFiles = manifest.files.filter(f => f.status === 'skipped').length;
+    
+    console.log(`✅ Downloaded Files: ${downloadedFiles}`);
+    console.log(`⏭️  Skipped Files: ${skippedFiles}`);
     
     const now = new Date();
     const lastUpdateTime = new Date(lastUpdate.timestamp);
@@ -272,6 +441,10 @@ function checkCSVStatus() {
     } else {
       console.log(`✅ Data is fresh (${Math.floor(hoursSinceUpdate)} hours old)`);
     }
+    
+    // Show diff cache stats
+    const cacheEntries = Object.keys(diffCache).length;
+    console.log(`🔍 Diff Cache Entries: ${cacheEntries}`);
     
   } catch (error) {
     console.error('Error checking CSV status:', error);
@@ -292,6 +465,20 @@ function readLocalCSV(fileName) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
+// Clear diff cache
+function clearDiffCache() {
+  try {
+    if (fs.existsSync(DIFF_CACHE_FILE)) {
+      fs.unlinkSync(DIFF_CACHE_FILE);
+      console.log('✅ Diff cache cleared');
+    } else {
+      console.log('ℹ️  No diff cache to clear');
+    }
+  } catch (error) {
+    console.error('Error clearing diff cache:', error);
+  }
+}
+
 export {
   readCSVUrls,
   downloadCSV,
@@ -300,5 +487,10 @@ export {
   getLocalCSVPath,
   readLocalCSV,
   shouldRefreshData,
-  updateLastUpdateTimestamp
+  updateLastUpdateTimestamp,
+  clearDiffCache,
+  loadDiffCache,
+  saveDiffCache,
+  checkRemoteFileChanged,
+  getFileHash
 };
