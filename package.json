@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "download-csvs": "node scripts/downloadCSVs.js",
     "download-csvs:force": "node scripts/downloadCSVs.js --force",
-    "csv-status": "node -e \"require('./src/utils/csvDownloader').checkCSVStatus()\"",
+    "csv-status": "node -e \"import('./src/utils/csvDownloader.js').then(m => m.checkCSVStatus())\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

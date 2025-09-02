@@ -1,13 +1,18 @@
 // CSV Downloader Utility
-const fs = require('fs');
-const path = require('path');
-const csv = require('csv-parser');
-const https = require('https');
-const http = require('http');
+import fs from 'fs';
+import path from 'path';
+import csv from 'csv-parser';
+import https from 'https';
+import http from 'http';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
-const CSV_URLS_FILE = 'public/csv-urls.csv';
-const PRICE_GUIDE_DIR = 'public/price-guide';
+const CSV_URLS_FILE = path.join(__dirname, '../../public/csv-urls.csv');
+const PRICE_GUIDE_DIR = path.join(__dirname, '../../public/price-guide');
 const MANIFEST_FILE = path.join(PRICE_GUIDE_DIR, 'manifest.json');
 const LAST_UPDATE_FILE = path.join(PRICE_GUIDE_DIR, 'last-update.json');
 
@@ -287,7 +292,7 @@ function readLocalCSV(fileName) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-module.exports = {
+export {
   readCSVUrls,
   downloadCSV,
   downloadAllCSVs,

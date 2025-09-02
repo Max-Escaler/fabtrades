@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // CSV Download Script
-const { downloadAllCSVs, checkCSVStatus } = require('../src/utils/csvDownloader');
+import { downloadAllCSVs, checkCSVStatus } from '../src/utils/csvDownloader.js';
 
 // Parse command line arguments
 const args = process.argv.slice(2);

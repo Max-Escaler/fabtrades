@@ -1,418 +1,416 @@
 {
-  "totalFiles": 82,
-  "successCount": 82,
-  "failureCount": 0,
-  "downloadDate": "2025-09-01T03:13:54.275Z",
+  "lastUpdated": "2025-09-02T14:16:03.131Z",
+  "totalFiles": 83,
   "files": [
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2724/ProductsAndPrices.csv\r",
-      "localFile": "set_1.csv",
-      "index": 1
+      "name": "set_2.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2724/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:03.615Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2725/ProductsAndPrices.csv\r",
-      "localFile": "set_2.csv",
-      "index": 2
+      "name": "set_3.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2725/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:03.817Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2726/ProductsAndPrices.csv\r",
-      "localFile": "set_3.csv",
-      "index": 3
+      "name": "set_4.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2726/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:03.998Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2727/ProductsAndPrices.csv\r",
-      "localFile": "set_4.csv",
-      "index": 4
+      "name": "set_5.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2727/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.111Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2728/ProductsAndPrices.csv\r",
-      "localFile": "set_5.csv",
-      "index": 5
+      "name": "set_6.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2728/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.206Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2729/ProductsAndPrices.csv\r",
-      "localFile": "set_6.csv",
-      "index": 6
+      "name": "set_7.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2729/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.253Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2730/ProductsAndPrices.csv\r",
-      "localFile": "set_7.csv",
-      "index": 7
+      "name": "set_8.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2730/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.383Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2731/ProductsAndPrices.csv\r",
-      "localFile": "set_8.csv",
-      "index": 8
+      "name": "set_9.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2731/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.526Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2732/ProductsAndPrices.csv\r",
-      "localFile": "set_9.csv",
-      "index": 9
+      "name": "set_10.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2732/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.728Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2775/ProductsAndPrices.csv\r",
-      "localFile": "set_10.csv",
-      "index": 10
+      "name": "set_11.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2775/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.916Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2818/ProductsAndPrices.csv\r",
-      "localFile": "set_11.csv",
-      "index": 11
+      "name": "set_12.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2818/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:04.966Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2819/ProductsAndPrices.csv\r",
-      "localFile": "set_12.csv",
-      "index": 12
+      "name": "set_13.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2819/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.093Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2820/ProductsAndPrices.csv\r",
-      "localFile": "set_13.csv",
-      "index": 13
+      "name": "set_14.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2820/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.186Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2821/ProductsAndPrices.csv\r",
-      "localFile": "set_14.csv",
-      "index": 14
+      "name": "set_15.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2821/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.289Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2885/ProductsAndPrices.csv\r",
-      "localFile": "set_15.csv",
-      "index": 15
+      "name": "set_16.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2885/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.468Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/2947/ProductsAndPrices.csv\r",
-      "localFile": "set_16.csv",
-      "index": 16
+      "name": "set_17.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/2947/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.654Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3016/ProductsAndPrices.csv\r",
-      "localFile": "set_17.csv",
-      "index": 17
+      "name": "set_18.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3016/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.759Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3017/ProductsAndPrices.csv\r",
-      "localFile": "set_18.csv",
-      "index": 18
+      "name": "set_19.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3017/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.846Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3018/ProductsAndPrices.csv\r",
-      "localFile": "set_19.csv",
-      "index": 19
+      "name": "set_20.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3018/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:05.955Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3053/ProductsAndPrices.csv\r",
-      "localFile": "set_20.csv",
-      "index": 20
+      "name": "set_21.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3053/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.138Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3056/ProductsAndPrices.csv\r",
-      "localFile": "set_21.csv",
-      "index": 21
+      "name": "set_22.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3056/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.267Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3057/ProductsAndPrices.csv\r",
-      "localFile": "set_22.csv",
-      "index": 22
+      "name": "set_23.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3057/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.385Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3059/ProductsAndPrices.csv\r",
-      "localFile": "set_23.csv",
-      "index": 23
+      "name": "set_24.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3059/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.485Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/3060/ProductsAndPrices.csv\r",
-      "localFile": "set_24.csv",
-      "index": 24
+      "name": "set_25.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/3060/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.618Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/17678/ProductsAndPrices.csv\r",
-      "localFile": "set_25.csv",
-      "index": 25
+      "name": "set_26.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/17678/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.742Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22893/ProductsAndPrices.csv\r",
-      "localFile": "set_26.csv",
-      "index": 26
+      "name": "set_27.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22893/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:06.965Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22898/ProductsAndPrices.csv\r",
-      "localFile": "set_27.csv",
-      "index": 27
+      "name": "set_28.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22898/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.066Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22899/ProductsAndPrices.csv\r",
-      "localFile": "set_28.csv",
-      "index": 28
+      "name": "set_29.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22899/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.186Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22900/ProductsAndPrices.csv\r",
-      "localFile": "set_29.csv",
-      "index": 29
+      "name": "set_30.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22900/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.324Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22901/ProductsAndPrices.csv\r",
-      "localFile": "set_30.csv",
-      "index": 30
+      "name": "set_31.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22901/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.457Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22902/ProductsAndPrices.csv\r",
-      "localFile": "set_31.csv",
-      "index": 31
+      "name": "set_32.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22902/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.584Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/22903/ProductsAndPrices.csv\r",
-      "localFile": "set_32.csv",
-      "index": 32
+      "name": "set_33.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/22903/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.696Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23173/ProductsAndPrices.csv\r",
-      "localFile": "set_33.csv",
-      "index": 33
+      "name": "set_34.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23173/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:07.807Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23277/ProductsAndPrices.csv\r",
-      "localFile": "set_34.csv",
-      "index": 34
+      "name": "set_35.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23277/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.057Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23295/ProductsAndPrices.csv\r",
-      "localFile": "set_35.csv",
-      "index": 35
+      "name": "set_36.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23295/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.187Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23354/ProductsAndPrices.csv\r",
-      "localFile": "set_36.csv",
-      "index": 36
+      "name": "set_37.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23354/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.326Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23384/ProductsAndPrices.csv\r",
-      "localFile": "set_37.csv",
-      "index": 37
+      "name": "set_38.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23384/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.446Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23388/ProductsAndPrices.csv\r",
-      "localFile": "set_38.csv",
-      "index": 38
+      "name": "set_39.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23388/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.558Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23389/ProductsAndPrices.csv\r",
-      "localFile": "set_39.csv",
-      "index": 39
+      "name": "set_40.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23389/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.749Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23390/ProductsAndPrices.csv\r",
-      "localFile": "set_40.csv",
-      "index": 40
+      "name": "set_41.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23390/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.848Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23391/ProductsAndPrices.csv\r",
-      "localFile": "set_41.csv",
-      "index": 41
+      "name": "set_42.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23391/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:08.956Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23392/ProductsAndPrices.csv\r",
-      "localFile": "set_42.csv",
-      "index": 42
+      "name": "set_43.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23392/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.063Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23476/ProductsAndPrices.csv\r",
-      "localFile": "set_43.csv",
-      "index": 43
+      "name": "set_44.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23476/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.273Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23477/ProductsAndPrices.csv\r",
-      "localFile": "set_44.csv",
-      "index": 44
+      "name": "set_45.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23477/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.369Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23478/ProductsAndPrices.csv\r",
-      "localFile": "set_45.csv",
-      "index": 45
+      "name": "set_46.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23478/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.480Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23479/ProductsAndPrices.csv\r",
-      "localFile": "set_46.csv",
-      "index": 46
+      "name": "set_47.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23479/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.572Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23506/ProductsAndPrices.csv\r",
-      "localFile": "set_47.csv",
-      "index": 47
+      "name": "set_48.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23506/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.668Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23534/ProductsAndPrices.csv\r",
-      "localFile": "set_48.csv",
-      "index": 48
+      "name": "set_49.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23534/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:09.862Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23540/ProductsAndPrices.csv\r",
-      "localFile": "set_49.csv",
-      "index": 49
+      "name": "set_50.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23540/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.120Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23548/ProductsAndPrices.csv\r",
-      "localFile": "set_50.csv",
-      "index": 50
+      "name": "set_51.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23548/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.216Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23558/ProductsAndPrices.csv\r",
-      "localFile": "set_51.csv",
-      "index": 51
+      "name": "set_52.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23558/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.345Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23738/ProductsAndPrices.csv\r",
-      "localFile": "set_52.csv",
-      "index": 52
+      "name": "set_53.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23738/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.463Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23741/ProductsAndPrices.csv\r",
-      "localFile": "set_53.csv",
-      "index": 53
+      "name": "set_54.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23741/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.525Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23742/ProductsAndPrices.csv\r",
-      "localFile": "set_54.csv",
-      "index": 54
+      "name": "set_55.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23742/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.624Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23744/ProductsAndPrices.csv\r",
-      "localFile": "set_55.csv",
-      "index": 55
+      "name": "set_56.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23744/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.685Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23745/ProductsAndPrices.csv\r",
-      "localFile": "set_56.csv",
-      "index": 56
+      "name": "set_57.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23745/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.739Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23760/ProductsAndPrices.csv\r",
-      "localFile": "set_57.csv",
-      "index": 57
+      "name": "set_58.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23760/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.817Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23761/ProductsAndPrices.csv\r",
-      "localFile": "set_58.csv",
-      "index": 58
+      "name": "set_59.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23761/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:10.956Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23762/ProductsAndPrices.csv\r",
-      "localFile": "set_59.csv",
-      "index": 59
+      "name": "set_60.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23762/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.061Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23763/ProductsAndPrices.csv\r",
-      "localFile": "set_60.csv",
-      "index": 60
+      "name": "set_61.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23763/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.287Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23764/ProductsAndPrices.csv\r",
-      "localFile": "set_61.csv",
-      "index": 61
+      "name": "set_62.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23764/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.401Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23765/ProductsAndPrices.csv\r",
-      "localFile": "set_62.csv",
-      "index": 62
+      "name": "set_63.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23765/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.520Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23771/ProductsAndPrices.csv\r",
-      "localFile": "set_63.csv",
-      "index": 63
+      "name": "set_64.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23771/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.578Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/23815/ProductsAndPrices.csv\r",
-      "localFile": "set_64.csv",
-      "index": 64
+      "name": "set_65.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/23815/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.713Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24162/ProductsAndPrices.csv\r",
-      "localFile": "set_65.csv",
-      "index": 65
+      "name": "set_66.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24162/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.780Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24176/ProductsAndPrices.csv\r",
-      "localFile": "set_66.csv",
-      "index": 66
+      "name": "set_67.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24176/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.850Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24212/ProductsAndPrices.csv\r",
-      "localFile": "set_67.csv",
-      "index": 67
+      "name": "set_68.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24212/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:11.954Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24213/ProductsAndPrices.csv\r",
-      "localFile": "set_68.csv",
-      "index": 68
+      "name": "set_69.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24213/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.042Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24214/ProductsAndPrices.csv\r",
-      "localFile": "set_69.csv",
-      "index": 69
+      "name": "set_70.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24214/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.154Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24215/ProductsAndPrices.csv\r",
-      "localFile": "set_70.csv",
-      "index": 70
+      "name": "set_71.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24215/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.292Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24253/ProductsAndPrices.csv\r",
-      "localFile": "set_71.csv",
-      "index": 71
+      "name": "set_72.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24253/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.391Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24266/ProductsAndPrices.csv\r",
-      "localFile": "set_72.csv",
-      "index": 72
+      "name": "set_73.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24266/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.581Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24268/ProductsAndPrices.csv\r",
-      "localFile": "set_73.csv",
-      "index": 73
+      "name": "set_74.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24268/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.707Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24315/ProductsAndPrices.csv\r",
-      "localFile": "set_74.csv",
-      "index": 74
+      "name": "set_75.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24315/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.813Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24330/ProductsAndPrices.csv\r",
-      "localFile": "set_75.csv",
-      "index": 75
+      "name": "set_76.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24330/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:12.964Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24334/ProductsAndPrices.csv\r",
-      "localFile": "set_76.csv",
-      "index": 76
+      "name": "set_77.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24334/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.062Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24371/ProductsAndPrices.csv\r",
-      "localFile": "set_77.csv",
-      "index": 77
+      "name": "set_78.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24371/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.158Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24375/ProductsAndPrices.csv\r",
-      "localFile": "set_78.csv",
-      "index": 78
+      "name": "set_79.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24375/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.251Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24391/ProductsAndPrices.csv\r",
-      "localFile": "set_79.csv",
-      "index": 79
+      "name": "set_80.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24391/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.361Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24415/ProductsAndPrices.csv\r",
-      "localFile": "set_80.csv",
-      "index": 80
+      "name": "set_81.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24415/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.479Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24416/ProductsAndPrices.csv\r",
-      "localFile": "set_81.csv",
-      "index": 81
+      "name": "set_82.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24416/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.588Z"
     },
     {
-      "originalUrl": "https://tcgcsv.com/tcgplayer/62/24417/ProductsAndPrices.csv",
-      "localFile": "set_82.csv",
-      "index": 82
+      "name": "set_83.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24417/ProductsAndPrices.csv",
+      "downloadedAt": "2025-09-02T14:16:13.701Z"
     }
   ]
 }
