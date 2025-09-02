@@ -193,7 +193,7 @@ function App() {
               } 
             }}
           >
-            Loading card data in the background... You can start adding cards once data is ready.
+            Loading card data. Please wait.
           </Alert>
         </Box>
       )}
