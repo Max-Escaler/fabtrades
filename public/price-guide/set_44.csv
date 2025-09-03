@@ -1,6 +1,6 @@
-productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName,extRarity,extNumber,extCardType,extClass,extTalent,extIntellect,extLife,extCost,extPitchValue,extCardSubType,extPower,extDefenseValue,extFlavorText
-543922,Part the Mistveil Booster Pack,Part the Mistveil Booster Pack,https://tcgplayer-cdn.tcgplayer.com/product/543922_200w.jpg,62,23476,https://cpt.tcgcsv.com/sBm6,2024-05-31T14:25:21.65,1,2.99,4.17,7.18,3.82,,Normal,,,,,,,,,,,,,
-543923,Part the Mistveil Booster Box,Part the Mistveil Booster Box,https://tcgplayer-cdn.tcgplayer.com/product/543923_200w.jpg,62,23476,https://cpt.tcgcsv.com/tBm6,2024-06-04T11:48:40.867,1,73.5,87.92,149.99,74.8,,Normal,,,,,,,,,,,,,
+productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName,extRarity,extNumber,extCardType,extClass,extTalent,extIntellect,extLife,extCost,extPitchValue,extCardSubType,extPower,extDefenseValue
+543922,Part the Mistveil Booster Pack,Part the Mistveil Booster Pack,https://tcgplayer-cdn.tcgplayer.com/product/543922_200w.jpg,62,23476,https://cpt.tcgcsv.com/sBm6,2024-05-31T14:25:21.65,1,2.99,4.17,7.18,3.82,,Normal,,,,,,,,,,,,
+543923,Part the Mistveil Booster Box,Part the Mistveil Booster Box,https://tcgplayer-cdn.tcgplayer.com/product/543923_200w.jpg,62,23476,https://cpt.tcgcsv.com/tBm6,2024-06-04T11:48:40.867,1,73.5,87.92,149.99,74.8,,Normal,,,,,,,,,,,,
 543924,Part the Mistveil Collection Box,Part the Mistveil Collection Box,https://tcgplayer-cdn.tcgplayer.com/product/543924_200w.jpg,62,23476,https://cpt.tcgcsv.com/vBm6,2024-06-12T15:17:13.733,1
 beyond the veil.
 <br>Includes Enigma,Nuu,and Zen Blitz Decks,3 Part the Mistveil booster packs that can be used to customize the
@@ -19,22 +19,22 @@ Bringing people together in the Flesh and Blood!
 <br><strong>Instant —</strong> [3 - Chi]: Look at the top card of an opposing hero's deck. If it's blue,you may banish it. Until end of turn,you may play blue cards from that hero's banished zone without paying their [Resource] cost.,164.85,199.47,219.99,219.64,,Cold Foil,Marvel,MST001,Hero,Assassin,Mystic,4,40,,,,,,
 543929,Enigma, Ledger of Ancestry (Marvel),Enigma Ledger of Ancestry Marvel,https://tcgplayer-cdn.tcgplayer.com/product/543929_200w.jpg,62,23476,https://cpt.tcgcsv.com/CBm6,2024-05-31T14:25:21.65,2
 <br><strong>Once per Turn Instant —</strong> [3 - Chi]: Create a Spectral Shield token with a +1POWER counter.,43.19,54.0,145.04,60.94,,Cold Foil,Marvel,MST025,Hero,Illusionist,Mystic,4,40,,,,,,
-543930,Zen, Tamer of Purpose (Marvel),Zen Tamer of Purpose Marvel,https://tcgplayer-cdn.tcgplayer.com/product/543930_200w.jpg,62,23476,https://cpt.tcgcsv.com/DBm6,2024-08-30T11:53:06.433,2,65.0,68.2,150.0,62.1,,Cold Foil,Marvel,MST046,Hero,Ninja,Mystic,4,40,,,,,,
-545006,Part the Mistveil Booster Box Case,Part the Mistveil Booster Box Case,https://tcgplayer-cdn.tcgplayer.com/product/545006_200w.jpg,62,23476,https://cpt.tcgcsv.com/80n6,2024-08-14T17:09:28.053,1,300.0,351.68,449.99,310.93,,Normal,,,,,,,,,,,,,
+543930,Zen, Tamer of Purpose (Marvel),Zen Tamer of Purpose Marvel,https://tcgplayer-cdn.tcgplayer.com/product/543930_200w.jpg,62,23476,https://cpt.tcgcsv.com/DBm6,2024-08-30T11:53:06.433,2,65.0,68.2,150.0,62.1,,Cold Foil,Marvel,MST046,Hero,Ninja,Mystic,4,40,,,,,
+545006,Part the Mistveil Booster Box Case,Part the Mistveil Booster Box Case,https://tcgplayer-cdn.tcgplayer.com/product/545006_200w.jpg,62,23476,https://cpt.tcgcsv.com/80n6,2024-08-14T17:09:28.053,1,300.0,351.68,449.99,310.93,,Normal,,,,,,,,,,,,
 546695,Preserve Tradition // Inner Chi,Preserve Tradition Inner Chi,https://tcgplayer-cdn.tcgplayer.com/product/546695_200w.jpg,62,23476,https://cpt.tcgcsv.com/WHn6,2024-12-31T15:27:17.207,2
 <br>Put target action card from your graveyard on the bottom of your deck.
 <br>If you've played another blue card this turn,<strong>transcend</strong>. <em>(Put this into its owner's hand flipped.)</em>
 <br><br><strong>Inner Chi</strong>
 <br>([Chi] can pay for [Chi] or [Resource] costs.)
 <br>(Transcended from Preserve Tradition.)</em>,0.05,0.24,1.63,0.11,,Normal,Common,MST099,Instant,,Mystic,,,0,3,,,,
-546697,Spillover,Spillover,https://tcgplayer-cdn.tcgplayer.com/product/546697_200w.jpg,62,23476,https://cpt.tcgcsv.com/ZHn6,2024-06-03T14:39:33.653,1,0.04,0.25,0.75,,,Rainbow Foil,Common,MST089,Action,,Mystic,,,2,3,Attack,4,2,
-546697,Spillover,Spillover,https://tcgplayer-cdn.tcgplayer.com/product/546697_200w.jpg,62,23476,https://cpt.tcgcsv.com/ZHn6,2024-06-03T14:39:33.653,1,0.01,0.2,1.61,0.04,,Normal,Common,MST089,Action,,Mystic,,,2,3,Attack,4,2,
-546698,Tidal Surge,Tidal Surge,https://tcgplayer-cdn.tcgplayer.com/product/546698_200w.jpg,62,23476,https://cpt.tcgcsv.com/-Hn6,2024-06-03T14:40:30.873,1,0.01,0.2,1.58,0.04,,Normal,Common,MST090,Action,,Mystic,,,3,3,Attack,5,2,
-546698,Tidal Surge,Tidal Surge,https://tcgplayer-cdn.tcgplayer.com/product/546698_200w.jpg,62,23476,https://cpt.tcgcsv.com/-Hn6,2024-06-03T14:40:30.873,1,0.04,0.25,0.99,0.1,,Rainbow Foil,Common,MST090,Action,,Mystic,,,3,3,Attack,5,2,
-546700,Rising Tide,Rising Tide,https://tcgplayer-cdn.tcgplayer.com/product/546700_200w.jpg,62,23476,https://cpt.tcgcsv.com/0Jn6,2025-03-03T19:48:35.73,1,0.05,0.25,0.75,0.13,,Rainbow Foil,Common,MST088,Action,,Mystic,,,1,3,Attack,3,2,
-546700,Rising Tide,Rising Tide,https://tcgplayer-cdn.tcgplayer.com/product/546700_200w.jpg,62,23476,https://cpt.tcgcsv.com/0Jn6,2025-03-03T19:48:35.73,1,0.01,0.2,1.58,0.06,,Normal,Common,MST088,Action,,Mystic,,,1,3,Attack,3,2,
-546701,Droplet,Droplet,https://tcgplayer-cdn.tcgplayer.com/product/546701_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Jn6,2025-03-03T19:27:33.437,1,0.01,0.25,1.0,0.1,,Rainbow Foil,Common,MST087,Action,,Mystic,,,0,3,Attack,2,2,
-546701,Droplet,Droplet,https://tcgplayer-cdn.tcgplayer.com/product/546701_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Jn6,2025-03-03T19:27:33.437,1,0.01,0.2,1.58,0.08,,Normal,Common,MST087,Action,,Mystic,,,0,3,Attack,2,2,
+546697,Spillover,Spillover,https://tcgplayer-cdn.tcgplayer.com/product/546697_200w.jpg,62,23476,https://cpt.tcgcsv.com/ZHn6,2024-06-03T14:39:33.653,1,0.04,0.25,0.75,,,Rainbow Foil,Common,MST089,Action,,Mystic,,,2,3,Attack,4,2
+546697,Spillover,Spillover,https://tcgplayer-cdn.tcgplayer.com/product/546697_200w.jpg,62,23476,https://cpt.tcgcsv.com/ZHn6,2024-06-03T14:39:33.653,1,0.01,0.2,1.61,0.04,,Normal,Common,MST089,Action,,Mystic,,,2,3,Attack,4,2
+546698,Tidal Surge,Tidal Surge,https://tcgplayer-cdn.tcgplayer.com/product/546698_200w.jpg,62,23476,https://cpt.tcgcsv.com/-Hn6,2024-06-03T14:40:30.873,1,0.01,0.2,1.58,0.04,,Normal,Common,MST090,Action,,Mystic,,,3,3,Attack,5,2
+546698,Tidal Surge,Tidal Surge,https://tcgplayer-cdn.tcgplayer.com/product/546698_200w.jpg,62,23476,https://cpt.tcgcsv.com/-Hn6,2024-06-03T14:40:30.873,1,0.04,0.25,0.99,0.1,,Rainbow Foil,Common,MST090,Action,,Mystic,,,3,3,Attack,5,2
+546700,Rising Tide,Rising Tide,https://tcgplayer-cdn.tcgplayer.com/product/546700_200w.jpg,62,23476,https://cpt.tcgcsv.com/0Jn6,2025-03-03T19:48:35.73,1,0.05,0.25,0.75,0.13,,Rainbow Foil,Common,MST088,Action,,Mystic,,,1,3,Attack,3,2
+546700,Rising Tide,Rising Tide,https://tcgplayer-cdn.tcgplayer.com/product/546700_200w.jpg,62,23476,https://cpt.tcgcsv.com/0Jn6,2025-03-03T19:48:35.73,1,0.01,0.2,1.58,0.06,,Normal,Common,MST088,Action,,Mystic,,,1,3,Attack,3,2
+546701,Droplet,Droplet,https://tcgplayer-cdn.tcgplayer.com/product/546701_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Jn6,2025-03-03T19:27:33.437,1,0.01,0.25,1.0,0.1,,Rainbow Foil,Common,MST087,Action,,Mystic,,,0,3,Attack,2,2
+546701,Droplet,Droplet,https://tcgplayer-cdn.tcgplayer.com/product/546701_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Jn6,2025-03-03T19:27:33.437,1,0.01,0.2,1.58,0.08,,Normal,Common,MST087,Action,,Mystic,,,0,3,Attack,2,2
 546702,Sacred Art: Jade Tiger Domain (Marvel),Sacred Art Jade Tiger Domain Marvel,https://tcgplayer-cdn.tcgplayer.com/product/546702_200w.jpg,62,23476,https://cpt.tcgcsv.com/3Jn6,2024-05-31T14:25:21.65,1
 <br>If you've played another blue card this turn,choose 3. Otherwise,choose 1;
 <br>• Create 2 Crouching Tigers in your hand.
@@ -116,12 +116,12 @@ If you've played another blue card this turn,choose 3. Otherwise,choose 1;<br>
 Create a Fang Strike and Slither in your hand.<br>
 Banish up to 2 cards in an opposing hero's graveyard.<br>
 <strong>Transcend</strong>,0.42,2.25,15.15,1.37,,Normal,Majestic,MST010,Instant,Assassin,Mystic,,,3,3,,,,
-551463,Tide Chakra (Red),Tide Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551463_200w.jpg,62,23476,https://cpt.tcgcsv.com/hCq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.06,,Normal,Rare,MST011,Attack Reaction,Assassin,Mystic,,,1,1,,,3,
-551463,Tide Chakra (Red),Tide Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551463_200w.jpg,62,23476,https://cpt.tcgcsv.com/hCq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.8,0.12,,Rainbow Foil,Rare,MST011,Attack Reaction,Assassin,Mystic,,,1,1,,,3,
-551464,Tide Chakra (Yellow),Tide Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551464_200w.jpg,62,23476,https://cpt.tcgcsv.com/jCq6,2024-05-31T14:25:21.65,1,0.08,0.27,0.82,0.23,,Rainbow Foil,Rare,MST012,Attack Reaction,Assassin,Mystic,,,1,2,,,3,
-551464,Tide Chakra (Yellow),Tide Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551464_200w.jpg,62,23476,https://cpt.tcgcsv.com/jCq6,2024-05-31T14:25:21.65,1,0.02,0.23,1.6,0.11,,Normal,Rare,MST012,Attack Reaction,Assassin,Mystic,,,1,2,,,3,
-551465,Tide Chakra (Blue),Tide Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551465_200w.jpg,62,23476,https://cpt.tcgcsv.com/kCq6,2024-05-31T14:25:21.65,1,0.06,0.25,1.4,0.16,,Rainbow Foil,Rare,MST013,Attack Reaction,Assassin,Mystic,,,1,3,,,3,
-551465,Tide Chakra (Blue),Tide Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551465_200w.jpg,62,23476,https://cpt.tcgcsv.com/kCq6,2024-05-31T14:25:21.65,1,0.03,0.24,1.98,0.09,,Normal,Rare,MST013,Attack Reaction,Assassin,Mystic,,,1,3,,,3,
+551463,Tide Chakra (Red),Tide Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551463_200w.jpg,62,23476,https://cpt.tcgcsv.com/hCq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.06,,Normal,Rare,MST011,Attack Reaction,Assassin,Mystic,,,1,1,,,3
+551463,Tide Chakra (Red),Tide Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551463_200w.jpg,62,23476,https://cpt.tcgcsv.com/hCq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.8,0.12,,Rainbow Foil,Rare,MST011,Attack Reaction,Assassin,Mystic,,,1,1,,,3
+551464,Tide Chakra (Yellow),Tide Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551464_200w.jpg,62,23476,https://cpt.tcgcsv.com/jCq6,2024-05-31T14:25:21.65,1,0.08,0.27,0.82,0.23,,Rainbow Foil,Rare,MST012,Attack Reaction,Assassin,Mystic,,,1,2,,,3
+551464,Tide Chakra (Yellow),Tide Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551464_200w.jpg,62,23476,https://cpt.tcgcsv.com/jCq6,2024-05-31T14:25:21.65,1,0.02,0.23,1.6,0.11,,Normal,Rare,MST012,Attack Reaction,Assassin,Mystic,,,1,2,,,3
+551465,Tide Chakra (Blue),Tide Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551465_200w.jpg,62,23476,https://cpt.tcgcsv.com/kCq6,2024-05-31T14:25:21.65,1,0.06,0.25,1.4,0.16,,Rainbow Foil,Rare,MST013,Attack Reaction,Assassin,Mystic,,,1,3,,,3
+551465,Tide Chakra (Blue),Tide Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551465_200w.jpg,62,23476,https://cpt.tcgcsv.com/kCq6,2024-05-31T14:25:21.65,1,0.03,0.24,1.98,0.09,,Normal,Rare,MST013,Attack Reaction,Assassin,Mystic,,,1,3,,,3
 551466,Hiss (Red),Hiss Red,https://tcgplayer-cdn.tcgplayer.com/product/551466_200w.jpg,62,23476,https://cpt.tcgcsv.com/lCq6,2024-05-31T14:25:21.65,1
 If you've pitched a blue card this turn,create a Slither in your hand.,0.04,0.2,1.63,0.12,,Normal,Common,MST014,Attack Reaction,Assassin,Mystic,,,1,1,,,3,
 551466,Hiss (Red),Hiss Red,https://tcgplayer-cdn.tcgplayer.com/product/551466_200w.jpg,62,23476,https://cpt.tcgcsv.com/lCq6,2024-05-31T14:25:21.65,1
@@ -178,18 +178,18 @@ If you've played another blue card this turn,choose 3. Otherwise,choose 1;<br>
 Create 2 Spectral Shield tokens.<br>
 Put a +1POWER counter on each aura with ward you control.<br>
 <strong>Transcend</strong>,22.95,32.5,139.99,30.94,,Cold Foil,Marvel,MST032,Instant,Illusionist,Mystic,,,3,3,,,,
-551479,Moon Chakra (Red),Moon Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551479_200w.jpg,62,23476,https://cpt.tcgcsv.com/CCq6,2024-05-31T14:25:21.65,1,0.05,0.25,2.0,0.21,,Rainbow Foil,Rare,MST034,Instant,Illusionist,Mystic,,,0,1,,,,
-551479,Moon Chakra (Red),Moon Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551479_200w.jpg,62,23476,https://cpt.tcgcsv.com/CCq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.06,,Normal,Rare,MST034,Instant,Illusionist,Mystic,,,0,1,,,,
-551480,Moon Chakra (Yellow),Moon Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551480_200w.jpg,62,23476,https://cpt.tcgcsv.com/DCq6,2024-05-31T14:25:21.65,1,0.07,0.25,1.38,0.17,,Rainbow Foil,Rare,MST035,Instant,Illusionist,Mystic,,,0,2,,,,
-551480,Moon Chakra (Yellow),Moon Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551480_200w.jpg,62,23476,https://cpt.tcgcsv.com/DCq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.06,,Normal,Rare,MST035,Instant,Illusionist,Mystic,,,0,2,,,,
-551481,Moon Chakra (Blue),Moon Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551481_200w.jpg,62,23476,https://cpt.tcgcsv.com/FCq6,2024-05-31T14:25:21.65,1,0.03,0.25,1.61,0.11,,Normal,Rare,MST036,Instant,Illusionist,Mystic,,,0,3,,,,
-551481,Moon Chakra (Blue),Moon Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551481_200w.jpg,62,23476,https://cpt.tcgcsv.com/FCq6,2024-05-31T14:25:21.65,1,0.15,0.26,2.17,0.2,,Rainbow Foil,Rare,MST036,Instant,Illusionist,Mystic,,,0,3,,,,
-551482,Haze Shelter (Red),Haze Shelter Red,https://tcgplayer-cdn.tcgplayer.com/product/551482_200w.jpg,62,23476,https://cpt.tcgcsv.com/GCq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.08,,Rainbow Foil,Common,MST037,Instant,Illusionist,Mystic,,,2,1,Aura,,,
-551482,Haze Shelter (Red),Haze Shelter Red,https://tcgplayer-cdn.tcgplayer.com/product/551482_200w.jpg,62,23476,https://cpt.tcgcsv.com/GCq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.06,,Normal,Common,MST037,Instant,Illusionist,Mystic,,,2,1,Aura,,,
-551483,Haze Shelter (Yellow),Haze Shelter Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551483_200w.jpg,62,23476,https://cpt.tcgcsv.com/HCq6,2024-05-31T14:25:21.65,1,0.04,0.22,1.62,0.09,,Normal,Common,MST038,Instant,Illusionist,Mystic,,,2,2,Aura,,,
-551483,Haze Shelter (Yellow),Haze Shelter Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551483_200w.jpg,62,23476,https://cpt.tcgcsv.com/HCq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.62,0.05,,Rainbow Foil,Common,MST038,Instant,Illusionist,Mystic,,,2,2,Aura,,,
-551484,Haze Shelter (Blue),Haze Shelter Blue,https://tcgplayer-cdn.tcgplayer.com/product/551484_200w.jpg,62,23476,https://cpt.tcgcsv.com/JCq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.0,0.04,,Rainbow Foil,Common,MST039,Instant,Illusionist,Mystic,,,2,3,Aura,,,
-551484,Haze Shelter (Blue),Haze Shelter Blue,https://tcgplayer-cdn.tcgplayer.com/product/551484_200w.jpg,62,23476,https://cpt.tcgcsv.com/JCq6,2024-05-31T14:25:21.65,1,0.01,0.16,1.58,0.1,,Normal,Common,MST039,Instant,Illusionist,Mystic,,,2,3,Aura,,,
+551479,Moon Chakra (Red),Moon Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551479_200w.jpg,62,23476,https://cpt.tcgcsv.com/CCq6,2024-05-31T14:25:21.65,1,0.05,0.25,2.0,0.21,,Rainbow Foil,Rare,MST034,Instant,Illusionist,Mystic,,,0,1,,,
+551479,Moon Chakra (Red),Moon Chakra Red,https://tcgplayer-cdn.tcgplayer.com/product/551479_200w.jpg,62,23476,https://cpt.tcgcsv.com/CCq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.06,,Normal,Rare,MST034,Instant,Illusionist,Mystic,,,0,1,,,
+551480,Moon Chakra (Yellow),Moon Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551480_200w.jpg,62,23476,https://cpt.tcgcsv.com/DCq6,2024-05-31T14:25:21.65,1,0.07,0.25,1.38,0.17,,Rainbow Foil,Rare,MST035,Instant,Illusionist,Mystic,,,0,2,,,
+551480,Moon Chakra (Yellow),Moon Chakra Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551480_200w.jpg,62,23476,https://cpt.tcgcsv.com/DCq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.06,,Normal,Rare,MST035,Instant,Illusionist,Mystic,,,0,2,,,
+551481,Moon Chakra (Blue),Moon Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551481_200w.jpg,62,23476,https://cpt.tcgcsv.com/FCq6,2024-05-31T14:25:21.65,1,0.03,0.25,1.61,0.11,,Normal,Rare,MST036,Instant,Illusionist,Mystic,,,0,3,,,
+551481,Moon Chakra (Blue),Moon Chakra Blue,https://tcgplayer-cdn.tcgplayer.com/product/551481_200w.jpg,62,23476,https://cpt.tcgcsv.com/FCq6,2024-05-31T14:25:21.65,1,0.15,0.26,2.17,0.2,,Rainbow Foil,Rare,MST036,Instant,Illusionist,Mystic,,,0,3,,,
+551482,Haze Shelter (Red),Haze Shelter Red,https://tcgplayer-cdn.tcgplayer.com/product/551482_200w.jpg,62,23476,https://cpt.tcgcsv.com/GCq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.08,,Rainbow Foil,Common,MST037,Instant,Illusionist,Mystic,,,2,1,Aura,,
+551482,Haze Shelter (Red),Haze Shelter Red,https://tcgplayer-cdn.tcgplayer.com/product/551482_200w.jpg,62,23476,https://cpt.tcgcsv.com/GCq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.06,,Normal,Common,MST037,Instant,Illusionist,Mystic,,,2,1,Aura,,
+551483,Haze Shelter (Yellow),Haze Shelter Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551483_200w.jpg,62,23476,https://cpt.tcgcsv.com/HCq6,2024-05-31T14:25:21.65,1,0.04,0.22,1.62,0.09,,Normal,Common,MST038,Instant,Illusionist,Mystic,,,2,2,Aura,,
+551483,Haze Shelter (Yellow),Haze Shelter Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551483_200w.jpg,62,23476,https://cpt.tcgcsv.com/HCq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.62,0.05,,Rainbow Foil,Common,MST038,Instant,Illusionist,Mystic,,,2,2,Aura,,
+551484,Haze Shelter (Blue),Haze Shelter Blue,https://tcgplayer-cdn.tcgplayer.com/product/551484_200w.jpg,62,23476,https://cpt.tcgcsv.com/JCq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.0,0.04,,Rainbow Foil,Common,MST039,Instant,Illusionist,Mystic,,,2,3,Aura,,
+551484,Haze Shelter (Blue),Haze Shelter Blue,https://tcgplayer-cdn.tcgplayer.com/product/551484_200w.jpg,62,23476,https://cpt.tcgcsv.com/JCq6,2024-05-31T14:25:21.65,1,0.01,0.16,1.58,0.1,,Normal,Common,MST039,Instant,Illusionist,Mystic,,,2,3,Aura,,
 551485,Waning Vengeance (Red),Waning Vengeance Red,https://tcgplayer-cdn.tcgplayer.com/product/551485_200w.jpg,62,23476,https://cpt.tcgcsv.com/KCq6,2024-05-31T14:25:21.65,1
 <strong>Ward 3</strong><em> (If you would be dealt damage,destroy this to prevent 3 of that damage.)</em>,0.01,0.15,1.62,0.09,,Normal,Common,MST040,Instant,Illusionist,Mystic,,,1,1,Aura,,,
 551485,Waning Vengeance (Red),Waning Vengeance Red,https://tcgplayer-cdn.tcgplayer.com/product/551485_200w.jpg,62,23476,https://cpt.tcgcsv.com/KCq6,2024-05-31T14:25:21.65,1
@@ -214,8 +214,8 @@ Put a +1POWER counter on each aura with ward you control.<br>
 <strong>Ward 1</strong><em> (If you would be dealt damage,destroy this to prevent 1 of that damage.)</em>,0.01,0.16,1.58,0.05,,Normal,Common,MST045,Instant,Illusionist,Mystic,,,2,3,Aura,,,
 551490,Waxing Specter (Blue),Waxing Specter Blue,https://tcgplayer-cdn.tcgplayer.com/product/551490_200w.jpg,62,23476,https://cpt.tcgcsv.com/QCq6,2024-05-31T14:25:21.65,1
 <strong>Ward 1</strong><em> (If you would be dealt damage,destroy this to prevent 1 of that damage.)</em>,0.04,0.25,1.63,0.09,,Rainbow Foil,Common,MST045,Instant,Illusionist,Mystic,,,2,3,Aura,,,
-551491,Zen, Tamer of Purpose,Zen Tamer of Purpose,https://tcgplayer-cdn.tcgplayer.com/product/551491_200w.jpg,62,23476,https://cpt.tcgcsv.com/RCq6,2024-05-31T14:25:21.65,1,0.08,0.49,5.0,0.34,,Normal,Majestic,MST046,Hero,Ninja,Mystic,4,40,,-,,,,40
-551492,Zen (Marvel),Zen Marvel,https://tcgplayer-cdn.tcgplayer.com/product/551492_200w.jpg,62,23476,https://cpt.tcgcsv.com/SCq6,2024-05-31T14:25:21.65,2,19.8,22.75,150.0,20.92,,Cold Foil,Marvel,MST047,Hero,Ninja,Mystic,4,20,,-,Young,,,20
+551491,Zen, Tamer of Purpose,Zen Tamer of Purpose,https://tcgplayer-cdn.tcgplayer.com/product/551491_200w.jpg,62,23476,https://cpt.tcgcsv.com/RCq6,2024-05-31T14:25:21.65,1,0.08,0.49,5.0,0.34,,Normal,Majestic,MST046,Hero,Ninja,Mystic,4,40,,-,,,
+551492,Zen (Marvel),Zen Marvel,https://tcgplayer-cdn.tcgplayer.com/product/551492_200w.jpg,62,23476,https://cpt.tcgcsv.com/SCq6,2024-05-31T14:25:21.65,2,19.8,22.75,150.0,20.92,,Cold Foil,Marvel,MST047,Hero,Ninja,Mystic,4,20,,-,Young,,
 551493,Heirloom of Tiger Hide,Heirloom of Tiger Hide,https://tcgplayer-cdn.tcgplayer.com/product/551493_200w.jpg,62,23476,https://cpt.tcgcsv.com/TCq6,2024-05-31T14:25:21.65,1
 While this is equipped face-down,at the start of your turn,if you have exactly 1LIFE,you may turn this face-up.<br>
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,0.18,0.97,10.0,0.26,,Cold Foil,Rare,MST049,Equipment,Ninja,Mystic,,,,-,Chest,,3,
@@ -325,14 +325,14 @@ At the start of your turn,destroy this.,0.01,0.75,1.95,0.46,,Cold Foil,Common,MS
 <strong>Instant</strong> — Destroy this: Prevent the next 1 damage that would be dealt to you this turn. Activate this ability only while this is face-down.,0.05,0.64,4.99,0.58,,Cold Foil,Common,MST074,Equipment,,Mystic,,,,-,Legs,,,
 551515,Skywalker Keikoi,Skywalker Keikoi,https://tcgplayer-cdn.tcgplayer.com/product/551515_200w.jpg,62,23476,https://cpt.tcgcsv.com/kDq6,2024-05-31T14:25:21.65,1
 <strong>Instant</strong> — Destroy this: Prevent the next 1 damage that would be dealt to you this turn. Activate this ability only while this is face-down.,0.02,0.24,1.63,0.1,,Normal,Common,MST074,Equipment,,Mystic,,,,-,Legs,,,
-551516,Second Tenet of Chi: Tide,Second Tenet of Chi Tide,https://tcgplayer-cdn.tcgplayer.com/product/551516_200w.jpg,62,23476,https://cpt.tcgcsv.com/lDq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.13,,Normal,Rare,MST082,Action,,Mystic,,,3,3,Attack,5,3,
-551516,Second Tenet of Chi: Tide,Second Tenet of Chi Tide,https://tcgplayer-cdn.tcgplayer.com/product/551516_200w.jpg,62,23476,https://cpt.tcgcsv.com/lDq6,2024-05-31T14:25:21.65,1,0.06,0.25,2.0,0.07,,Rainbow Foil,Rare,MST082,Action,,Mystic,,,3,3,Attack,5,3,
-551517,Deep Blue Sea,Deep Blue Sea,https://tcgplayer-cdn.tcgplayer.com/product/551517_200w.jpg,62,23476,https://cpt.tcgcsv.com/mDq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.62,0.1,,Normal,Rare,MST084,Action,,Mystic,,,4,3,Attack,5,2,
-551517,Deep Blue Sea,Deep Blue Sea,https://tcgplayer-cdn.tcgplayer.com/product/551517_200w.jpg,62,23476,https://cpt.tcgcsv.com/mDq6,2024-05-31T14:25:21.65,1,0.05,0.27,2.63,0.19,,Rainbow Foil,Rare,MST084,Action,,Mystic,,,4,3,Attack,5,2,
-551518,Wide Blue Yonder,Wide Blue Yonder,https://tcgplayer-cdn.tcgplayer.com/product/551518_200w.jpg,62,23476,https://cpt.tcgcsv.com/nDq6,2024-06-17T19:07:30.297,1,0.02,0.23,1.99,0.08,,Normal,Rare,MST085,Attack Reaction,,Mystic,,,0,3,,,2,
-551518,Wide Blue Yonder,Wide Blue Yonder,https://tcgplayer-cdn.tcgplayer.com/product/551518_200w.jpg,62,23476,https://cpt.tcgcsv.com/nDq6,2024-06-17T19:07:30.297,1,0.07,0.29,1.99,0.17,,Rainbow Foil,Rare,MST085,Attack Reaction,,Mystic,,,0,3,,,2,
-551519,Big Blue Sky,Big Blue Sky,https://tcgplayer-cdn.tcgplayer.com/product/551519_200w.jpg,62,23476,https://cpt.tcgcsv.com/pDq6,2024-05-31T14:25:21.65,1,0.1,0.25,1.7,0.18,,Rainbow Foil,Rare,MST086,Defense Reaction,,Mystic,,,0,3,,,2,
-551519,Big Blue Sky,Big Blue Sky,https://tcgplayer-cdn.tcgplayer.com/product/551519_200w.jpg,62,23476,https://cpt.tcgcsv.com/pDq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.13,,Normal,Rare,MST086,Defense Reaction,,Mystic,,,0,3,,,2,
+551516,Second Tenet of Chi: Tide,Second Tenet of Chi Tide,https://tcgplayer-cdn.tcgplayer.com/product/551516_200w.jpg,62,23476,https://cpt.tcgcsv.com/lDq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.13,,Normal,Rare,MST082,Action,,Mystic,,,3,3,Attack,5,3
+551516,Second Tenet of Chi: Tide,Second Tenet of Chi Tide,https://tcgplayer-cdn.tcgplayer.com/product/551516_200w.jpg,62,23476,https://cpt.tcgcsv.com/lDq6,2024-05-31T14:25:21.65,1,0.06,0.25,2.0,0.07,,Rainbow Foil,Rare,MST082,Action,,Mystic,,,3,3,Attack,5,3
+551517,Deep Blue Sea,Deep Blue Sea,https://tcgplayer-cdn.tcgplayer.com/product/551517_200w.jpg,62,23476,https://cpt.tcgcsv.com/mDq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.62,0.1,,Normal,Rare,MST084,Action,,Mystic,,,4,3,Attack,5,2
+551517,Deep Blue Sea,Deep Blue Sea,https://tcgplayer-cdn.tcgplayer.com/product/551517_200w.jpg,62,23476,https://cpt.tcgcsv.com/mDq6,2024-05-31T14:25:21.65,1,0.05,0.27,2.63,0.19,,Rainbow Foil,Rare,MST084,Action,,Mystic,,,4,3,Attack,5,2
+551518,Wide Blue Yonder,Wide Blue Yonder,https://tcgplayer-cdn.tcgplayer.com/product/551518_200w.jpg,62,23476,https://cpt.tcgcsv.com/nDq6,2024-06-17T19:07:30.297,1,0.02,0.23,1.99,0.08,,Normal,Rare,MST085,Attack Reaction,,Mystic,,,0,3,,,2
+551518,Wide Blue Yonder,Wide Blue Yonder,https://tcgplayer-cdn.tcgplayer.com/product/551518_200w.jpg,62,23476,https://cpt.tcgcsv.com/nDq6,2024-06-17T19:07:30.297,1,0.07,0.29,1.99,0.17,,Rainbow Foil,Rare,MST085,Attack Reaction,,Mystic,,,0,3,,,2
+551519,Big Blue Sky,Big Blue Sky,https://tcgplayer-cdn.tcgplayer.com/product/551519_200w.jpg,62,23476,https://cpt.tcgcsv.com/pDq6,2024-05-31T14:25:21.65,1,0.1,0.25,1.7,0.18,,Rainbow Foil,Rare,MST086,Defense Reaction,,Mystic,,,0,3,,,2
+551519,Big Blue Sky,Big Blue Sky,https://tcgplayer-cdn.tcgplayer.com/product/551519_200w.jpg,62,23476,https://cpt.tcgcsv.com/pDq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.13,,Normal,Rare,MST086,Defense Reaction,,Mystic,,,0,3,,,2
 551520,First Tenet of Chi: Moon,First Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551520_200w.jpg,62,23476,https://cpt.tcgcsv.com/qDq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.04,0.25,1.62,0.14,,Rainbow Foil,Common,MST092,Action,,Mystic,,,0,3,,,3,
 551520,First Tenet of Chi: Moon,First Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551520_200w.jpg,62,23476,https://cpt.tcgcsv.com/qDq6,2024-05-31T14:25:21.65,1
@@ -541,11 +541,11 @@ If you control a Spectral Shield,you may play this as though it were an <strong>
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,0.02,0.25,1.63,0.07,,Normal,Common,MST160,Equipment,Ninja,,,,,-,Head,,1,
 551566,Mask of Wizened Whiskers,Mask of Wizened Whiskers,https://tcgplayer-cdn.tcgplayer.com/product/551566_200w.jpg,62,23476,https://cpt.tcgcsv.com/lFq6,2024-05-31T14:25:21.65,1
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,0.25,1.0,10.0,0.53,,Cold Foil,Common,MST160,Equipment,Ninja,,,,,-,Head,,1,
-551567,Aspect of Tiger: Mind,Aspect of Tiger Mind,https://tcgplayer-cdn.tcgplayer.com/product/551567_200w.jpg,62,23476,https://cpt.tcgcsv.com/mFq6,2024-05-31T14:25:21.65,1,0.05,0.47,2.87,0.36,,Rainbow Foil,Rare,MST166,Action,Ninja,,,,0,3,,1,3,
-551567,Aspect of Tiger: Mind,Aspect of Tiger Mind,https://tcgplayer-cdn.tcgplayer.com/product/551567_200w.jpg,62,23476,https://cpt.tcgcsv.com/mFq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.0,0.23,,Normal,Rare,MST166,Action,Ninja,,,,0,3,,1,3,
-551568,Qi Unleashed (Red),Qi Unleashed Red,https://tcgplayer-cdn.tcgplayer.com/product/551568_200w.jpg,62,23476,https://cpt.tcgcsv.com/nFq6,2024-05-31T14:25:21.65,1,0.05,0.24,1.63,0.15,,Normal,Rare,MST167,Action,Ninja,,,,2,1,,3,3,
-551569,Qi Unleashed (Yellow),Qi Unleashed Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551569_200w.jpg,62,23476,https://cpt.tcgcsv.com/pFq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.08,,Normal,Rare,MST168,Action,Ninja,,,,2,2,,2,3,
-551570,Qi Unleashed (Blue),Qi Unleashed Blue,https://tcgplayer-cdn.tcgplayer.com/product/551570_200w.jpg,62,23476,https://cpt.tcgcsv.com/qFq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.13,,Normal,Rare,MST169,Action,Ninja,,,,2,3,,1,3,
+551567,Aspect of Tiger: Mind,Aspect of Tiger Mind,https://tcgplayer-cdn.tcgplayer.com/product/551567_200w.jpg,62,23476,https://cpt.tcgcsv.com/mFq6,2024-05-31T14:25:21.65,1,0.05,0.47,2.87,0.36,,Rainbow Foil,Rare,MST166,Action,Ninja,,,,0,3,,1,3
+551567,Aspect of Tiger: Mind,Aspect of Tiger Mind,https://tcgplayer-cdn.tcgplayer.com/product/551567_200w.jpg,62,23476,https://cpt.tcgcsv.com/mFq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.0,0.23,,Normal,Rare,MST166,Action,Ninja,,,,0,3,,1,3
+551568,Qi Unleashed (Red),Qi Unleashed Red,https://tcgplayer-cdn.tcgplayer.com/product/551568_200w.jpg,62,23476,https://cpt.tcgcsv.com/nFq6,2024-05-31T14:25:21.65,1,0.05,0.24,1.63,0.15,,Normal,Rare,MST167,Action,Ninja,,,,2,1,,3,3
+551569,Qi Unleashed (Yellow),Qi Unleashed Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551569_200w.jpg,62,23476,https://cpt.tcgcsv.com/pFq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.08,,Normal,Rare,MST168,Action,Ninja,,,,2,2,,2,3
+551570,Qi Unleashed (Blue),Qi Unleashed Blue,https://tcgplayer-cdn.tcgplayer.com/product/551570_200w.jpg,62,23476,https://cpt.tcgcsv.com/qFq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.6,0.13,,Normal,Rare,MST169,Action,Ninja,,,,2,3,,1,3
 551571,Biting Breeze (Red),Biting Breeze Red,https://tcgplayer-cdn.tcgplayer.com/product/551571_200w.jpg,62,23476,https://cpt.tcgcsv.com/rFq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.02,0.24,1.62,0.11,,Normal,Common,MST173,Action,Ninja,,,,0,1,,3,2,
 551571,Biting Breeze (Red),Biting Breeze Red,https://tcgplayer-cdn.tcgplayer.com/product/551571_200w.jpg,62,23476,https://cpt.tcgcsv.com/rFq6,2024-05-31T14:25:21.65,1
@@ -564,9 +564,9 @@ If you control a Spectral Shield,you may play this as though it were an <strong>
 <strong>Go again</strong>,0.01,0.22,1.61,0.04,,Normal,Common,MST180,Action,Ninja,,,,1,2,,3,2,
 551576,Flex Claws (Blue),Flex Claws Blue,https://tcgplayer-cdn.tcgplayer.com/product/551576_200w.jpg,62,23476,https://cpt.tcgcsv.com/xFq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.01,0.17,1.58,0.06,,Normal,Common,MST181,Action,Ninja,,,,1,3,,2,2,
-551577,Pouncing Qi (Red),Pouncing Qi Red,https://tcgplayer-cdn.tcgplayer.com/product/551577_200w.jpg,62,23476,https://cpt.tcgcsv.com/zFq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.58,0.08,,Normal,Common,MST182,Action,Ninja,,,,0,1,,3,3,
-551578,Pouncing Qi (Yellow),Pouncing Qi Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551578_200w.jpg,62,23476,https://cpt.tcgcsv.com/BFq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.61,0.08,,Normal,Common,MST183,Action,Ninja,,,,0,2,,2,3,
-551579,Pouncing Qi (Blue),Pouncing Qi Blue,https://tcgplayer-cdn.tcgplayer.com/product/551579_200w.jpg,62,23476,https://cpt.tcgcsv.com/CFq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.63,0.11,,Normal,Common,MST184,Action,Ninja,,,,0,3,,1,3,
+551577,Pouncing Qi (Red),Pouncing Qi Red,https://tcgplayer-cdn.tcgplayer.com/product/551577_200w.jpg,62,23476,https://cpt.tcgcsv.com/zFq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.58,0.08,,Normal,Common,MST182,Action,Ninja,,,,0,1,,3,3
+551578,Pouncing Qi (Yellow),Pouncing Qi Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551578_200w.jpg,62,23476,https://cpt.tcgcsv.com/BFq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.61,0.08,,Normal,Common,MST183,Action,Ninja,,,,0,2,,2,3
+551579,Pouncing Qi (Blue),Pouncing Qi Blue,https://tcgplayer-cdn.tcgplayer.com/product/551579_200w.jpg,62,23476,https://cpt.tcgcsv.com/CFq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.63,0.11,,Normal,Common,MST184,Action,Ninja,,,,0,3,,1,3
 551580,Untamed (Red),Untamed Red,https://tcgplayer-cdn.tcgplayer.com/product/551580_200w.jpg,62,23476,https://cpt.tcgcsv.com/DFq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.1,0.25,0.75,0.23,,Rainbow Foil,Common,MST185,Action,Ninja,,,,1,1,,4,2,
 551580,Untamed (Red),Untamed Red,https://tcgplayer-cdn.tcgplayer.com/product/551580_200w.jpg,62,23476,https://cpt.tcgcsv.com/DFq6,2024-05-31T14:25:21.65,1
@@ -579,18 +579,18 @@ If you control a Spectral Shield,you may play this as though it were an <strong>
 <strong>Go again</strong>,0.01,0.2,1.62,0.05,,Normal,Common,MST187,Action,Ninja,,,,1,3,,2,2,
 551582,Untamed (Blue),Untamed Blue,https://tcgplayer-cdn.tcgplayer.com/product/551582_200w.jpg,62,23476,https://cpt.tcgcsv.com/GFq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.09,0.25,1.68,0.16,,Rainbow Foil,Common,MST187,Action,Ninja,,,,1,3,,2,2,
-551583,Gravekeeping (Red),Gravekeeping Red,https://tcgplayer-cdn.tcgplayer.com/product/551583_200w.jpg,62,23476,https://cpt.tcgcsv.com/HFq6,2024-05-31T14:25:21.65,1,1.86,3.5,11.0,2.89,,Rainbow Foil,Rare,MST200,Action,Generic,,,,1,1,,5,2,
-551583,Gravekeeping (Red),Gravekeeping Red,https://tcgplayer-cdn.tcgplayer.com/product/551583_200w.jpg,62,23476,https://cpt.tcgcsv.com/HFq6,2024-05-31T14:25:21.65,1,0.05,0.28,2.5,0.34,,Normal,Rare,MST200,Action,Generic,,,,1,1,,5,2,
-551584,Gravekeeping (Yellow),Gravekeeping Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551584_200w.jpg,62,23476,https://cpt.tcgcsv.com/JFq6,2024-05-31T14:25:21.65,1,0.05,0.3,2.87,0.27,,Rainbow Foil,Rare,MST201,Action,Generic,,,,1,2,,4,2,
-551584,Gravekeeping (Yellow),Gravekeeping Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551584_200w.jpg,62,23476,https://cpt.tcgcsv.com/JFq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.14,,Normal,Rare,MST201,Action,Generic,,,,1,2,,4,2,
-551585,Gravekeeping (Blue),Gravekeeping Blue,https://tcgplayer-cdn.tcgplayer.com/product/551585_200w.jpg,62,23476,https://cpt.tcgcsv.com/KFq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.16,,Normal,Rare,MST202,Action,Generic,,,,1,3,,3,2,
-551585,Gravekeeping (Blue),Gravekeeping Blue,https://tcgplayer-cdn.tcgplayer.com/product/551585_200w.jpg,62,23476,https://cpt.tcgcsv.com/KFq6,2024-05-31T14:25:21.65,1,0.1,0.35,30.66,0.35,,Rainbow Foil,Rare,MST202,Action,Generic,,,,1,3,,3,2,
-551586,Battlefront Bastion (Red),Battlefront Bastion Red,https://tcgplayer-cdn.tcgplayer.com/product/551586_200w.jpg,62,23476,https://cpt.tcgcsv.com/LFq6,2024-05-31T14:25:21.65,1,0.15,0.47,0.49,0.71,,Rainbow Foil,Common,MST203,Action,Generic,,,,3,1,,7,2,
-551586,Battlefront Bastion (Red),Battlefront Bastion Red,https://tcgplayer-cdn.tcgplayer.com/product/551586_200w.jpg,62,23476,https://cpt.tcgcsv.com/LFq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.17,,Normal,Common,MST203,Action,Generic,,,,3,1,,7,2,
-551587,Battlefront Bastion (Yellow),Battlefront Bastion Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551587_200w.jpg,62,23476,https://cpt.tcgcsv.com/MFq6,2024-05-31T14:25:21.65,1,0.01,0.16,1.58,0.11,,Normal,Common,MST204,Action,Generic,,,,3,2,,6,2,
-551587,Battlefront Bastion (Yellow),Battlefront Bastion Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551587_200w.jpg,62,23476,https://cpt.tcgcsv.com/MFq6,2024-05-31T14:25:21.65,1,0.07,0.25,1.47,0.23,,Rainbow Foil,Common,MST204,Action,Generic,,,,3,2,,6,2,
-551588,Battlefront Bastion (Blue),Battlefront Bastion Blue,https://tcgplayer-cdn.tcgplayer.com/product/551588_200w.jpg,62,23476,https://cpt.tcgcsv.com/NFq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.1,,Normal,Common,MST205,Action,Generic,,,,3,3,,5,2,
-551588,Battlefront Bastion (Blue),Battlefront Bastion Blue,https://tcgplayer-cdn.tcgplayer.com/product/551588_200w.jpg,62,23476,https://cpt.tcgcsv.com/NFq6,2024-05-31T14:25:21.65,1,0.05,0.35,1.63,0.29,,Rainbow Foil,Common,MST205,Action,Generic,,,,3,3,,5,2,
+551583,Gravekeeping (Red),Gravekeeping Red,https://tcgplayer-cdn.tcgplayer.com/product/551583_200w.jpg,62,23476,https://cpt.tcgcsv.com/HFq6,2024-05-31T14:25:21.65,1,1.86,3.5,11.0,2.89,,Rainbow Foil,Rare,MST200,Action,Generic,,,,1,1,,5,2
+551583,Gravekeeping (Red),Gravekeeping Red,https://tcgplayer-cdn.tcgplayer.com/product/551583_200w.jpg,62,23476,https://cpt.tcgcsv.com/HFq6,2024-05-31T14:25:21.65,1,0.05,0.28,2.5,0.34,,Normal,Rare,MST200,Action,Generic,,,,1,1,,5,2
+551584,Gravekeeping (Yellow),Gravekeeping Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551584_200w.jpg,62,23476,https://cpt.tcgcsv.com/JFq6,2024-05-31T14:25:21.65,1,0.05,0.3,2.87,0.27,,Rainbow Foil,Rare,MST201,Action,Generic,,,,1,2,,4,2
+551584,Gravekeeping (Yellow),Gravekeeping Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551584_200w.jpg,62,23476,https://cpt.tcgcsv.com/JFq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.14,,Normal,Rare,MST201,Action,Generic,,,,1,2,,4,2
+551585,Gravekeeping (Blue),Gravekeeping Blue,https://tcgplayer-cdn.tcgplayer.com/product/551585_200w.jpg,62,23476,https://cpt.tcgcsv.com/KFq6,2024-05-31T14:25:21.65,1,0.04,0.25,1.63,0.16,,Normal,Rare,MST202,Action,Generic,,,,1,3,,3,2
+551585,Gravekeeping (Blue),Gravekeeping Blue,https://tcgplayer-cdn.tcgplayer.com/product/551585_200w.jpg,62,23476,https://cpt.tcgcsv.com/KFq6,2024-05-31T14:25:21.65,1,0.1,0.35,30.66,0.35,,Rainbow Foil,Rare,MST202,Action,Generic,,,,1,3,,3,2
+551586,Battlefront Bastion (Red),Battlefront Bastion Red,https://tcgplayer-cdn.tcgplayer.com/product/551586_200w.jpg,62,23476,https://cpt.tcgcsv.com/LFq6,2024-05-31T14:25:21.65,1,0.15,0.47,0.49,0.71,,Rainbow Foil,Common,MST203,Action,Generic,,,,3,1,,7,2
+551586,Battlefront Bastion (Red),Battlefront Bastion Red,https://tcgplayer-cdn.tcgplayer.com/product/551586_200w.jpg,62,23476,https://cpt.tcgcsv.com/LFq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.17,,Normal,Common,MST203,Action,Generic,,,,3,1,,7,2
+551587,Battlefront Bastion (Yellow),Battlefront Bastion Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551587_200w.jpg,62,23476,https://cpt.tcgcsv.com/MFq6,2024-05-31T14:25:21.65,1,0.01,0.16,1.58,0.11,,Normal,Common,MST204,Action,Generic,,,,3,2,,6,2
+551587,Battlefront Bastion (Yellow),Battlefront Bastion Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551587_200w.jpg,62,23476,https://cpt.tcgcsv.com/MFq6,2024-05-31T14:25:21.65,1,0.07,0.25,1.47,0.23,,Rainbow Foil,Common,MST204,Action,Generic,,,,3,2,,6,2
+551588,Battlefront Bastion (Blue),Battlefront Bastion Blue,https://tcgplayer-cdn.tcgplayer.com/product/551588_200w.jpg,62,23476,https://cpt.tcgcsv.com/NFq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.1,,Normal,Common,MST205,Action,Generic,,,,3,3,,5,2
+551588,Battlefront Bastion (Blue),Battlefront Bastion Blue,https://tcgplayer-cdn.tcgplayer.com/product/551588_200w.jpg,62,23476,https://cpt.tcgcsv.com/NFq6,2024-05-31T14:25:21.65,1,0.05,0.35,1.63,0.29,,Rainbow Foil,Common,MST205,Action,Generic,,,,3,3,,5,2
 551589,Water the Seeds (Red),Water the Seeds Red,https://tcgplayer-cdn.tcgplayer.com/product/551589_200w.jpg,62,23476,https://cpt.tcgcsv.com/PFq6,2024-05-31T14:25:21.65,1
 <strong>Go again</strong>,0.1,0.25,0.75,0.13,,Rainbow Foil,Common,MST212,Action,Generic,,,,1,1,,3,2,
 551589,Water the Seeds (Red),Water the Seeds Red,https://tcgplayer-cdn.tcgplayer.com/product/551589_200w.jpg,62,23476,https://cpt.tcgcsv.com/PFq6,2024-05-31T14:25:21.65,1
@@ -629,8 +629,8 @@ Banish all defending attack action cards on the combat chain. If a Chi was pitch
 551609,Gorgon's Gaze,Gorgons Gaze,https://tcgplayer-cdn.tcgplayer.com/product/551609_200w.jpg,62,23476,https://cpt.tcgcsv.com/cGq6,2024-05-31T14:25:21.65,1
 <br>
 Banish all defending attack action cards on the combat chain. If a Chi was pitched to play this,you may play the banished cards this combat chain without paying their [1 Resource] cost.,0.44,1.37,50.0,1.14,,Rainbow Foil,Majestic,MST008,Attack Reaction,Assassin,Mystic,,,2,2,,,3,
-551633,Siren's Call,Sirens Call,https://tcgplayer-cdn.tcgplayer.com/product/551633_200w.jpg,62,23476,https://cpt.tcgcsv.com/HGq6,2024-05-31T14:25:21.65,1,0.32,4.0,24.99,2.94,,Rainbow Foil,Majestic,MST009,Attack Reaction,Assassin,Mystic,,,1,1,,,3,
-551633,Siren's Call,Sirens Call,https://tcgplayer-cdn.tcgplayer.com/product/551633_200w.jpg,62,23476,https://cpt.tcgcsv.com/HGq6,2024-05-31T14:25:21.65,1,0.12,1.56,15.0,0.77,,Normal,Majestic,MST009,Attack Reaction,Assassin,Mystic,,,1,1,,,3,
+551633,Siren's Call,Sirens Call,https://tcgplayer-cdn.tcgplayer.com/product/551633_200w.jpg,62,23476,https://cpt.tcgcsv.com/HGq6,2024-05-31T14:25:21.65,1,0.32,4.0,24.99,2.94,,Rainbow Foil,Majestic,MST009,Attack Reaction,Assassin,Mystic,,,1,1,,,3
+551633,Siren's Call,Sirens Call,https://tcgplayer-cdn.tcgplayer.com/product/551633_200w.jpg,62,23476,https://cpt.tcgcsv.com/HGq6,2024-05-31T14:25:21.65,1,0.12,1.56,15.0,0.77,,Normal,Majestic,MST009,Attack Reaction,Assassin,Mystic,,,1,1,,,3
 551634,Intimate Inducement (Red),Intimate Inducement Red,https://tcgplayer-cdn.tcgplayer.com/product/551634_200w.jpg,62,23476,https://cpt.tcgcsv.com/JGq6,2024-05-31T14:25:21.65,1
 <br>
 Look at the top 4 cards of the defending hero's deck and choose a card. If it's blue,it has 0 base DEFENSE. Put the chosen card onto the active chain link as a defending card and the rest on top in any order.,0.04,0.25,1.69,0.36,,Rainbow Foil,Common,MST017,Attack Reaction,Assassin,Mystic,,,0,1,,,3,
@@ -664,8 +664,8 @@ Whenever you pitch a Chi,you may have this get <strong>ward 3</strong> until end
 551645,Manifestation of Miragai (Extended Art),Manifestation of Miragai Extended Art,https://tcgplayer-cdn.tcgplayer.com/product/551645_200w.jpg,62,23476,https://cpt.tcgcsv.com/WGq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Ward X</strong>,where X is the number of +1POWER counters on this. <em>(If you would be dealt damage,destroy this to prevent X of that damage.)</em>,12.0,18.0,64.95,15.66,,Rainbow Foil,Majestic,MST031,,,,,,3,3,,,,
-551646,Three Visits,Three Visits,https://tcgplayer-cdn.tcgplayer.com/product/551646_200w.jpg,62,23476,https://cpt.tcgcsv.com/XGq6,2024-05-31T14:25:21.65,1,0.25,0.75,15.0,0.48,,Normal,Majestic,MST033,Instant,Illusionist,Mystic,,,3,1,Aura,,,
-551646,Three Visits,Three Visits,https://tcgplayer-cdn.tcgplayer.com/product/551646_200w.jpg,62,23476,https://cpt.tcgcsv.com/XGq6,2024-05-31T14:25:21.65,1,0.44,1.1,50.0,0.68,,Rainbow Foil,Majestic,MST033,Instant,Illusionist,Mystic,,,3,1,Aura,,,
+551646,Three Visits,Three Visits,https://tcgplayer-cdn.tcgplayer.com/product/551646_200w.jpg,62,23476,https://cpt.tcgcsv.com/XGq6,2024-05-31T14:25:21.65,1,0.25,0.75,15.0,0.48,,Normal,Majestic,MST033,Instant,Illusionist,Mystic,,,3,1,Aura,,
+551646,Three Visits,Three Visits,https://tcgplayer-cdn.tcgplayer.com/product/551646_200w.jpg,62,23476,https://cpt.tcgcsv.com/XGq6,2024-05-31T14:25:21.65,1,0.44,1.1,50.0,0.68,,Rainbow Foil,Majestic,MST033,Instant,Illusionist,Mystic,,,3,1,Aura,,
 551647,Twelve Petal Kasaya,Twelve Petal Kasaya,https://tcgplayer-cdn.tcgplayer.com/product/551647_200w.jpg,62,23476,https://cpt.tcgcsv.com/ZGq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Instant —</strong> [3 Chi],destroy this: Create a Zen State token.
@@ -676,8 +676,8 @@ Whenever you pitch a Chi,you may have this get <strong>ward 3</strong> until end
 <strong>Instant —</strong> [3 Chi],destroy this: Create a Zen State token.
 <br>
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,48.98,55.37,190.0,50.49,,Cold Foil,Legendary,MST048,Equipment,Ninja,Mystic,,,,,Chest,,2,
-551651,Tooth and Claw,Tooth and Claw,https://tcgplayer-cdn.tcgplayer.com/product/551651_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Hq6,2024-05-31T14:25:21.65,1,0.25,0.99,50.0,0.59,,Normal,Majestic,MST051,Action,Ninja,Mystic,,,0,1,Attack,4,3,
-551651,Tooth and Claw,Tooth and Claw,https://tcgplayer-cdn.tcgplayer.com/product/551651_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Hq6,2024-05-31T14:25:21.65,1,0.5,1.9,15.0,0.74,,Rainbow Foil,Majestic,MST051,Action,Ninja,Mystic,,,0,1,Attack,4,3,
+551651,Tooth and Claw,Tooth and Claw,https://tcgplayer-cdn.tcgplayer.com/product/551651_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Hq6,2024-05-31T14:25:21.65,1,0.25,0.99,50.0,0.59,,Normal,Majestic,MST051,Action,Ninja,Mystic,,,0,1,Attack,4,3
+551651,Tooth and Claw,Tooth and Claw,https://tcgplayer-cdn.tcgplayer.com/product/551651_200w.jpg,62,23476,https://cpt.tcgcsv.com/2Hq6,2024-05-31T14:25:21.65,1,0.5,1.9,15.0,0.74,,Rainbow Foil,Majestic,MST051,Action,Ninja,Mystic,,,0,1,Attack,4,3
 551652,Shifting Winds of the Mystic Beast,Shifting Winds of the Mystic Beast,https://tcgplayer-cdn.tcgplayer.com/product/551652_200w.jpg,62,23476,https://cpt.tcgcsv.com/3Hq6,2024-05-31T14:25:21.65,1
 <br>
 If a Chi was pitched to play this,create 2 Crouching Tigers in your hand.
@@ -688,8 +688,8 @@ If a Chi was pitched to play this,create 2 Crouching Tigers in your hand.
 If a Chi was pitched to play this,create 2 Crouching Tigers in your hand.
 <br>
 <strong>Go again</strong>,0.54,1.35,14.4,0.91,,Rainbow Foil,Majestic,MST052,Action,Ninja,Mystic,,,1,3,Attack,,3,
-551653,Attune with Cosmic Vibrations,Attune with Cosmic Vibrations,https://tcgplayer-cdn.tcgplayer.com/product/551653_200w.jpg,62,23476,https://cpt.tcgcsv.com/5Hq6,2024-05-31T14:25:21.65,1,0.2,0.75,15.0,0.38,,Normal,Majestic,MST075,Action,,Mystic,,,0,3,Attack,2,2,
-551653,Attune with Cosmic Vibrations,Attune with Cosmic Vibrations,https://tcgplayer-cdn.tcgplayer.com/product/551653_200w.jpg,62,23476,https://cpt.tcgcsv.com/5Hq6,2024-05-31T14:25:21.65,1,0.25,1.45,19.99,0.59,,Rainbow Foil,Majestic,MST075,Action,,Mystic,,,0,3,Attack,2,2,
+551653,Attune with Cosmic Vibrations,Attune with Cosmic Vibrations,https://tcgplayer-cdn.tcgplayer.com/product/551653_200w.jpg,62,23476,https://cpt.tcgcsv.com/5Hq6,2024-05-31T14:25:21.65,1,0.2,0.75,15.0,0.38,,Normal,Majestic,MST075,Action,,Mystic,,,0,3,Attack,2,2
+551653,Attune with Cosmic Vibrations,Attune with Cosmic Vibrations,https://tcgplayer-cdn.tcgplayer.com/product/551653_200w.jpg,62,23476,https://cpt.tcgcsv.com/5Hq6,2024-05-31T14:25:21.65,1,0.25,1.45,19.99,0.59,,Rainbow Foil,Majestic,MST075,Action,,Mystic,,,0,3,Attack,2,2
 551656,Cosmic Awakening,Cosmic Awakening,https://tcgplayer-cdn.tcgplayer.com/product/551656_200w.jpg,62,23476,https://cpt.tcgcsv.com/8Hq6,2024-05-31T14:25:21.65,1
 <br>
 If 2 Chi were pitched to play this,Cosmic Awakening's POWER is 15.
@@ -721,12 +721,12 @@ If 3 or more Chi were pitched to play this,Cosmic Awakening's POWER is 20.,0.99,
 •This gets +2POWER.
 <br>
 •This gets <strong>go again</strong>.,38.58,40.76,84.98,40.57,,Rainbow Foil,Majestic,MST077,Action,,Mystic,,,1,3,Attack,3,3,
-551661,Unravel Aggression,Unravel Aggression,https://tcgplayer-cdn.tcgplayer.com/product/551661_200w.jpg,62,23476,https://cpt.tcgcsv.com/fHq6,2024-05-31T14:25:21.65,1,0.25,1.0,26.99,0.51,,Normal,Majestic,MST078,Defense Reaction,,Mystic,,,3,3,,,5,
-551661,Unravel Aggression,Unravel Aggression,https://tcgplayer-cdn.tcgplayer.com/product/551661_200w.jpg,62,23476,https://cpt.tcgcsv.com/fHq6,2024-05-31T14:25:21.65,1,0.84,1.51,20.0,1.01,,Rainbow Foil,Majestic,MST078,Defense Reaction,,Mystic,,,3,3,,,5,
-551664,Second Tenet of Chi: Moon,Second Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551664_200w.jpg,62,23476,https://cpt.tcgcsv.com/jHq6,2024-05-31T14:25:21.65,1,0.1,0.3,1.82,0.18,,Rainbow Foil,Rare,MST081,Action,,Mystic,,,3,3,Attack,5,3,
-551664,Second Tenet of Chi: Moon,Second Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551664_200w.jpg,62,23476,https://cpt.tcgcsv.com/jHq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.0,0.15,,Normal,Rare,MST081,Action,,Mystic,,,3,3,Attack,5,3,
-551665,Second Tenet of Chi: Wind,Second Tenet of Chi Wind,https://tcgplayer-cdn.tcgplayer.com/product/551665_200w.jpg,62,23476,https://cpt.tcgcsv.com/kHq6,2024-05-31T14:25:21.65,1,0.1,0.3,1.0,0.11,,Rainbow Foil,Rare,MST083,Action,,Mystic,,,3,3,Attack,5,3,
-551665,Second Tenet of Chi: Wind,Second Tenet of Chi Wind,https://tcgplayer-cdn.tcgplayer.com/product/551665_200w.jpg,62,23476,https://cpt.tcgcsv.com/kHq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.13,,Normal,Rare,MST083,Action,,Mystic,,,3,3,Attack,5,3,
+551661,Unravel Aggression,Unravel Aggression,https://tcgplayer-cdn.tcgplayer.com/product/551661_200w.jpg,62,23476,https://cpt.tcgcsv.com/fHq6,2024-05-31T14:25:21.65,1,0.25,1.0,26.99,0.51,,Normal,Majestic,MST078,Defense Reaction,,Mystic,,,3,3,,,5
+551661,Unravel Aggression,Unravel Aggression,https://tcgplayer-cdn.tcgplayer.com/product/551661_200w.jpg,62,23476,https://cpt.tcgcsv.com/fHq6,2024-05-31T14:25:21.65,1,0.84,1.51,20.0,1.01,,Rainbow Foil,Majestic,MST078,Defense Reaction,,Mystic,,,3,3,,,5
+551664,Second Tenet of Chi: Moon,Second Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551664_200w.jpg,62,23476,https://cpt.tcgcsv.com/jHq6,2024-05-31T14:25:21.65,1,0.1,0.3,1.82,0.18,,Rainbow Foil,Rare,MST081,Action,,Mystic,,,3,3,Attack,5,3
+551664,Second Tenet of Chi: Moon,Second Tenet of Chi Moon,https://tcgplayer-cdn.tcgplayer.com/product/551664_200w.jpg,62,23476,https://cpt.tcgcsv.com/jHq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.0,0.15,,Normal,Rare,MST081,Action,,Mystic,,,3,3,Attack,5,3
+551665,Second Tenet of Chi: Wind,Second Tenet of Chi Wind,https://tcgplayer-cdn.tcgplayer.com/product/551665_200w.jpg,62,23476,https://cpt.tcgcsv.com/kHq6,2024-05-31T14:25:21.65,1,0.1,0.3,1.0,0.11,,Rainbow Foil,Rare,MST083,Action,,Mystic,,,3,3,Attack,5,3
+551665,Second Tenet of Chi: Wind,Second Tenet of Chi Wind,https://tcgplayer-cdn.tcgplayer.com/product/551665_200w.jpg,62,23476,https://cpt.tcgcsv.com/kHq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.13,,Normal,Rare,MST083,Action,,Mystic,,,3,3,Attack,5,3
 551666,First Tenet of Chi: Tide,First Tenet of Chi Tide,https://tcgplayer-cdn.tcgplayer.com/product/551666_200w.jpg,62,23476,https://cpt.tcgcsv.com/lHq6,2024-05-31T14:25:21.65,1
 <br>
 Go again,0.01,0.24,1.63,0.05,,Normal,Common,MST093,Action,,Mystic,,,0,3,Attack,,3,
@@ -833,8 +833,8 @@ If you control a Spectral Shield,you may play this as though it were an <strong>
 551709,Essence of Ancestry: Soul,Essence of Ancestry Soul,https://tcgplayer-cdn.tcgplayer.com/product/551709_200w.jpg,62,23476,https://cpt.tcgcsv.com/cJq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Ward 2</strong>,0.03,0.25,1.61,0.07,,Normal,Rare,MST138,Action,Illusionist,,,,0,2,,,3,
-551710,Chase the Tail,Chase the Tail,https://tcgplayer-cdn.tcgplayer.com/product/551710_200w.jpg,62,23476,https://cpt.tcgcsv.com/dJq6,2024-05-31T14:25:21.65,1,5.99,6.84,9.99,3.54,,Rainbow Foil,Majestic,MST161,Action,Ninja,,,,1,1,Attack,4,3,
-551710,Chase the Tail,Chase the Tail,https://tcgplayer-cdn.tcgplayer.com/product/551710_200w.jpg,62,23476,https://cpt.tcgcsv.com/dJq6,2024-05-31T14:25:21.65,1,2.25,5.99,15.0,3.67,,Normal,Majestic,MST161,Action,Ninja,,,,1,1,Attack,4,3,
+551710,Chase the Tail,Chase the Tail,https://tcgplayer-cdn.tcgplayer.com/product/551710_200w.jpg,62,23476,https://cpt.tcgcsv.com/dJq6,2024-05-31T14:25:21.65,1,5.99,6.84,9.99,3.54,,Rainbow Foil,Majestic,MST161,Action,Ninja,,,,1,1,Attack,4,3
+551710,Chase the Tail,Chase the Tail,https://tcgplayer-cdn.tcgplayer.com/product/551710_200w.jpg,62,23476,https://cpt.tcgcsv.com/dJq6,2024-05-31T14:25:21.65,1,2.25,5.99,15.0,3.67,,Normal,Majestic,MST161,Action,Ninja,,,,1,1,Attack,4,3
 551711,Maul,Maul,https://tcgplayer-cdn.tcgplayer.com/product/551711_200w.jpg,62,23476,https://cpt.tcgcsv.com/fJq6,2024-05-31T14:25:21.65,1
 <br>
 Target attack action card with 1 or less base POWER gets +3POWER.
@@ -845,18 +845,18 @@ Target Crouching Tiger gets When this hits,create 2 Crouching Tigers in your ban
 Target attack action card with 1 or less base POWER gets +3POWER.
 <br>
 Target Crouching Tiger gets When this hits,create 2 Crouching Tigers in your banished zone. You may play them this turn.,0.85,2.0,81.0,1.28,,Rainbow Foil,Majestic,MST162,Attack Reaction,Ninja,,,,0,2,,,3,
-551712,Territorial Domain,Territorial Domain,https://tcgplayer-cdn.tcgplayer.com/product/551712_200w.jpg,62,23476,https://cpt.tcgcsv.com/gJq6,2024-05-31T14:25:21.65,1,0.2,1.0,15.0,0.59,,Rainbow Foil,Majestic,MST163,Defense Reaction,Ninja,,,,0,3,,,2,
-551712,Territorial Domain,Territorial Domain,https://tcgplayer-cdn.tcgplayer.com/product/551712_200w.jpg,62,23476,https://cpt.tcgcsv.com/gJq6,2024-05-31T14:25:21.65,1,0.1,0.6,10.0,0.38,,Normal,Majestic,MST163,Defense Reaction,Ninja,,,,0,3,,,2,
-551713,Aspect of Tiger: Body,Aspect of Tiger Body,https://tcgplayer-cdn.tcgplayer.com/product/551713_200w.jpg,62,23476,https://cpt.tcgcsv.com/hJq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.21,,Normal,Rare,MST164,Action,Ninja,,,,0,1,Attack,3,3,
-551713,Aspect of Tiger: Body,Aspect of Tiger Body,https://tcgplayer-cdn.tcgplayer.com/product/551713_200w.jpg,62,23476,https://cpt.tcgcsv.com/hJq6,2024-05-31T14:25:21.65,1,0.26,0.55,1.99,0.47,,Rainbow Foil,Rare,MST164,Action,Ninja,,,,0,1,Attack,3,3,
-551714,Aspect of Tiger: Soul,Aspect of Tiger Soul,https://tcgplayer-cdn.tcgplayer.com/product/551714_200w.jpg,62,23476,https://cpt.tcgcsv.com/jJq6,2024-05-31T14:25:21.65,1,0.02,0.23,1.6,0.12,,Normal,Rare,MST165,Action,Ninja,,,,0,2,,2,3,
-551714,Aspect of Tiger: Soul,Aspect of Tiger Soul,https://tcgplayer-cdn.tcgplayer.com/product/551714_200w.jpg,62,23476,https://cpt.tcgcsv.com/jJq6,2024-05-31T14:25:21.65,1,0.1,0.25,2.87,0.2,,Rainbow Foil,Rare,MST165,Action,Ninja,,,,0,2,,2,3,
-551715,Breed Anger (Red),Breed Anger Red,https://tcgplayer-cdn.tcgplayer.com/product/551715_200w.jpg,62,23476,https://cpt.tcgcsv.com/kJq6,2025-03-03T19:50:08.067,1,0.05,0.3,0.85,0.24,,Rainbow Foil,Common,MST176,Action,Ninja,,,,1,1,Attack,4,3,
-551715,Breed Anger (Red),Breed Anger Red,https://tcgplayer-cdn.tcgplayer.com/product/551715_200w.jpg,62,23476,https://cpt.tcgcsv.com/kJq6,2025-03-03T19:50:08.067,1,0.04,0.19,1.63,0.11,,Normal,Common,MST176,Action,Ninja,,,,1,1,Attack,4,3,
-551716,Breed Anger (Yellow),Breed Anger Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551716_200w.jpg,62,23476,https://cpt.tcgcsv.com/lJq6,2025-03-03T19:50:23.167,1,0.05,0.25,0.99,0.08,,Rainbow Foil,Common,MST177,Action,Ninja,,,,1,2,Attack,3,3,
-551716,Breed Anger (Yellow),Breed Anger Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551716_200w.jpg,62,23476,https://cpt.tcgcsv.com/lJq6,2025-03-03T19:50:23.167,1,0.01,0.22,1.63,0.07,,Normal,Common,MST177,Action,Ninja,,,,1,2,Attack,3,3,
-551717,Breed Anger (Blue),Breed Anger Blue,https://tcgplayer-cdn.tcgplayer.com/product/551717_200w.jpg,62,23476,https://cpt.tcgcsv.com/mJq6,2025-03-03T19:50:39.63,1,0.03,0.25,1.63,0.17,,Rainbow Foil,Common,MST178,Action,Ninja,,,,1,3,Attack,2,3,
-551717,Breed Anger (Blue),Breed Anger Blue,https://tcgplayer-cdn.tcgplayer.com/product/551717_200w.jpg,62,23476,https://cpt.tcgcsv.com/mJq6,2025-03-03T19:50:39.63,1,0.01,0.18,1.63,0.07,,Normal,Common,MST178,Action,Ninja,,,,1,3,Attack,2,3,
+551712,Territorial Domain,Territorial Domain,https://tcgplayer-cdn.tcgplayer.com/product/551712_200w.jpg,62,23476,https://cpt.tcgcsv.com/gJq6,2024-05-31T14:25:21.65,1,0.2,1.0,15.0,0.59,,Rainbow Foil,Majestic,MST163,Defense Reaction,Ninja,,,,0,3,,,2
+551712,Territorial Domain,Territorial Domain,https://tcgplayer-cdn.tcgplayer.com/product/551712_200w.jpg,62,23476,https://cpt.tcgcsv.com/gJq6,2024-05-31T14:25:21.65,1,0.1,0.6,10.0,0.38,,Normal,Majestic,MST163,Defense Reaction,Ninja,,,,0,3,,,2
+551713,Aspect of Tiger: Body,Aspect of Tiger Body,https://tcgplayer-cdn.tcgplayer.com/product/551713_200w.jpg,62,23476,https://cpt.tcgcsv.com/hJq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.0,0.21,,Normal,Rare,MST164,Action,Ninja,,,,0,1,Attack,3,3
+551713,Aspect of Tiger: Body,Aspect of Tiger Body,https://tcgplayer-cdn.tcgplayer.com/product/551713_200w.jpg,62,23476,https://cpt.tcgcsv.com/hJq6,2024-05-31T14:25:21.65,1,0.26,0.55,1.99,0.47,,Rainbow Foil,Rare,MST164,Action,Ninja,,,,0,1,Attack,3,3
+551714,Aspect of Tiger: Soul,Aspect of Tiger Soul,https://tcgplayer-cdn.tcgplayer.com/product/551714_200w.jpg,62,23476,https://cpt.tcgcsv.com/jJq6,2024-05-31T14:25:21.65,1,0.02,0.23,1.6,0.12,,Normal,Rare,MST165,Action,Ninja,,,,0,2,,2,3
+551714,Aspect of Tiger: Soul,Aspect of Tiger Soul,https://tcgplayer-cdn.tcgplayer.com/product/551714_200w.jpg,62,23476,https://cpt.tcgcsv.com/jJq6,2024-05-31T14:25:21.65,1,0.1,0.25,2.87,0.2,,Rainbow Foil,Rare,MST165,Action,Ninja,,,,0,2,,2,3
+551715,Breed Anger (Red),Breed Anger Red,https://tcgplayer-cdn.tcgplayer.com/product/551715_200w.jpg,62,23476,https://cpt.tcgcsv.com/kJq6,2025-03-03T19:50:08.067,1,0.05,0.3,0.85,0.24,,Rainbow Foil,Common,MST176,Action,Ninja,,,,1,1,Attack,4,3
+551715,Breed Anger (Red),Breed Anger Red,https://tcgplayer-cdn.tcgplayer.com/product/551715_200w.jpg,62,23476,https://cpt.tcgcsv.com/kJq6,2025-03-03T19:50:08.067,1,0.04,0.19,1.63,0.11,,Normal,Common,MST176,Action,Ninja,,,,1,1,Attack,4,3
+551716,Breed Anger (Yellow),Breed Anger Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551716_200w.jpg,62,23476,https://cpt.tcgcsv.com/lJq6,2025-03-03T19:50:23.167,1,0.05,0.25,0.99,0.08,,Rainbow Foil,Common,MST177,Action,Ninja,,,,1,2,Attack,3,3
+551716,Breed Anger (Yellow),Breed Anger Yellow,https://tcgplayer-cdn.tcgplayer.com/product/551716_200w.jpg,62,23476,https://cpt.tcgcsv.com/lJq6,2025-03-03T19:50:23.167,1,0.01,0.22,1.63,0.07,,Normal,Common,MST177,Action,Ninja,,,,1,2,Attack,3,3
+551717,Breed Anger (Blue),Breed Anger Blue,https://tcgplayer-cdn.tcgplayer.com/product/551717_200w.jpg,62,23476,https://cpt.tcgcsv.com/mJq6,2025-03-03T19:50:39.63,1,0.03,0.25,1.63,0.17,,Rainbow Foil,Common,MST178,Action,Ninja,,,,1,3,Attack,2,3
+551717,Breed Anger (Blue),Breed Anger Blue,https://tcgplayer-cdn.tcgplayer.com/product/551717_200w.jpg,62,23476,https://cpt.tcgcsv.com/mJq6,2025-03-03T19:50:39.63,1,0.01,0.18,1.63,0.07,,Normal,Common,MST178,Action,Ninja,,,,1,3,Attack,2,3
 551718,Stonewall Gauntlet,Stonewall Gauntlet,https://tcgplayer-cdn.tcgplayer.com/product/551718_200w.jpg,62,23476,https://cpt.tcgcsv.com/nJq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,74.0,101.51,199.99,114.06,,Cold Foil,Legendary,MST190,Equipment,Generic,,,,,,Arms,,1,
@@ -869,18 +869,18 @@ When this hits a hero,discard a card. If you do,they discard a card.,18.0,21.44,
 551719,Rowdy Locals,Rowdy Locals,https://tcgplayer-cdn.tcgplayer.com/product/551719_200w.jpg,62,23476,https://cpt.tcgcsv.com/pJq6,2024-05-31T14:25:21.65,1
 <br>
 When this hits a hero,discard a card. If you do,they discard a card.,10.99,16.97,25.88,15.37,,Normal,Majestic,MST191,Action,Generic,,,,0,3,Attack,2,3,
-551720,The Weakest Link,The Weakest Link,https://tcgplayer-cdn.tcgplayer.com/product/551720_200w.jpg,62,23476,https://cpt.tcgcsv.com/qJq6,2024-05-31T14:25:21.65,1,46.0,52.14,113.96,48.8,,Normal,Majestic,MST192,Action,Generic,,,,2,1,Attack,6,3,
-551720,The Weakest Link,The Weakest Link,https://tcgplayer-cdn.tcgplayer.com/product/551720_200w.jpg,62,23476,https://cpt.tcgcsv.com/qJq6,2024-05-31T14:25:21.65,1,44.99,61.94,100.0,59.81,,Rainbow Foil,Majestic,MST192,Action,Generic,,,,2,1,Attack,6,3,
+551720,The Weakest Link,The Weakest Link,https://tcgplayer-cdn.tcgplayer.com/product/551720_200w.jpg,62,23476,https://cpt.tcgcsv.com/qJq6,2024-05-31T14:25:21.65,1,46.0,52.14,113.96,48.8,,Normal,Majestic,MST192,Action,Generic,,,,2,1,Attack,6,3
+551720,The Weakest Link,The Weakest Link,https://tcgplayer-cdn.tcgplayer.com/product/551720_200w.jpg,62,23476,https://cpt.tcgcsv.com/qJq6,2024-05-31T14:25:21.65,1,44.99,61.94,100.0,59.81,,Rainbow Foil,Majestic,MST192,Action,Generic,,,,2,1,Attack,6,3
 551721,Prismatic Leyline,Prismatic Leyline,https://tcgplayer-cdn.tcgplayer.com/product/551721_200w.jpg,62,23476,https://cpt.tcgcsv.com/rJq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Go again</strong>,13.0,21.95,49.99,20.01,,Rainbow Foil,Majestic,MST193,Action,Generic,,,,0,2,,,3,
 551721,Prismatic Leyline,Prismatic Leyline,https://tcgplayer-cdn.tcgplayer.com/product/551721_200w.jpg,62,23476,https://cpt.tcgcsv.com/rJq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Go again</strong>,12.69,14.0,25.0,14.49,,Normal,Majestic,MST193,Action,Generic,,,,0,2,,,3,
-551722,Emissary of Moon,Emissary of Moon,https://tcgplayer-cdn.tcgplayer.com/product/551722_200w.jpg,62,23476,https://cpt.tcgcsv.com/sJq6,2024-05-31T14:25:21.65,1,0.05,0.25,0.98,0.15,,Rainbow Foil,Rare,MST197,Action,Generic,,,,0,1,Attack,4,2,
-551722,Emissary of Moon,Emissary of Moon,https://tcgplayer-cdn.tcgplayer.com/product/551722_200w.jpg,62,23476,https://cpt.tcgcsv.com/sJq6,2024-05-31T14:25:21.65,1,0.03,0.25,1.61,0.14,,Normal,Rare,MST197,Action,Generic,,,,0,1,Attack,4,2,
-551723,Emissary of Wind,Emissary of Wind,https://tcgplayer-cdn.tcgplayer.com/product/551723_200w.jpg,62,23476,https://cpt.tcgcsv.com/tJq6,2024-05-31T14:25:21.65,1,0.03,0.24,1.61,0.11,,Normal,Rare,MST199,Action,Generic,,,,0,1,Attack,4,2,
-551723,Emissary of Wind,Emissary of Wind,https://tcgplayer-cdn.tcgplayer.com/product/551723_200w.jpg,62,23476,https://cpt.tcgcsv.com/tJq6,2024-05-31T14:25:21.65,1,0.07,0.29,2.74,0.25,,Rainbow Foil,Rare,MST199,Action,Generic,,,,0,1,Attack,4,2,
+551722,Emissary of Moon,Emissary of Moon,https://tcgplayer-cdn.tcgplayer.com/product/551722_200w.jpg,62,23476,https://cpt.tcgcsv.com/sJq6,2024-05-31T14:25:21.65,1,0.05,0.25,0.98,0.15,,Rainbow Foil,Rare,MST197,Action,Generic,,,,0,1,Attack,4,2
+551722,Emissary of Moon,Emissary of Moon,https://tcgplayer-cdn.tcgplayer.com/product/551722_200w.jpg,62,23476,https://cpt.tcgcsv.com/sJq6,2024-05-31T14:25:21.65,1,0.03,0.25,1.61,0.14,,Normal,Rare,MST197,Action,Generic,,,,0,1,Attack,4,2
+551723,Emissary of Wind,Emissary of Wind,https://tcgplayer-cdn.tcgplayer.com/product/551723_200w.jpg,62,23476,https://cpt.tcgcsv.com/tJq6,2024-05-31T14:25:21.65,1,0.03,0.24,1.61,0.11,,Normal,Rare,MST199,Action,Generic,,,,0,1,Attack,4,2
+551723,Emissary of Wind,Emissary of Wind,https://tcgplayer-cdn.tcgplayer.com/product/551723_200w.jpg,62,23476,https://cpt.tcgcsv.com/tJq6,2024-05-31T14:25:21.65,1,0.07,0.29,2.74,0.25,,Rainbow Foil,Rare,MST199,Action,Generic,,,,0,1,Attack,4,2
 551724,Mistcloak Gully // Inner Chi,Mistcloak Gully Inner Chi,https://tcgplayer-cdn.tcgplayer.com/product/551724_200w.jpg,62,23476,https://cpt.tcgcsv.com/vJq6,2024-05-31T14:25:21.65,2
 <br>
 The first attack that targets you each turn gets -1POWER.
@@ -900,8 +900,8 @@ If a Chi was pitched to play this,effects don't trigger if an attack hits you th
 551933,Dense Blue Mist,Dense Blue Mist,https://tcgplayer-cdn.tcgplayer.com/product/551933_200w.jpg,62,23476,https://cpt.tcgcsv.com/HNq6,2024-05-31T14:25:21.65,1
 <br>
 If a Chi was pitched to play this,effects don't trigger if an attack hits you this turn.,0.04,1.0,15.0,0.49,,Normal,Majestic,MST079,Instant,,Mystic,,,1,3,,,,
-551934,Wash Away,Wash Away,https://tcgplayer-cdn.tcgplayer.com/product/551934_200w.jpg,62,23476,https://cpt.tcgcsv.com/JNq6,2024-05-31T14:25:21.65,1,0.01,0.15,1.58,0.05,,Normal,Common,MST091,Defense Reaction,,Mystic,,,2,3,,,3,
-551934,Wash Away,Wash Away,https://tcgplayer-cdn.tcgplayer.com/product/551934_200w.jpg,62,23476,https://cpt.tcgcsv.com/JNq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.68,0.16,,Rainbow Foil,Common,MST091,Defense Reaction,,Mystic,,,2,3,,,3,
+551934,Wash Away,Wash Away,https://tcgplayer-cdn.tcgplayer.com/product/551934_200w.jpg,62,23476,https://cpt.tcgcsv.com/JNq6,2024-05-31T14:25:21.65,1,0.01,0.15,1.58,0.05,,Normal,Common,MST091,Defense Reaction,,Mystic,,,2,3,,,3
+551934,Wash Away,Wash Away,https://tcgplayer-cdn.tcgplayer.com/product/551934_200w.jpg,62,23476,https://cpt.tcgcsv.com/JNq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.68,0.16,,Rainbow Foil,Common,MST091,Defense Reaction,,Mystic,,,2,3,,,3
 551935,Haunting Specter (Red),Haunting Specter Red,https://tcgplayer-cdn.tcgplayer.com/product/551935_200w.jpg,62,23476,https://cpt.tcgcsv.com/KNq6,2024-05-31T14:25:21.65,1
 <br><strong>Ward 4</strong> <em>(If you would be dealt damage,destroy this to prevent 4 of that damage.)</em>,0.08,0.25,3.61,0.08,,Rainbow Foil,Rare,MST140,Action,Illusionist,,,,2,1,Aura,,2,
 551935,Haunting Specter (Red),Haunting Specter Red,https://tcgplayer-cdn.tcgplayer.com/product/551935_200w.jpg,62,23476,https://cpt.tcgcsv.com/KNq6,2024-05-31T14:25:21.65,1
@@ -932,42 +932,42 @@ If a Chi was pitched to play this,effects don't trigger if an attack hits you th
 552010,Sigil of Solitude (Blue),Sigil of Solitude Blue,https://tcgplayer-cdn.tcgplayer.com/product/552010_200w.jpg,62,23476,https://cpt.tcgcsv.com/dQq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Ward 2</strong> <em>(If you would be dealt damage,destroy this to prevent 2 of that damage.)</em>,0.01,0.2,1.58,0.05,,Normal,Common,MST145,Action,Illusionist,,,,0,3,Aura,,2,
-552011,Blessing of Qi (Red),Blessing of Qi Red,https://tcgplayer-cdn.tcgplayer.com/product/552011_200w.jpg,62,23476,https://cpt.tcgcsv.com/fQq6,2024-06-06T19:47:37.163,1,0.02,0.19,1.61,0.08,,Normal,Rare,MST170,Action,Ninja,,,,1,1,Aura,,3,
-552012,Blessing of Qi (Yellow),Blessing of Qi Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552012_200w.jpg,62,23476,https://cpt.tcgcsv.com/gQq6,2024-12-31T13:42:08.777,1,0.03,0.2,1.61,0.06,,Normal,Rare,MST171,,,,,,1,2,,,3,
-552013,Blessing of Qi (Blue),Blessing of Qi Blue,https://tcgplayer-cdn.tcgplayer.com/product/552013_200w.jpg,62,23476,https://cpt.tcgcsv.com/hQq6,2024-09-03T13:20:45.233,1,0.01,0.23,1.63,0.09,,Normal,Rare,MST172,Action,Ninja,,,,1,3,Aura,,3,
-552014,Blanch (Red),Blanch Red,https://tcgplayer-cdn.tcgplayer.com/product/552014_200w.jpg,62,23476,https://cpt.tcgcsv.com/jQq6,2024-05-31T14:25:21.65,1,0.9,1.42,3.37,1.19,,Normal,Rare,MST194,Action,Generic,,,,3,1,Attack,7,2,
-552014,Blanch (Red),Blanch Red,https://tcgplayer-cdn.tcgplayer.com/product/552014_200w.jpg,62,23476,https://cpt.tcgcsv.com/jQq6,2024-05-31T14:25:21.65,1,4.5,5.13,5.75,2.78,,Rainbow Foil,Rare,MST194,Action,Generic,,,,3,1,Attack,7,2,
-552015,Blanch (Yellow),Blanch Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552015_200w.jpg,62,23476,https://cpt.tcgcsv.com/kQq6,2024-05-31T14:25:21.65,1,0.13,0.34,1.49,0.22,,Rainbow Foil,Rare,MST195,Action,Generic,,,,3,2,Attack,6,2,
-552015,Blanch (Yellow),Blanch Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552015_200w.jpg,62,23476,https://cpt.tcgcsv.com/kQq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.6,0.12,,Normal,Rare,MST195,Action,Generic,,,,3,2,Attack,6,2,
-552016,Blanch (Blue),Blanch Blue,https://tcgplayer-cdn.tcgplayer.com/product/552016_200w.jpg,62,23476,https://cpt.tcgcsv.com/lQq6,2024-05-31T14:25:21.65,1,0.14,0.27,2.16,0.18,,Rainbow Foil,Rare,MST196,Action,Generic,,,,3,3,Attack,5,2,
-552016,Blanch (Blue),Blanch Blue,https://tcgplayer-cdn.tcgplayer.com/product/552016_200w.jpg,62,23476,https://cpt.tcgcsv.com/lQq6,2024-05-31T14:25:21.65,1,0.01,0.24,1.58,0.1,,Normal,Rare,MST196,Action,Generic,,,,3,3,Attack,5,2,
-552017,Emissary of Tides,Emissary of Tides,https://tcgplayer-cdn.tcgplayer.com/product/552017_200w.jpg,62,23476,https://cpt.tcgcsv.com/mQq6,2024-05-31T14:25:21.65,1,0.02,0.22,1.61,0.12,,Normal,Rare,MST198,Action,Generic,,,,0,1,Arrow Attack;Attack,4,2,
-552017,Emissary of Tides,Emissary of Tides,https://tcgplayer-cdn.tcgplayer.com/product/552017_200w.jpg,62,23476,https://cpt.tcgcsv.com/mQq6,2024-05-31T14:25:21.65,1,0.04,0.31,1.0,0.11,,Rainbow Foil,Rare,MST198,Action,Generic,,,,0,1,Arrow Attack;Attack,4,2,
-552018,Fact-Finding Mission (Red),Fact Finding Mission Red,https://tcgplayer-cdn.tcgplayer.com/product/552018_200w.jpg,62,23476,https://cpt.tcgcsv.com/nQq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.69,0.12,,Rainbow Foil,Common,MST206,Action,Generic,,,,2,1,Attack,6,2,
-552018,Fact-Finding Mission (Red),Fact Finding Mission Red,https://tcgplayer-cdn.tcgplayer.com/product/552018_200w.jpg,62,23476,https://cpt.tcgcsv.com/nQq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.13,,Normal,Common,MST206,Action,Generic,,,,2,1,Attack,6,2,
-552019,Fact-Finding Mission (Yellow),Fact Finding Mission Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552019_200w.jpg,62,23476,https://cpt.tcgcsv.com/pQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.05,,Normal,Common,MST207,Action,Generic,,,,2,2,Attack,5,2,
-552019,Fact-Finding Mission (Yellow),Fact Finding Mission Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552019_200w.jpg,62,23476,https://cpt.tcgcsv.com/pQq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.69,0.11,,Rainbow Foil,Common,MST207,Action,Generic,,,,2,2,Attack,5,2,
-552020,Fact-Finding Mission (Blue),Fact Finding Mission Blue,https://tcgplayer-cdn.tcgplayer.com/product/552020_200w.jpg,62,23476,https://cpt.tcgcsv.com/qQq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.03,,Normal,Common,MST208,Action,Generic,,,,2,3,Attack,4,2,
-552020,Fact-Finding Mission (Blue),Fact Finding Mission Blue,https://tcgplayer-cdn.tcgplayer.com/product/552020_200w.jpg,62,23476,https://cpt.tcgcsv.com/qQq6,2024-05-31T14:25:21.65,1,0.08,0.25,1.46,0.11,,Rainbow Foil,Common,MST208,Action,Generic,,,,2,3,Attack,4,2,
-552021,Nimble Strike (Red),Nimble Strike Red,https://tcgplayer-cdn.tcgplayer.com/product/552021_200w.jpg,62,23476,https://cpt.tcgcsv.com/rQq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.58,0.09,,Normal,Common,MST209,Action,Generic,,,,1,1,Attack,4,2,
-552022,Nimble Strike (Yellow),Nimble Strike Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552022_200w.jpg,62,23476,https://cpt.tcgcsv.com/sQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.08,,Normal,Common,MST210,Action,Generic,,,,1,2,Attack,3,2,
-552023,Nimble Strike (Blue),Nimble Strike Blue,https://tcgplayer-cdn.tcgplayer.com/product/552023_200w.jpg,62,23476,https://cpt.tcgcsv.com/tQq6,2024-05-31T14:25:21.65,1,0.01,0.24,1.63,0.1,,Normal,Common,MST211,Action,Generic,,,,1,3,Attack,2,2,
-552024,Wounding Blow (Red),Wounding Blow Red,https://tcgplayer-cdn.tcgplayer.com/product/552024_200w.jpg,62,23476,https://cpt.tcgcsv.com/vQq6,2024-05-31T14:25:21.65,1,0.01,0.18,1.62,0.12,,Normal,Common,MST215,Action,Generic,,,,0,1,Attack,4,3,<em>Farmhands, villagers, and slaves - easily replaceable wretches that must be taught the joys of obedience.</em>
-552025,Wounding Blow (Yellow),Wounding Blow Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552025_200w.jpg,62,23476,https://cpt.tcgcsv.com/wQq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.58,0.06,,Normal,Common,MST216,Action,Generic,,,,0,2,Attack,3,3,<em>Farmhands, villagers, and slaves - easily replaceable wretches that must be taught the joys of obedience.</em>
-552026,Wounding Blow (Blue),Wounding Blow Blue,https://tcgplayer-cdn.tcgplayer.com/product/552026_200w.jpg,62,23476,https://cpt.tcgcsv.com/xQq6,2024-05-31T14:25:21.65,1,0.05,0.2,1.63,0.12,,Normal,Common,MST217,Action,Generic,,,,0,3,Attack,2,3,<em>Farmhands, villagers, and slaves - easily replaceable wretches that must be taught the joys of obedience.</em>
-552027,Evasive Leap (Red),Evasive Leap Red,https://tcgplayer-cdn.tcgplayer.com/product/552027_200w.jpg,62,23476,https://cpt.tcgcsv.com/zQq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.62,0.06,,Normal,Common,MST218,Defense Reaction,Generic,,,,0,1,,,3,
-552027,Evasive Leap (Red),Evasive Leap Red,https://tcgplayer-cdn.tcgplayer.com/product/552027_200w.jpg,62,23476,https://cpt.tcgcsv.com/zQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.18,,Rainbow Foil,Common,MST218,Defense Reaction,Generic,,,,0,1,,,3,
-552028,Evasive Leap (Yellow),Evasive Leap Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552028_200w.jpg,62,23476,https://cpt.tcgcsv.com/BQq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.61,0.05,,Normal,Common,MST219,Defense Reaction,Generic,,,,0,2,,,2,
-552028,Evasive Leap (Yellow),Evasive Leap Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552028_200w.jpg,62,23476,https://cpt.tcgcsv.com/BQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.68,0.1,,Rainbow Foil,Common,MST219,Defense Reaction,Generic,,,,0,2,,,2,
-552029,Evasive Leap (Blue),Evasive Leap Blue,https://tcgplayer-cdn.tcgplayer.com/product/552029_200w.jpg,62,23476,https://cpt.tcgcsv.com/CQq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.58,0.06,,Normal,Common,MST220,Defense Reaction,Generic,,,,0,3,,,1,
-552029,Evasive Leap (Blue),Evasive Leap Blue,https://tcgplayer-cdn.tcgplayer.com/product/552029_200w.jpg,62,23476,https://cpt.tcgcsv.com/CQq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.68,0.17,,Rainbow Foil,Common,MST220,Defense Reaction,Generic,,,,0,3,,,1,
+552011,Blessing of Qi (Red),Blessing of Qi Red,https://tcgplayer-cdn.tcgplayer.com/product/552011_200w.jpg,62,23476,https://cpt.tcgcsv.com/fQq6,2024-06-06T19:47:37.163,1,0.02,0.19,1.61,0.08,,Normal,Rare,MST170,Action,Ninja,,,,1,1,Aura,,3
+552012,Blessing of Qi (Yellow),Blessing of Qi Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552012_200w.jpg,62,23476,https://cpt.tcgcsv.com/gQq6,2024-12-31T13:42:08.777,1,0.03,0.2,1.61,0.06,,Normal,Rare,MST171,,,,,,1,2,,,3
+552013,Blessing of Qi (Blue),Blessing of Qi Blue,https://tcgplayer-cdn.tcgplayer.com/product/552013_200w.jpg,62,23476,https://cpt.tcgcsv.com/hQq6,2024-09-03T13:20:45.233,1,0.01,0.23,1.63,0.09,,Normal,Rare,MST172,Action,Ninja,,,,1,3,Aura,,3
+552014,Blanch (Red),Blanch Red,https://tcgplayer-cdn.tcgplayer.com/product/552014_200w.jpg,62,23476,https://cpt.tcgcsv.com/jQq6,2024-05-31T14:25:21.65,1,0.9,1.42,3.37,1.19,,Normal,Rare,MST194,Action,Generic,,,,3,1,Attack,7,2
+552014,Blanch (Red),Blanch Red,https://tcgplayer-cdn.tcgplayer.com/product/552014_200w.jpg,62,23476,https://cpt.tcgcsv.com/jQq6,2024-05-31T14:25:21.65,1,4.5,5.13,5.75,2.78,,Rainbow Foil,Rare,MST194,Action,Generic,,,,3,1,Attack,7,2
+552015,Blanch (Yellow),Blanch Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552015_200w.jpg,62,23476,https://cpt.tcgcsv.com/kQq6,2024-05-31T14:25:21.65,1,0.13,0.34,1.49,0.22,,Rainbow Foil,Rare,MST195,Action,Generic,,,,3,2,Attack,6,2
+552015,Blanch (Yellow),Blanch Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552015_200w.jpg,62,23476,https://cpt.tcgcsv.com/kQq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.6,0.12,,Normal,Rare,MST195,Action,Generic,,,,3,2,Attack,6,2
+552016,Blanch (Blue),Blanch Blue,https://tcgplayer-cdn.tcgplayer.com/product/552016_200w.jpg,62,23476,https://cpt.tcgcsv.com/lQq6,2024-05-31T14:25:21.65,1,0.14,0.27,2.16,0.18,,Rainbow Foil,Rare,MST196,Action,Generic,,,,3,3,Attack,5,2
+552016,Blanch (Blue),Blanch Blue,https://tcgplayer-cdn.tcgplayer.com/product/552016_200w.jpg,62,23476,https://cpt.tcgcsv.com/lQq6,2024-05-31T14:25:21.65,1,0.01,0.24,1.58,0.1,,Normal,Rare,MST196,Action,Generic,,,,3,3,Attack,5,2
+552017,Emissary of Tides,Emissary of Tides,https://tcgplayer-cdn.tcgplayer.com/product/552017_200w.jpg,62,23476,https://cpt.tcgcsv.com/mQq6,2024-05-31T14:25:21.65,1,0.02,0.22,1.61,0.12,,Normal,Rare,MST198,Action,Generic,,,,0,1,Arrow Attack;Attack,4,2
+552017,Emissary of Tides,Emissary of Tides,https://tcgplayer-cdn.tcgplayer.com/product/552017_200w.jpg,62,23476,https://cpt.tcgcsv.com/mQq6,2024-05-31T14:25:21.65,1,0.04,0.31,1.0,0.11,,Rainbow Foil,Rare,MST198,Action,Generic,,,,0,1,Arrow Attack;Attack,4,2
+552018,Fact-Finding Mission (Red),Fact Finding Mission Red,https://tcgplayer-cdn.tcgplayer.com/product/552018_200w.jpg,62,23476,https://cpt.tcgcsv.com/nQq6,2024-05-31T14:25:21.65,1,0.02,0.25,1.69,0.12,,Rainbow Foil,Common,MST206,Action,Generic,,,,2,1,Attack,6,2
+552018,Fact-Finding Mission (Red),Fact Finding Mission Red,https://tcgplayer-cdn.tcgplayer.com/product/552018_200w.jpg,62,23476,https://cpt.tcgcsv.com/nQq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.13,,Normal,Common,MST206,Action,Generic,,,,2,1,Attack,6,2
+552019,Fact-Finding Mission (Yellow),Fact Finding Mission Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552019_200w.jpg,62,23476,https://cpt.tcgcsv.com/pQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.05,,Normal,Common,MST207,Action,Generic,,,,2,2,Attack,5,2
+552019,Fact-Finding Mission (Yellow),Fact Finding Mission Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552019_200w.jpg,62,23476,https://cpt.tcgcsv.com/pQq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.69,0.11,,Rainbow Foil,Common,MST207,Action,Generic,,,,2,2,Attack,5,2
+552020,Fact-Finding Mission (Blue),Fact Finding Mission Blue,https://tcgplayer-cdn.tcgplayer.com/product/552020_200w.jpg,62,23476,https://cpt.tcgcsv.com/qQq6,2024-05-31T14:25:21.65,1,0.01,0.19,1.58,0.03,,Normal,Common,MST208,Action,Generic,,,,2,3,Attack,4,2
+552020,Fact-Finding Mission (Blue),Fact Finding Mission Blue,https://tcgplayer-cdn.tcgplayer.com/product/552020_200w.jpg,62,23476,https://cpt.tcgcsv.com/qQq6,2024-05-31T14:25:21.65,1,0.08,0.25,1.46,0.11,,Rainbow Foil,Common,MST208,Action,Generic,,,,2,3,Attack,4,2
+552021,Nimble Strike (Red),Nimble Strike Red,https://tcgplayer-cdn.tcgplayer.com/product/552021_200w.jpg,62,23476,https://cpt.tcgcsv.com/rQq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.58,0.09,,Normal,Common,MST209,Action,Generic,,,,1,1,Attack,4,2
+552022,Nimble Strike (Yellow),Nimble Strike Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552022_200w.jpg,62,23476,https://cpt.tcgcsv.com/sQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.08,,Normal,Common,MST210,Action,Generic,,,,1,2,Attack,3,2
+552023,Nimble Strike (Blue),Nimble Strike Blue,https://tcgplayer-cdn.tcgplayer.com/product/552023_200w.jpg,62,23476,https://cpt.tcgcsv.com/tQq6,2024-05-31T14:25:21.65,1,0.01,0.24,1.63,0.1,,Normal,Common,MST211,Action,Generic,,,,1,3,Attack,2,2
+552024,Wounding Blow (Red),Wounding Blow Red,https://tcgplayer-cdn.tcgplayer.com/product/552024_200w.jpg,62,23476,https://cpt.tcgcsv.com/vQq6,2024-05-31T14:25:21.65,1,0.01,0.18,1.62,0.12,,Normal,Common,MST215,Action,Generic,,,,0,1,Attack,4,3
+552025,Wounding Blow (Yellow),Wounding Blow Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552025_200w.jpg,62,23476,https://cpt.tcgcsv.com/wQq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.58,0.06,,Normal,Common,MST216,Action,Generic,,,,0,2,Attack,3,3
+552026,Wounding Blow (Blue),Wounding Blow Blue,https://tcgplayer-cdn.tcgplayer.com/product/552026_200w.jpg,62,23476,https://cpt.tcgcsv.com/xQq6,2024-05-31T14:25:21.65,1,0.05,0.2,1.63,0.12,,Normal,Common,MST217,Action,Generic,,,,0,3,Attack,2,3
+552027,Evasive Leap (Red),Evasive Leap Red,https://tcgplayer-cdn.tcgplayer.com/product/552027_200w.jpg,62,23476,https://cpt.tcgcsv.com/zQq6,2024-05-31T14:25:21.65,1,0.01,0.2,1.62,0.06,,Normal,Common,MST218,Defense Reaction,Generic,,,,0,1,,,3
+552027,Evasive Leap (Red),Evasive Leap Red,https://tcgplayer-cdn.tcgplayer.com/product/552027_200w.jpg,62,23476,https://cpt.tcgcsv.com/zQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.63,0.18,,Rainbow Foil,Common,MST218,Defense Reaction,Generic,,,,0,1,,,3
+552028,Evasive Leap (Yellow),Evasive Leap Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552028_200w.jpg,62,23476,https://cpt.tcgcsv.com/BQq6,2024-05-31T14:25:21.65,1,0.02,0.2,1.61,0.05,,Normal,Common,MST219,Defense Reaction,Generic,,,,0,2,,,2
+552028,Evasive Leap (Yellow),Evasive Leap Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552028_200w.jpg,62,23476,https://cpt.tcgcsv.com/BQq6,2024-05-31T14:25:21.65,1,0.05,0.25,1.68,0.1,,Rainbow Foil,Common,MST219,Defense Reaction,Generic,,,,0,2,,,2
+552029,Evasive Leap (Blue),Evasive Leap Blue,https://tcgplayer-cdn.tcgplayer.com/product/552029_200w.jpg,62,23476,https://cpt.tcgcsv.com/CQq6,2024-05-31T14:25:21.65,1,0.01,0.25,1.58,0.06,,Normal,Common,MST220,Defense Reaction,Generic,,,,0,3,,,1
+552029,Evasive Leap (Blue),Evasive Leap Blue,https://tcgplayer-cdn.tcgplayer.com/product/552029_200w.jpg,62,23476,https://cpt.tcgcsv.com/CQq6,2024-05-31T14:25:21.65,1,0.09,0.25,1.68,0.17,,Rainbow Foil,Common,MST220,Defense Reaction,Generic,,,,0,3,,,1
 552030,Nimblism (Red),Nimblism Red,https://tcgplayer-cdn.tcgplayer.com/product/552030_200w.jpg,62,23476,https://cpt.tcgcsv.com/DQq6,2024-05-31T14:25:21.65,1
 <br><strong>Go again</strong>,0.02,0.2,1.61,0.09,,Normal,Common,MST221,Action,Generic,,,,0,1,,,2,
 552031,Nimblism (Yellow),Nimblism Yellow,https://tcgplayer-cdn.tcgplayer.com/product/552031_200w.jpg,62,23476,https://cpt.tcgcsv.com/FQq6,2024-05-31T14:25:21.65,1
 <br><strong>Go again</strong>,0.02,0.25,1.63,0.09,,Normal,Common,MST222,Action,Generic,,,,0,2,,,2,
 552032,Nimblism (Blue),Nimblism Blue,https://tcgplayer-cdn.tcgplayer.com/product/552032_200w.jpg,62,23476,https://cpt.tcgcsv.com/GQq6,2024-05-31T14:25:21.65,1
 <br><strong>Go again</strong>,0.01,0.2,1.63,0.06,,Normal,Common,MST223,Action,Generic,,,,0,3,,,2,
-552033,Cracked Bauble,Cracked Bauble,https://tcgplayer-cdn.tcgplayer.com/product/552033_200w.jpg,62,23476,https://cpt.tcgcsv.com/HQq6,2024-08-08T12:29:27.143,1,0.02,0.16,1.61,0.05,,Normal,Token,MST224,Resource,Generic,,,,,2,,,,
+552033,Cracked Bauble,Cracked Bauble,https://tcgplayer-cdn.tcgplayer.com/product/552033_200w.jpg,62,23476,https://cpt.tcgcsv.com/HQq6,2024-08-08T12:29:27.143,1,0.02,0.16,1.61,0.05,,Normal,Token,MST224,Resource,Generic,,,,,2,,,
 552034,Supercell,Supercell,https://tcgplayer-cdn.tcgplayer.com/product/552034_200w.jpg,62,23476,https://cpt.tcgcsv.com/JQq6,2024-05-31T14:25:21.65,1
 <br>
 Create a Hyper Driver token with X steam counters.
@@ -1018,8 +1018,8 @@ When this is equipped,deal 1 damage to any target.
 When this is equipped,deal 1 damage to any target.
 <br>
 <strong>Arcane Barrier 1</strong> <em>(If you would be dealt arcane damage,you may pay {r} to prevent 1 of that damage.)</em>,0.85,1.95,10.0,0.94,,Normal,Majestic,MST231,,,,,,0,3,,,0,
-552039,Dust from Stillwater Shrine,Dust from Stillwater Shrine,https://tcgplayer-cdn.tcgplayer.com/product/552039_200w.jpg,62,23476,https://cpt.tcgcsv.com/PQq6,2024-06-13T10:55:17.383,1,2.75,4.89,35.0,3.99,,Rainbow Foil,Majestic,MST235,Action,Illusionist,Draconic,,,0,1,Ash,,3,
-552039,Dust from Stillwater Shrine,Dust from Stillwater Shrine,https://tcgplayer-cdn.tcgplayer.com/product/552039_200w.jpg,62,23476,https://cpt.tcgcsv.com/PQq6,2024-06-13T10:55:17.383,1,1.25,5.0,25.0,1.6,,Normal,Majestic,MST235,Action,Illusionist,Draconic,,,0,1,Ash,,3,
+552039,Dust from Stillwater Shrine,Dust from Stillwater Shrine,https://tcgplayer-cdn.tcgplayer.com/product/552039_200w.jpg,62,23476,https://cpt.tcgcsv.com/PQq6,2024-06-13T10:55:17.383,1,2.75,4.89,35.0,3.99,,Rainbow Foil,Majestic,MST235,Action,Illusionist,Draconic,,,0,1,Ash,,3
+552039,Dust from Stillwater Shrine,Dust from Stillwater Shrine,https://tcgplayer-cdn.tcgplayer.com/product/552039_200w.jpg,62,23476,https://cpt.tcgcsv.com/PQq6,2024-06-13T10:55:17.383,1,1.25,5.0,25.0,1.6,,Normal,Majestic,MST235,Action,Illusionist,Draconic,,,0,1,Ash,,3
 552234,Enigma, New Moon,Enigma New Moon,https://tcgplayer-cdn.tcgplayer.com/product/552234_200w.jpg,62,23476,https://cpt.tcgcsv.com/JVq6,2024-05-31T14:25:21.65,1
 <br>
 <strong>Instant — [3 Chi]</strong>: Turn target face-down equipment you have equipped face-up. If it has ward,create 3 Spectral Shield tokens.,13.0,17.99,50.0,13.97,,Rainbow Foil,Legendary,MST238,Hero,Illusionist,Mystic,4,20,,,Young,,,
@@ -1031,8 +1031,8 @@ If you've played another blue card this turn,choose 3. Otherwise,choose 1;<br>
 Create a Fang Strike and Slither in your hand.<br>
 Banish up to 2 cards in an opposing hero's graveyard.<br>
 <strong>Transcend</strong>,33.0,44.99,59.99,43.63,,Cold Foil,Marvel,MST010,Instant,Assassin,Mystic,,,3,3,,,,
-552843,Spectral Shield (158-A),Spectral Shield 158 A,https://tcgplayer-cdn.tcgplayer.com/product/552843_200w.jpg,62,23476,https://cpt.tcgcsv.com/T8r6,2025-03-17T20:34:22.41,1,1.64,2.34,6.5,2.21,,Normal,Common,MST158-A,Token,Illusionist,,,,,,Aura,,,
-552844,Spectral Shield (158-B),Spectral Shield 158 B,https://tcgplayer-cdn.tcgplayer.com/product/552844_200w.jpg,62,23476,https://cpt.tcgcsv.com/V8r6,2025-03-17T20:34:33.857,1,0.3,1.84,11.22,0.58,,Normal,Token,MST158-B,Token,Illusionist,,,,,,Aura,,,
+552843,Spectral Shield (158-A),Spectral Shield 158 A,https://tcgplayer-cdn.tcgplayer.com/product/552843_200w.jpg,62,23476,https://cpt.tcgcsv.com/T8r6,2025-03-17T20:34:22.41,1,1.64,2.34,6.5,2.21,,Normal,Common,MST158-A,Token,Illusionist,,,,,,Aura,,
+552844,Spectral Shield (158-B),Spectral Shield 158 B,https://tcgplayer-cdn.tcgplayer.com/product/552844_200w.jpg,62,23476,https://cpt.tcgcsv.com/V8r6,2025-03-17T20:34:33.857,1,0.3,1.84,11.22,0.58,,Normal,Token,MST158-B,Token,Illusionist,,,,,,Aura,,
 553349,Beckoning Mistblade // Spectral Shield,Beckoning Mistblade Spectral Shield,https://tcgplayer-cdn.tcgplayer.com/product/553349_200w.jpg,62,23476,https://cpt.tcgcsv.com/_lr6,2025-03-17T20:34:41.787,2
 <br>When this hits,your next blue attack this turn gets +1POWER and <strong>go again</strong>.
 <br><br>
@@ -1066,8 +1066,8 @@ Once per Turn <strong>Instant</strong> — [3 Chi]: Create a Spectral Shield tok
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,29.99,40.06,100.0,40.06,,Cold Foil,Legendary,MST004,Equipment,Assassin,Mystic,,,,,Head,,2,
 554309,Stride of Reprisal - LGS273,Stride of Reprisal LGS273,https://tcgplayer-cdn.tcgplayer.com/product/554309_200w.jpg,62,23476,https://cpt.tcgcsv.com/cLr6,2024-06-04T13:21:29.633,1
 <strong>Blade Break</strong> <em>(When the combat chain closes,if this defended,destroy it.)</em>,3.05,3.25,6.29,5.0,,Rainbow Foil,Promo,LGS273,Equipment,Ninja,Mystic,,,,-,Legs,,1,
-555062,Crouching Tiger,Crouching Tiger,https://tcgplayer-cdn.tcgplayer.com/product/555062_200w.jpg,62,23476,https://cpt.tcgcsv.com/g2s6,2024-06-12T13:14:39.483,1,0.01,0.12,1.32,0.07,,Normal,Token,MST188,Action,Ninja,,,,0,,Attack,0,,
-555063,Zen State,Zen State,https://tcgplayer-cdn.tcgplayer.com/product/555063_200w.jpg,62,23476,https://cpt.tcgcsv.com/h2s6,2025-03-17T20:38:31.687,1,0.05,0.2,1.39,0.16,,Normal,Token,MST189,Token,Ninja,,,,,,Aura,,,
+555062,Crouching Tiger,Crouching Tiger,https://tcgplayer-cdn.tcgplayer.com/product/555062_200w.jpg,62,23476,https://cpt.tcgcsv.com/g2s6,2024-06-12T13:14:39.483,1,0.01,0.12,1.32,0.07,,Normal,Token,MST188,Action,Ninja,,,,0,,Attack,0,
+555063,Zen State,Zen State,https://tcgplayer-cdn.tcgplayer.com/product/555063_200w.jpg,62,23476,https://cpt.tcgcsv.com/h2s6,2025-03-17T20:38:31.687,1,0.05,0.2,1.39,0.16,,Normal,Token,MST189,Token,Ninja,,,,,,Aura,,
 555066,Nuu // Spectral Shield,Nuu Spectral Shield,https://tcgplayer-cdn.tcgplayer.com/product/555066_200w.jpg,62,23476,https://cpt.tcgcsv.com/l2s6,2024-06-12T13:40:00.36,2
 <strong>Instant</strong> — [3 Chi]: Look at the top card of an opposing hero's deck. If it's blue,you may banish it. Until end of turn,you may play blue cards from that hero's banished zone without paying their [1 Resources] cost.,0.01,0.14,1.36,0.07,,Normal,Token,MST002 // MST158,Hero,Assassin,Mystic,4,40,,-,,,,40
 555068,Cosmo, Scroll of Ancestral Tapestry // Beckoning Mistblade,Cosmo Scroll of Ancestral Tapestry Beckoning Mistblade,https://tcgplayer-cdn.tcgplayer.com/product/555068_200w.jpg,62,23476,https://cpt.tcgcsv.com/n2s6,2025-03-17T20:38:56.67,2

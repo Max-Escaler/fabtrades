@@ -232,7 +232,7 @@ function convertToCSV(data) {
   ).join('\n');
 }
 
-// Clean CSV by removing extDescription column
+// Clean CSV by removing extDescription and extFlavorText columns
 function cleanCSV(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
     try {
@@ -247,14 +247,14 @@ function cleanCSV(inputPath, outputPath) {
       
       // Parse headers
       const headers = parseCSVLine(lines[0]);
-      const filteredHeaders = headers.filter(h => h !== 'extDescription');
+      const filteredHeaders = headers.filter(h => h !== 'extDescription' && h !== 'extFlavorText');
       
       // Process data rows
       const cleanedLines = [filteredHeaders.join(',')];
       
       for (let i = 1; i < lines.length; i++) {
         const row = parseCSVLine(lines[i]);
-        const cleanedRow = row.filter((_, index) => headers[index] !== 'extDescription');
+        const cleanedRow = row.filter((_, index) => headers[index] !== 'extDescription' && headers[index] !== 'extFlavorText');
         cleanedLines.push(cleanedRow.join(','));
       }
       
