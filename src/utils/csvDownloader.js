@@ -1,7 +1,6 @@
 // CSV Downloader Utility with Diffing Support
 import fs from 'fs';
 import path from 'path';
-import csv from 'csv-parser';
 import https from 'https';
 import http from 'http';
 import { fileURLToPath } from 'url';
