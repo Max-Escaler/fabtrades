@@ -168,7 +168,7 @@ function App() {
      }}>
       {/* Header */}
              <AppBar position="static" sx={{ 
-         backgroundColor: '#000000',
+         backgroundColor: '#432a22',
          flexShrink: 0,
          width: '100%'
        }}>
@@ -185,7 +185,8 @@ function App() {
             sx={{ 
               flexGrow: 1, 
               fontWeight: 'bold',
-              fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2rem', xl: '2.5rem' }
+              fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2rem', xl: '2.5rem' },
+              color: "c00002"
             }}
           >
             FAB Trades
@@ -194,7 +195,7 @@ function App() {
             variant="body2" 
             component="div" 
             sx={{ 
-              color: 'rgba(255, 255, 255, 0.8)',
+              color: '8b0003',
               fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
               mt: 0.5
             }}
