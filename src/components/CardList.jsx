@@ -10,35 +10,9 @@ import {
   Box,
   Typography,
   TextField,
-  Autocomplete,
-  Popper
+  Autocomplete
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-// Custom Popper component for upward expansion
-const CustomPopper = React.forwardRef((props, ref) => {
-  return (
-    <Popper
-      {...props}
-      ref={ref}
-      placement="top-start"
-      modifiers={[
-        {
-          name: 'preventOverflow',
-          options: {
-            boundary: 'viewport',
-          },
-        },
-        {
-          name: 'flip',
-          options: {
-            fallbackPlacements: ['bottom-start'],
-          },
-        },
-      ]}
-    />
-  );
-});
 
 const CardList = ({ 
   cards, 
@@ -288,7 +262,6 @@ const CardList = ({
           openOnFocus
           disableClearable={false}
           disabled={disabled}
-          PopperComponent={title === "Cards I Want" ? CustomPopper : undefined}
         />
       </ListItem>
     </List>
