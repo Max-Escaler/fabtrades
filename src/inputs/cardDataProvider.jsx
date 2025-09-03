@@ -114,7 +114,7 @@ const createCardObject = (row, sourceUrl) => {
   };
   
   // Create display name based on available data
-  const name = card.name || '';
+  const name = card.cleanName || card.name || '';
   const edition = card.subTypeName || card.color || '';
   card.displayName = edition ? `${name} (${edition})` : name;
   
@@ -231,25 +231,27 @@ const processCardsInBatches = (csvResults, csvUrls, batchSize = 100) => {
 
 // Function to identify duplicates and enhance display names
 const enhanceDisplayNames = (cards) => {
-  // Group cards by name to identify duplicates
+  // Group cards by cleanName to identify duplicates
   const nameGroups = {};
   cards.forEach(card => {
-    if (!nameGroups[card.name]) {
-      nameGroups[card.name] = [];
+    const cleanName = card.cleanName || card.name;
+    if (!nameGroups[cleanName]) {
+      nameGroups[cleanName] = [];
     }
-    nameGroups[card.name].push(card);
+    nameGroups[cleanName].push(card);
   });
   
   // Enhance display names for cards with multiple editions
   return cards.map(card => {
-    const sameNameCards = nameGroups[card.name];
+    const cleanName = card.cleanName || card.name;
+    const sameNameCards = nameGroups[cleanName];
     if (sameNameCards.length > 1) {
       // Multiple editions exist, include extNumber in display name
       const extNumber = card.extNumber || '';
       const subTypeName = card.subTypeName || '';
       
       // Create enhanced display name
-      let enhancedName = card.name;
+      let enhancedName = cleanName;
       if (extNumber) {
         enhancedName += ` (${extNumber})`;
       }
@@ -262,10 +264,10 @@ const enhanceDisplayNames = (cards) => {
         displayName: enhancedName
       };
     } else {
-      // Single edition, keep original name
+      // Single edition, keep original clean name
       return {
         ...card,
-        displayName: card.name
+        displayName: cleanName
       };
     }
   });
@@ -276,7 +278,7 @@ const groupCardsByEdition = (cards) => {
   const grouped = {};
   
   cards.forEach(card => {
-    const displayName = card.displayName || card.name;
+    const displayName = card.displayName || card.cleanName || card.name;
     
     if (!grouped[displayName]) {
       grouped[displayName] = {
