@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCardData } from './inputs/cardDataProvider.jsx';
 import { Box, AppBar, Toolbar, Typography, useTheme, useMediaQuery, CircularProgress, Chip, Alert } from '@mui/material';
 import CardPanel from './components/CardPanel';
+import { fetchLastUpdatedTimestamp, formatTimestamp } from './utils/timestampFetcher.js';
 
 function App() {
   const [haveInput, setHaveInput] = useState("");
@@ -9,6 +10,7 @@ function App() {
   const [haveList, setHaveList] = useState([]);
   const [wantList, setWantList] = useState([]);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -27,6 +29,16 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [dataReady, loading]);
+
+  // Fetch last updated timestamp when component mounts
+  useEffect(() => {
+    const fetchTimestamp = async () => {
+      const timestamp = await fetchLastUpdatedTimestamp();
+      setLastUpdatedTimestamp(timestamp);
+    };
+    
+    fetchTimestamp();
+  }, []);
 
   // Get card group data from the loaded card data
   const getCardGroup = (cardName) => {
@@ -163,7 +175,9 @@ function App() {
                  <Toolbar sx={{ 
            px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
            py: { xs: 0.75, sm: 1, md: 1.5, lg: 2, xl: 2.5 },
-           width: '100%'
+           width: '100%',
+           flexDirection: 'column',
+           alignItems: 'flex-start'
          }}>
           <Typography 
             variant="h4" 
@@ -175,6 +189,17 @@ function App() {
             }}
           >
             FAB Trades
+          </Typography>
+          <Typography 
+            variant="body2" 
+            component="div" 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
+              mt: 0.5
+            }}
+          >
+            Prices last updated at: {lastUpdatedTimestamp ? formatTimestamp(lastUpdatedTimestamp) : 'Loading...'}
           </Typography>
         </Toolbar>
       </AppBar>
