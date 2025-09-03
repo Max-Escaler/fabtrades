@@ -1,6 +1,7 @@
 // CSV Downloader Utility with Diffing Support
 import fs from 'fs';
 import path from 'path';
+import csv from 'csv-parser';
 import https from 'https';
 import http from 'http';
 import { fileURLToPath } from 'url';
@@ -232,38 +233,39 @@ function convertToCSV(data) {
   ).join('\n');
 }
 
-// Clean CSV by removing extDescription and extFlavorText columns
+// Clean CSV by removing extDescription column
 function cleanCSV(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
-    try {
-      const content = fs.readFileSync(inputPath, 'utf8');
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      if (lines.length === 0) {
-        fs.writeFileSync(outputPath, '');
-        resolve();
-        return;
-      }
-      
-      // Parse headers
-      const headers = parseCSVLine(lines[0]);
-      const filteredHeaders = headers.filter(h => h !== 'extDescription' && h !== 'extFlavorText');
-      
-      // Process data rows
-      const cleanedLines = [filteredHeaders.join(',')];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const row = parseCSVLine(lines[i]);
-        const cleanedRow = row.filter((_, index) => headers[index] !== 'extDescription' && headers[index] !== 'extFlavorText');
-        cleanedLines.push(cleanedRow.join(','));
-      }
-      
-      // Write cleaned CSV
-      fs.writeFileSync(outputPath, cleanedLines.join('\n'));
-      resolve();
-    } catch (error) {
-      reject(error);
-    }
+    const results = [];
+    const headers = [];
+    
+    fs.createReadStream(inputPath)
+      .pipe(csv())
+      .on('headers', (headerList) => {
+        // Filter out extDescription column
+        headers.push(...headerList.filter(h => h !== 'extDescription'));
+      })
+      .on('data', (data) => {
+        // Remove extDescription from each row
+        const cleanedRow = {};
+        Object.keys(data).forEach(key => {
+          if (key !== 'extDescription') {
+            cleanedRow[key] = data[key];
+          }
+        });
+        results.push(cleanedRow);
+      })
+      .on('end', () => {
+        try {
+          // Convert back to CSV format
+          const csvString = convertToCSV([headers, ...results.map(row => headers.map(h => row[h] || ''))]);
+          fs.writeFileSync(outputPath, csvString);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      })
+      .on('error', reject);
   });
 }
 
