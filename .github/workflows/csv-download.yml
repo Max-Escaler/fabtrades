@@ -1,0 +1,55 @@
+name: Daily CSV Download
+
+on:
+  schedule:
+    # Runs daily at 21:00 UTC
+    - cron: '0 21 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  download-csvs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download CSVs
+      run: npm run download-csvs
+      
+    - name: Check for changes
+      id: check-changes
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          echo "has-changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has-changes=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Commit and push changes
+      if: steps.check-changes.outputs.has-changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add public/price-guide/
+        git commit -m "Auto-update CSVs $(date +'%Y-%m-%d %H:%M:%S UTC')"
+        git push
+        
+    - name: No changes to commit
+      if: steps.check-changes.outputs.has-changes == 'false'
+      run: |
+        echo "No CSV changes detected - skipping commit"
+        
+    - name: Log completion
+      run: |
+        echo "CSV download workflow completed at $(date)"
+        echo "Changes detected: ${{ steps.check-changes.outputs.has-changes }}"
