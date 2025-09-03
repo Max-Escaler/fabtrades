@@ -1,11 +1,14 @@
 productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,extRarity,extNumber,extCardType,extCardSubType,extClass,extIntellect,extLife,extDefenseValue,extCost,extPitchValue,extPower,extFlavorText
-646827,"Bravo, Flattering Showman",Bravo Flattering Showman,https://tcgplayer-cdn.tcgplayer.com/product/646827_200w.jpg,62,24391,https://cpt.tcgcsv.com/zLb7,2025-08-08T04:11:42.067,1,Rare,BDD001,Hero,Young,Guardian,4,20,,,,,
+646827,Bravo, Flattering Showman,Bravo Flattering Showman,https://tcgplayer-cdn.tcgplayer.com/product/646827_200w.jpg,62,24391,https://cpt.tcgcsv.com/zLb7,2025-08-08T04:11:42.067,1,Rare,BDD001
+<br><strong>Go again</strong> <em>(An attack with dominate can’t be defended by more than 1 card from hand.)</em>,Hero,Young,Guardian,4,20,,,,,
 646828,Placeholder Weapon,Placeholder Weapon,https://tcgplayer-cdn.tcgplayer.com/product/646828_200w.jpg,62,24391,https://cpt.tcgcsv.com/BLb7,2025-08-08T04:11:42.067,1,Basic,BDD002,Weapon,Hammer (1H),Guardian,,,,,,,
 646829,Ironrot Helm,Ironrot Helm,https://tcgplayer-cdn.tcgplayer.com/product/646829_200w.jpg,62,24391,https://cpt.tcgcsv.com/CLb7,2025-08-08T04:11:42.067,1,Basic,BDD003,Equipment,Head,Generic,,,1,,,,
 646830,Ironrot Legs,Ironrot Legs,https://tcgplayer-cdn.tcgplayer.com/product/646830_200w.jpg,62,24391,https://cpt.tcgcsv.com/DLb7,2025-08-08T04:11:42.067,1,Basic,BDD006,Equipment,Legs,Generic,,,1,,,,
-646831,Blossom of Spring,Blossom of Spring,https://tcgplayer-cdn.tcgplayer.com/product/646831_200w.jpg,62,24391,https://cpt.tcgcsv.com/FLb7,2025-08-08T04:11:42.067,1,Common,BDD004,Equipment,Chest,Generic,,,0,,,,
-646832,Cracker Jax,Cracker Jax,https://tcgplayer-cdn.tcgplayer.com/product/646832_200w.jpg,62,24391,https://cpt.tcgcsv.com/GLb7,2025-08-08T04:11:42.067,1,Common,BDD004,Equipment,Arms,Generic,,,0,,,,
-646833,Debilitate (Red),Debilitate Red,https://tcgplayer-cdn.tcgplayer.com/product/646833_200w.jpg,62,24391,https://cpt.tcgcsv.com/HLb7,2025-08-08T04:11:42.067,1,Common,BDD007,Action,Attack,Guardian,,,3,4,1,8,"<em>...and at that moment, Flannigan knew failure was close at hand.</em>"
+646831,Blossom of Spring,Blossom of Spring,https://tcgplayer-cdn.tcgplayer.com/product/646831_200w.jpg,62,24391,https://cpt.tcgcsv.com/FLb7,2025-08-08T04:11:42.067,1,Common,BDD004
+<br><strong>Go again</strong>,Equipment,Chest,Generic,,,0,,,,
+646832,Cracker Jax,Cracker Jax,https://tcgplayer-cdn.tcgplayer.com/product/646832_200w.jpg,62,24391,https://cpt.tcgcsv.com/GLb7,2025-08-08T04:11:42.067,1,Common,BDD004
+Go again</strong>,Equipment,Arms,Generic,,,0,,,,
+646833,Debilitate (Red),Debilitate Red,https://tcgplayer-cdn.tcgplayer.com/product/646833_200w.jpg,62,24391,https://cpt.tcgcsv.com/HLb7,2025-08-08T04:11:42.067,1,Common,BDD007,Action,Attack,Guardian,,,3,4,1,8,<em>...and at that moment, Flannigan knew failure was close at hand.</em>
 646836,Knock 'Em Off Their Feet,Knock Em Off Their Feet,https://tcgplayer-cdn.tcgplayer.com/product/646836_200w.jpg,62,24391,https://cpt.tcgcsv.com/LLb7,2025-08-08T04:11:42.067,1,Rare,BDD008,Action,Attack,Guardian,,,3,4,1,8,
 646837,Thunder Quake (Red),Thunder Quake Red,https://tcgplayer-cdn.tcgplayer.com/product/646837_200w.jpg,62,24391,https://cpt.tcgcsv.com/MLb7,2025-08-08T04:11:42.067,1,Rare,BDD009,Action,Attack,Guardian,,,3,6,1,10,
 646838,Crash Down (Red),Crash Down Red,https://tcgplayer-cdn.tcgplayer.com/product/646838_200w.jpg,62,24391,https://cpt.tcgcsv.com/NLb7,2025-08-08T04:11:42.067,1,Common,BDD010,Action,Aura,Guardian,,,3,3,1,,
