@@ -479,10 +479,142 @@ function clearDiffCache() {
   }
 }
 
+// Read URLs from Products and Prices Sheet CSV
+function readProductsSheetUrls() {
+  try {
+    const productsSheetPath = path.join(__dirname, '../assets/Products and Prices Sheet - Sheet1.csv');
+    const csvContent = fs.readFileSync(productsSheetPath, 'utf8');
+    const lines = csvContent.split('\n').filter(line => line.trim());
+    
+    // Skip the first line if it's "Files" header
+    const urls = lines.slice(1).map(line => line.trim()).filter(url => url.startsWith('http'));
+    
+    console.log(`Found ${urls.length} URLs in Products and Prices Sheet`);
+    return urls;
+  } catch (error) {
+    console.error('Error reading Products and Prices Sheet:', error);
+    return [];
+  }
+}
+
+// Download CSVs from Products and Prices Sheet
+async function downloadFromProductsSheet(force = false) {
+  const urls = readProductsSheetUrls();
+  
+  if (urls.length === 0) {
+    console.log('No URLs found in Products and Prices Sheet');
+    return;
+  }
+
+  // Check if refresh is needed
+  if (!force && !shouldRefreshData()) {
+    console.log('Data is fresh (less than 24 hours old). Use --force to override.');
+    return;
+  }
+
+  console.log(`Starting download of ${urls.length} CSV files from Products and Prices Sheet...`);
+  
+  const manifest = {
+    lastUpdated: new Date().toISOString(),
+    source: 'Products and Prices Sheet',
+    totalFiles: urls.length,
+    files: []
+  };
+
+  const diffCache = loadDiffCache();
+  let successCount = 0;
+  let errorCount = 0;
+  let skippedCount = 0;
+  let downloadedCount = 0;
+
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    const fileName = `set_${i + 1}.csv`;
+    const outputPath = path.join(PRICE_GUIDE_DIR, fileName);
+    const tempPath = path.join(PRICE_GUIDE_DIR, `temp_${fileName}`);
+
+    try {
+      console.log(`Checking ${fileName} (${i + 1}/${urls.length})...`);
+      
+      // Check if file needs to be downloaded
+      const changeResult = await checkRemoteFileChanged(url, outputPath, diffCache);
+      
+      if (!changeResult.changed && !force) {
+        console.log(`⏭️  Skipped ${fileName} (${changeResult.reason})`);
+        skippedCount++;
+        
+        // Still add to manifest if file exists
+        if (fs.existsSync(outputPath)) {
+          manifest.files.push({
+            name: fileName,
+            url: url,
+            downloadedAt: new Date().toISOString(),
+            status: 'skipped'
+          });
+        }
+        continue;
+      }
+
+      console.log(`📥 Downloading ${fileName} (${changeResult.reason})...`);
+      await downloadCSV(url, tempPath);
+      
+      // Clean the CSV (remove extDescription)
+      await cleanCSV(tempPath, outputPath);
+      
+      // Remove temp file
+      fs.unlinkSync(tempPath);
+      
+      // Update cache with new file info
+      const newHash = getFileHash(outputPath);
+      diffCache[url] = {
+        ...diffCache[url],
+        hash: newHash,
+        lastDownloaded: new Date().toISOString()
+      };
+      
+      manifest.files.push({
+        name: fileName,
+        url: url,
+        downloadedAt: new Date().toISOString(),
+        status: 'downloaded'
+      });
+      
+      successCount++;
+      downloadedCount++;
+      console.log(`✓ Downloaded and cleaned ${fileName}`);
+    } catch (error) {
+      errorCount++;
+      console.error(`✗ Failed to download ${fileName}:`, error.message);
+      
+      // Clean up temp file if it exists
+      if (fs.existsSync(tempPath)) {
+        fs.unlinkSync(tempPath);
+      }
+    }
+  }
+
+  // Save manifest and cache
+  fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2));
+  saveDiffCache(diffCache);
+  
+  // Update timestamp
+  updateLastUpdateTimestamp();
+
+  console.log(`\nDownload complete!`);
+  console.log(`✓ Successfully downloaded: ${downloadedCount} files`);
+  console.log(`⏭️  Skipped (no changes): ${skippedCount} files`);
+  console.log(`✗ Failed downloads: ${errorCount} files`);
+  console.log(`📁 Files saved to: ${PRICE_GUIDE_DIR}`);
+  console.log(`📋 Manifest saved to: ${MANIFEST_FILE}`);
+  console.log(`🕒 Last updated: ${new Date().toLocaleString()}`);
+}
+
 export {
   readCSVUrls,
+  readProductsSheetUrls,
   downloadCSV,
   downloadAllCSVs,
+  downloadFromProductsSheet,
   checkCSVStatus,
   getLocalCSVPath,
   readLocalCSV,

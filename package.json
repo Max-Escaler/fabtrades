@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "download-csvs": "node scripts/downloadCSVs.js",
     "download-csvs:force": "node scripts/downloadCSVs.js --force",
+    "download-products-sheet": "node scripts/downloadFromProductsSheet.js",
+    "download-products-sheet:force": "node scripts/downloadFromProductsSheet.js --force",
     "csv-status": "node -e \"import('./src/utils/csvDownloader.js').then(m => m.checkCSVStatus())\"",
     "test": "jest",
     "test:watch": "jest --watch",
