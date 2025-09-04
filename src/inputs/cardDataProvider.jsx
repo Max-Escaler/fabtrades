@@ -294,7 +294,7 @@ const groupCardsByEdition = (cards) => {
       grouped[displayName].editions.push({
         subTypeName: card.subTypeName,
         productId: card.productId,
-        cardPrice: (card.marketPrice && card.marketPrice > 0) ? card.marketPrice : card.lowPrice
+        cardPrice: ((card.marketPrice <= card.lowPrice) && card.marketPrice > 0) ? card.marketPrice : card.lowPrice
       });
     }
   });
