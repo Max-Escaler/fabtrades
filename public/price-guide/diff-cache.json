@@ -1,0 +1,740 @@
+{
+  "https://tcgcsv.com/tcgplayer/62/2724/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:23 GMT",
+    "etag": "\"42796410f9ad57a80381134d94b1979f-1\"",
+    "contentLength": "363793",
+    "statusCode": 200,
+    "hash": "abe98525c8f42c6a9871144ba7b7e1f6",
+    "lastChecked": "2025-09-04T10:52:08.692Z",
+    "lastDownloaded": "2025-09-04T10:52:34.423Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2725/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:23 GMT",
+    "etag": "\"767c176fd435b39c2a2d9ecb3ec6ec05-1\"",
+    "contentLength": "484128",
+    "statusCode": 200,
+    "hash": "10b0c33d9fa5f5e74b95881d1039c3f1",
+    "lastChecked": "2025-09-04T10:52:08.818Z",
+    "lastDownloaded": "2025-09-04T10:52:34.742Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2726/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:24 GMT",
+    "etag": "\"c76b339db630367a35e3b832da9ad37b-1\"",
+    "contentLength": "475293",
+    "statusCode": 200,
+    "hash": "138721774fcce75d675f48d0c7877c26",
+    "lastChecked": "2025-09-04T10:52:08.927Z",
+    "lastDownloaded": "2025-09-04T10:52:35.018Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2727/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:18 GMT",
+    "etag": "\"60999525ffa08fb53bddce28d9495c9d-1\"",
+    "contentLength": "4245",
+    "statusCode": 200,
+    "hash": "7fee9259c6652a4de44420f8a230e450",
+    "lastChecked": "2025-09-04T10:52:09.050Z",
+    "lastDownloaded": "2025-09-04T10:52:35.231Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2728/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"2f596d08bcb15008ffb9c9f51f45983d-1\"",
+    "contentLength": "13195",
+    "statusCode": 200,
+    "hash": "e769ce50a0d4761308a5b2bb8f316392",
+    "lastChecked": "2025-09-04T10:52:09.184Z",
+    "lastDownloaded": "2025-09-04T10:52:35.446Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2729/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:17 GMT",
+    "etag": "\"e1d19c700c1c8bdf12c3422b6ebe72b0-1\"",
+    "contentLength": "14454",
+    "statusCode": 200,
+    "hash": "88ba5a72a8633c97418b230a87fe79fc",
+    "lastChecked": "2025-09-04T10:52:09.312Z",
+    "lastDownloaded": "2025-09-04T10:52:35.648Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2730/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:17 GMT",
+    "etag": "\"4ee9ace98565f0e6911a5a26a6a14405-1\"",
+    "contentLength": "12205",
+    "statusCode": 200,
+    "hash": "297df6ba6a4922f2ae679b44131b76be",
+    "lastChecked": "2025-09-04T10:52:09.444Z",
+    "lastDownloaded": "2025-09-04T10:52:35.884Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2731/ProductsAndPrices.csv": {
+    "lastModified": "Tue, 02 Sep 2025 20:01:07 GMT",
+    "etag": "\"8b5f1d5ed16ea0b9f4eb49e3c9515aa6-1\"",
+    "contentLength": "13559",
+    "statusCode": 200,
+    "hash": "9be6d0307eba965c08f73a866aa92062",
+    "lastChecked": "2025-09-04T10:52:09.569Z",
+    "lastDownloaded": "2025-09-04T10:52:36.093Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2732/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:48 GMT",
+    "etag": "\"978739fa6cd0a6b038aec279361c24d3-1\"",
+    "contentLength": "468058",
+    "statusCode": 200,
+    "hash": "55e06df6e06b209f4ea0ca0d9c09203d",
+    "lastChecked": "2025-09-04T10:52:09.701Z",
+    "lastDownloaded": "2025-09-04T10:52:36.399Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2775/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:24 GMT",
+    "etag": "\"5ec2d837a567858b3053ac9a8a8ef243-1\"",
+    "contentLength": "611041",
+    "statusCode": 200,
+    "hash": "2a64a555ddd5c0b988f64f054c9a2b9d",
+    "lastChecked": "2025-09-04T10:52:09.831Z",
+    "lastDownloaded": "2025-09-04T10:52:36.710Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2818/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"fd4847e5a9108d2ff22690c35d130cc4-1\"",
+    "contentLength": "17500",
+    "statusCode": 200,
+    "hash": "6eed4870866f99732d70dba905cad79f",
+    "lastChecked": "2025-09-04T10:52:09.955Z",
+    "lastDownloaded": "2025-09-04T10:52:36.836Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2819/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"8180b7047f14563e443633ea718e39e5-1\"",
+    "contentLength": "14576",
+    "statusCode": 200,
+    "hash": "885f7612a8005432dfd9712952998627",
+    "lastChecked": "2025-09-04T10:52:10.083Z",
+    "lastDownloaded": "2025-09-04T10:52:37.065Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2820/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:15 GMT",
+    "etag": "\"796d0d3c430f998943372c9a7a874328-1\"",
+    "contentLength": "15576",
+    "statusCode": 200,
+    "hash": "ca498e31c256c8a7f7c6983fc5715959",
+    "lastChecked": "2025-09-04T10:52:10.201Z",
+    "lastDownloaded": "2025-09-04T10:52:37.251Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2821/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"615a3d9ce72a0e4dcf630935d30d78fe-1\"",
+    "contentLength": "15250",
+    "statusCode": 200,
+    "hash": "5285432fa3d70d648ce6ca88c71fe3ef",
+    "lastChecked": "2025-09-04T10:52:10.312Z",
+    "lastDownloaded": "2025-09-04T10:52:37.530Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2885/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"5d7cf10374f600c876c236cd07fd6920-1\"",
+    "contentLength": "482841",
+    "statusCode": 200,
+    "hash": "07ec71a92f460e4b23f6baf250320f98",
+    "lastChecked": "2025-09-04T10:52:10.434Z",
+    "lastDownloaded": "2025-09-04T10:52:37.811Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/2947/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"c0cad972e76a493b2ad968f8b161de64-1\"",
+    "contentLength": "202360",
+    "statusCode": 200,
+    "hash": "c8cc374555d6f7c4db546c43b3d47c12",
+    "lastChecked": "2025-09-04T10:52:10.559Z",
+    "lastDownloaded": "2025-09-04T10:52:38.056Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3016/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"16859b43e782a67adb0ee04c6c5a2ee3-1\"",
+    "contentLength": "15290",
+    "statusCode": 200,
+    "hash": "93702b7ad76dad6e47dd4b6d81afeae5",
+    "lastChecked": "2025-09-04T10:52:10.665Z",
+    "lastDownloaded": "2025-09-04T10:52:38.258Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3017/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"4f172fbadef383c9917af975b8ddcab8-1\"",
+    "contentLength": "15620",
+    "statusCode": 200,
+    "hash": "a2ad639f275f0fa51288ba8f2a77d05b",
+    "lastChecked": "2025-09-04T10:52:10.793Z",
+    "lastDownloaded": "2025-09-04T10:52:38.448Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3018/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"4710cc0adfaa06c741d24e6e3127f359-1\"",
+    "contentLength": "15282",
+    "statusCode": 200,
+    "hash": "799c77052cef919ba1a14b82ac23eee8",
+    "lastChecked": "2025-09-04T10:52:10.928Z",
+    "lastDownloaded": "2025-09-04T10:52:38.633Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3053/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:27 GMT",
+    "etag": "\"e572713f6b5834934c802eb3f83df7f0-1\"",
+    "contentLength": "205053",
+    "statusCode": 200,
+    "hash": "88fbfd9d7a678ebcb142dd23c3b726e9",
+    "lastChecked": "2025-09-04T10:52:11.055Z",
+    "lastDownloaded": "2025-09-04T10:52:38.915Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3056/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"efd05fdc57d847d6a542c2e376b406f2-1\"",
+    "contentLength": "210290",
+    "statusCode": 200,
+    "hash": "e68a687d84c2ed17dd5c8eacf016cc8b",
+    "lastChecked": "2025-09-04T10:52:11.173Z",
+    "lastDownloaded": "2025-09-04T10:52:39.168Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3057/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"9b6f5ddc8c1b309337df13b007effd49-1\"",
+    "contentLength": "21522",
+    "statusCode": 200,
+    "hash": "79311ac46cc43bd12779c890be8c6e3e",
+    "lastChecked": "2025-09-04T10:52:11.296Z",
+    "lastDownloaded": "2025-09-04T10:52:39.364Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3059/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"61e25b61191601a3f8a99b278704b4e1-1\"",
+    "contentLength": "10965",
+    "statusCode": 200,
+    "hash": "6fa1bed85c9422428ce674b5fc9656c0",
+    "lastChecked": "2025-09-04T10:52:11.419Z",
+    "lastDownloaded": "2025-09-04T10:52:39.574Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/3060/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:16 GMT",
+    "etag": "\"1f6796113a9f7999792fff43c3d3d326-1\"",
+    "contentLength": "12787",
+    "statusCode": 200,
+    "hash": "4a726d74bb6c1594032deaf74835f2f0",
+    "lastChecked": "2025-09-04T10:52:11.546Z",
+    "lastDownloaded": "2025-09-04T10:52:39.781Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/17678/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"398ff23d13164d3ad84d56c3a2b083f2-1\"",
+    "contentLength": "245320",
+    "statusCode": 200,
+    "hash": "8d16e22f98c8d4aeb8b740a2e6b2102a",
+    "lastChecked": "2025-09-04T10:52:11.672Z",
+    "lastDownloaded": "2025-09-04T10:52:40.032Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22893/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"13c523150d2a78fe5657500c0eaf99ee-1\"",
+    "contentLength": "220246",
+    "statusCode": 200,
+    "hash": "ef3ce5357d12708ab7e8170642ba4255",
+    "lastChecked": "2025-09-04T10:52:11.789Z",
+    "lastDownloaded": "2025-09-04T10:52:40.344Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22898/ProductsAndPrices.csv": {
+    "lastModified": "Sun, 31 Aug 2025 20:01:05 GMT",
+    "etag": "\"b841924ceda80d416cb69c298994d7e3-1\"",
+    "contentLength": "12252",
+    "statusCode": 200,
+    "hash": "1a188a88057b05fd12aa3812c9fe9789",
+    "lastChecked": "2025-09-04T10:52:11.915Z",
+    "lastDownloaded": "2025-09-04T10:52:40.543Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22899/ProductsAndPrices.csv": {
+    "lastModified": "Mon, 01 Sep 2025 20:00:58 GMT",
+    "etag": "\"b4bdf06fb3cfce1e6ac6ad40ecf667c6-1\"",
+    "contentLength": "14084",
+    "statusCode": 200,
+    "hash": "4fc330755807930ccf3e0ed1a118c615",
+    "lastChecked": "2025-09-04T10:52:12.036Z",
+    "lastDownloaded": "2025-09-04T10:52:40.728Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22900/ProductsAndPrices.csv": {
+    "lastModified": "Mon, 01 Sep 2025 20:00:58 GMT",
+    "etag": "\"2a8d1aa7860d92d1c0b9555ddf631041-1\"",
+    "contentLength": "10467",
+    "statusCode": 200,
+    "hash": "e62fd5f293c48a2305965aae79832d91",
+    "lastChecked": "2025-09-04T10:52:12.116Z",
+    "lastDownloaded": "2025-09-04T10:52:40.933Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22901/ProductsAndPrices.csv": {
+    "lastModified": "Sat, 30 Aug 2025 20:00:54 GMT",
+    "etag": "\"5cfd8b9bacf5bcb23be219993086349a-1\"",
+    "contentLength": "10455",
+    "statusCode": 200,
+    "hash": "11e59987ecb84034b288a997115ee382",
+    "lastChecked": "2025-09-04T10:52:12.236Z",
+    "lastDownloaded": "2025-09-04T10:52:41.125Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22902/ProductsAndPrices.csv": {
+    "lastModified": "Fri, 29 Aug 2025 20:01:15 GMT",
+    "etag": "\"641d3b164d67de76f7bcf71d4e36b98c-1\"",
+    "contentLength": "13815",
+    "statusCode": 200,
+    "hash": "da28c105065810b1e7369aa14f382c8b",
+    "lastChecked": "2025-09-04T10:52:12.317Z",
+    "lastDownloaded": "2025-09-04T10:52:41.278Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/22903/ProductsAndPrices.csv": {
+    "lastModified": "Tue, 02 Sep 2025 20:01:03 GMT",
+    "etag": "\"1933949b8a98e454f99b8d91fb6fef02-1\"",
+    "contentLength": "13195",
+    "statusCode": 200,
+    "hash": "023a0974ebacc8721696e91b51d49343",
+    "lastChecked": "2025-09-04T10:52:12.440Z",
+    "lastDownloaded": "2025-09-04T10:52:41.467Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23173/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"b934c0429a40c20fbc7cffd34b1775f3-1\"",
+    "contentLength": "223933",
+    "statusCode": 200,
+    "hash": "723d0c73929e0f5d136be9c0db8961b3",
+    "lastChecked": "2025-09-04T10:52:12.605Z",
+    "lastDownloaded": "2025-09-04T10:52:41.731Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23277/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"da9675d8f96324521fde3c46fa8a905a-1\"",
+    "contentLength": "220994",
+    "statusCode": 200,
+    "hash": "12fe20784a14dc6dd212aa5675ee2665",
+    "lastChecked": "2025-09-04T10:52:12.733Z",
+    "lastDownloaded": "2025-09-04T10:52:41.966Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23295/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:15 GMT",
+    "etag": "\"ff05b81105e0d4cb5f8ae70edc8432e5-1\"",
+    "contentLength": "42827",
+    "statusCode": 200,
+    "hash": "27da0c677533b86df844d0aa96b3a481",
+    "lastChecked": "2025-09-04T10:52:12.861Z",
+    "lastDownloaded": "2025-09-04T10:52:42.148Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23354/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"ab84cd2120ec364150fb0bdec70520e1-1\"",
+    "contentLength": "203705",
+    "statusCode": 200,
+    "hash": "d2dc38bdf2421826194fe9b2b1a86322",
+    "lastChecked": "2025-09-04T10:52:12.942Z",
+    "lastDownloaded": "2025-09-04T10:52:42.384Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23384/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"dbf6a6a4cb3c898f52a68fbfefdc85a7-1\"",
+    "contentLength": "12139",
+    "statusCode": 200,
+    "hash": "d0d08a48071730bf56adb8beab3f7a58",
+    "lastChecked": "2025-09-04T10:52:13.067Z",
+    "lastDownloaded": "2025-09-04T10:52:42.569Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23388/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"8262e5af6f0d77f36fa702937ac341ec-1\"",
+    "contentLength": "11692",
+    "statusCode": 200,
+    "hash": "60818b8fa3a7db6589b049c97e83ec7f",
+    "lastChecked": "2025-09-04T10:52:13.191Z",
+    "lastDownloaded": "2025-09-04T10:52:42.757Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23389/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"d1e99d9e94b049ca044950e1e637095c-1\"",
+    "contentLength": "12789",
+    "statusCode": 200,
+    "hash": "04e521c50168812350187ab94ba952b2",
+    "lastChecked": "2025-09-04T10:52:13.318Z",
+    "lastDownloaded": "2025-09-04T10:52:42.942Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23390/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"e251ad45fe5afa2240b0723bb831b9a8-1\"",
+    "contentLength": "14160",
+    "statusCode": 200,
+    "hash": "ca3c93d9debb685770a5ba529e25a0a6",
+    "lastChecked": "2025-09-04T10:52:13.448Z",
+    "lastDownloaded": "2025-09-04T10:52:43.103Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23391/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"84df3a1749ef9d7eb0bc4ba958c9362f-1\"",
+    "contentLength": "13251",
+    "statusCode": 200,
+    "hash": "f3ad26a34977f68bda532bece41e0f09",
+    "lastChecked": "2025-09-04T10:52:13.572Z",
+    "lastDownloaded": "2025-09-04T10:52:43.256Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23392/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"1523041276834d8ea04cef8b3dfcf214-1\"",
+    "contentLength": "12552",
+    "statusCode": 200,
+    "hash": "de6a8fdd966dad4871eac880b857ebb9",
+    "lastChecked": "2025-09-04T10:52:13.697Z",
+    "lastDownloaded": "2025-09-04T10:52:43.456Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23476/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"3e95607da3ba4a402dec4d647c49592c-1\"",
+    "contentLength": "204655",
+    "statusCode": 200,
+    "hash": "355e08ebc78bd1635b0230f9dabedaff",
+    "lastChecked": "2025-09-04T10:52:13.830Z",
+    "lastDownloaded": "2025-09-04T10:52:43.708Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23477/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"3089e4fd6f12865d9bd899687f5782a3-1\"",
+    "contentLength": "13220",
+    "statusCode": 200,
+    "hash": "a820af93f13f26efd2c99e1d1ddff62e",
+    "lastChecked": "2025-09-04T10:52:13.959Z",
+    "lastDownloaded": "2025-09-04T10:52:43.889Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23478/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"2a4d575835bf051d7fc98ee77fc40d14-1\"",
+    "contentLength": "12064",
+    "statusCode": 200,
+    "hash": "a7b04417e7bd3ec34fdd33b1df429231",
+    "lastChecked": "2025-09-04T10:52:14.082Z",
+    "lastDownloaded": "2025-09-04T10:52:44.037Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23479/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"a623c84bdc2984461cd8749e754675db-1\"",
+    "contentLength": "11006",
+    "statusCode": 200,
+    "hash": "b9a52affa3c67a2a41cb035af2f67cbd",
+    "lastChecked": "2025-09-04T10:52:14.163Z",
+    "lastDownloaded": "2025-09-04T10:52:44.222Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23506/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"936433b118fead427e171b2db7cbb382-1\"",
+    "contentLength": "14283",
+    "statusCode": 200,
+    "hash": "7224a28e7bad3b32e8854b29d7eb4467",
+    "lastChecked": "2025-09-04T10:52:14.290Z",
+    "lastDownloaded": "2025-09-04T10:52:44.346Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23534/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"8ef0c82cbc58fef5871387a45bfa41d3-1\"",
+    "contentLength": "15233",
+    "statusCode": 200,
+    "hash": "71386f269a1f603e084c29cf77fd1f1e",
+    "lastChecked": "2025-09-04T10:52:14.411Z",
+    "lastDownloaded": "2025-09-04T10:52:44.553Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23540/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:22 GMT",
+    "etag": "\"3ad38f479c500a61c6c693bd5bc50f40-1\"",
+    "contentLength": "220516",
+    "statusCode": 200,
+    "hash": "e963e200910ca9f9d109a6fa4ec075d8",
+    "lastChecked": "2025-09-04T10:52:14.527Z",
+    "lastDownloaded": "2025-09-04T10:52:44.784Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23548/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"3736265be1d5243d94ad06079e32a7e3-1\"",
+    "contentLength": "23955",
+    "statusCode": 200,
+    "hash": "cc3eca05191d5b22227c49d5a16d994d",
+    "lastChecked": "2025-09-04T10:52:14.657Z",
+    "lastDownloaded": "2025-09-04T10:52:44.984Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23558/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"650a7616095f4231924deb930459f125-1\"",
+    "contentLength": "16999",
+    "statusCode": 200,
+    "hash": "2fe3c9bdfb08e6a1065517e9e3605b1e",
+    "lastChecked": "2025-09-04T10:52:14.775Z",
+    "lastDownloaded": "2025-09-04T10:52:45.153Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23738/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"aa73571c7422557de9b90df6209cad92-1\"",
+    "contentLength": "16584",
+    "statusCode": 200,
+    "hash": "4bf23e4300dba044df107f60d04bb31c",
+    "lastChecked": "2025-09-04T10:52:14.903Z",
+    "lastDownloaded": "2025-09-04T10:52:45.359Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23741/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"9d5a59a2eb13c49084a092279b324047-1\"",
+    "contentLength": "11900",
+    "statusCode": 200,
+    "hash": "5dc2923a489365be0ac41517937dd280",
+    "lastChecked": "2025-09-04T10:52:15.030Z",
+    "lastDownloaded": "2025-09-04T10:52:45.517Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23742/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"7e8f45bd43b27d5353f0934f29823b26-1\"",
+    "contentLength": "11103",
+    "statusCode": 200,
+    "hash": "699801a67c4d5cb150b8e0c726bb95d3",
+    "lastChecked": "2025-09-04T10:52:15.097Z",
+    "lastDownloaded": "2025-09-04T10:52:45.711Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23744/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"da14a761d3a5ccbf68342ab262bfd721-1\"",
+    "contentLength": "12092",
+    "statusCode": 200,
+    "hash": "2efb9f3e68da57e060fa6ea3615c5bcb",
+    "lastChecked": "2025-09-04T10:52:15.212Z",
+    "lastDownloaded": "2025-09-04T10:52:45.894Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23745/ProductsAndPrices.csv": {
+    "lastModified": "Mon, 01 Sep 2025 20:00:54 GMT",
+    "etag": "\"e4197a408384a572fe3ac140a7e7a771-1\"",
+    "contentLength": "11450",
+    "statusCode": 200,
+    "hash": "1e4b52bb2fa0adade2cba96fc4ce00fe",
+    "lastChecked": "2025-09-04T10:52:15.287Z",
+    "lastDownloaded": "2025-09-04T10:52:46.077Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23760/ProductsAndPrices.csv": {
+    "lastModified": "Tue, 26 Aug 2025 20:02:55 GMT",
+    "etag": "\"c2c2b40b6102321686d0f85f819d3786-1\"",
+    "contentLength": "11879",
+    "statusCode": 200,
+    "hash": "4f9cb01a788a056d745976753d8c6d04",
+    "lastChecked": "2025-09-04T10:52:15.401Z",
+    "lastDownloaded": "2025-09-04T10:52:46.271Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23761/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"d104cdef5a0f380faf1e91f6a76ba174-1\"",
+    "contentLength": "13549",
+    "statusCode": 200,
+    "hash": "7faea92a71d669e3cc91138531ed5fbd",
+    "lastChecked": "2025-09-04T10:52:15.557Z",
+    "lastDownloaded": "2025-09-04T10:52:46.486Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23762/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 20 Aug 2025 20:00:41 GMT",
+    "etag": "\"953c6f0e1cb64aa54d9205b91d93341a-1\"",
+    "contentLength": "11316",
+    "statusCode": 200,
+    "hash": "dd726d816ba11c0fa20932765589bcdb",
+    "lastChecked": "2025-09-04T10:52:15.680Z",
+    "lastDownloaded": "2025-09-04T10:52:46.660Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23763/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 27 Aug 2025 20:01:00 GMT",
+    "etag": "\"4917577b1cbb5896813a77bcf998ac03-1\"",
+    "contentLength": "10058",
+    "statusCode": 200,
+    "hash": "beb3abae5d260d53e73549843ca07ea0",
+    "lastChecked": "2025-09-04T10:52:15.805Z",
+    "lastDownloaded": "2025-09-04T10:52:46.893Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23764/ProductsAndPrices.csv": {
+    "lastModified": "Mon, 01 Sep 2025 20:00:58 GMT",
+    "etag": "\"82ef806527929b0573ff4dc43b934b9f-1\"",
+    "contentLength": "10675",
+    "statusCode": 200,
+    "hash": "25ee0194b9aaf80e18915d49830fdd47",
+    "lastChecked": "2025-09-04T10:52:15.925Z",
+    "lastDownloaded": "2025-09-04T10:52:47.089Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23765/ProductsAndPrices.csv": {
+    "lastModified": "Sat, 30 Aug 2025 20:00:51 GMT",
+    "etag": "\"9c1fc907683dc29b469e4959c2bc08fb-1\"",
+    "contentLength": "12316",
+    "statusCode": 200,
+    "hash": "883547a8e905acdf897b9630d2b897ec",
+    "lastChecked": "2025-09-04T10:52:16.036Z",
+    "lastDownloaded": "2025-09-04T10:52:47.306Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23771/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"7778b10ebcfc1496eac91e870aa1dbc0-1\"",
+    "contentLength": "17039",
+    "statusCode": 200,
+    "hash": "63fb10430d0e17d0260c6f58dd01756c",
+    "lastChecked": "2025-09-04T10:52:16.176Z",
+    "lastDownloaded": "2025-09-04T10:52:47.515Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/23815/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"9e6cfd78875e99e9a3ea958968ed5822-1\"",
+    "contentLength": "214608",
+    "statusCode": 200,
+    "hash": "7f993bbd49ea030276cfed5950e243a9",
+    "lastChecked": "2025-09-04T10:52:16.306Z",
+    "lastDownloaded": "2025-09-04T10:52:47.745Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24162/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"26a5b4957845d3cd12336fa2e7876212-1\"",
+    "contentLength": "13240",
+    "statusCode": 200,
+    "hash": "a97f3cdb2613ec66604991102cc580b9",
+    "lastChecked": "2025-09-04T10:52:16.428Z",
+    "lastDownloaded": "2025-09-04T10:52:47.930Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24176/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:12 GMT",
+    "etag": "\"1e2397b66b35fe4ef12e33de1c966b25-1\"",
+    "contentLength": "26395",
+    "statusCode": 200,
+    "hash": "c54debad3cc0b8d46577c5e2fe606d32",
+    "lastChecked": "2025-09-04T10:52:16.546Z",
+    "lastDownloaded": "2025-09-04T10:52:48.131Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24212/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"9dcf129addc25b13db295f88785da5b3-1\"",
+    "contentLength": "12336",
+    "statusCode": 200,
+    "hash": "8ccb8a65b315d722915013359f1684cc",
+    "lastChecked": "2025-09-04T10:52:16.664Z",
+    "lastDownloaded": "2025-09-04T10:52:48.335Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24213/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:12 GMT",
+    "etag": "\"bfbc16f9b2c5cc466166745ba9fed675-1\"",
+    "contentLength": "10877",
+    "statusCode": 200,
+    "hash": "73ecebe84ed7ef33300191efc70d7d0c",
+    "lastChecked": "2025-09-04T10:52:16.791Z",
+    "lastDownloaded": "2025-09-04T10:52:48.532Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24214/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:12 GMT",
+    "etag": "\"c95b48b19f5f64c946fffff6b67de4ee-1\"",
+    "contentLength": "13619",
+    "statusCode": 200,
+    "hash": "5bbabda369ef5c0bdfa046606c36c1a1",
+    "lastChecked": "2025-09-04T10:52:16.916Z",
+    "lastDownloaded": "2025-09-04T10:52:48.726Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24215/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"db1a9d8af9de63e03de8c51f37d81a14-1\"",
+    "contentLength": "11023",
+    "statusCode": 200,
+    "hash": "7ecd5ddf748e465225f4378a4bd573a4",
+    "lastChecked": "2025-09-04T10:52:16.981Z",
+    "lastDownloaded": "2025-09-04T10:52:48.907Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24253/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"b8fc3f23eecbf8fdf6e8d03234398c2d-1\"",
+    "contentLength": "15942",
+    "statusCode": 200,
+    "hash": "c3ed38ad037e4f02f10d0801725472d1",
+    "lastChecked": "2025-09-04T10:52:17.104Z",
+    "lastDownloaded": "2025-09-04T10:52:49.053Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24266/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:19 GMT",
+    "etag": "\"2ea89164bf383093970dc887bbfac5bd-1\"",
+    "contentLength": "220857",
+    "statusCode": 200,
+    "hash": "b676f8e9c8980d4e0cfbb98fcf5901dd",
+    "lastChecked": "2025-09-04T10:52:17.257Z",
+    "lastDownloaded": "2025-09-04T10:52:49.302Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24268/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"51bb47bb1b0b5bf8aec0a3f10f066fe9-1\"",
+    "contentLength": "20973",
+    "statusCode": 200,
+    "hash": "127bab74c9aeb57097106a86f9e2fe30",
+    "lastChecked": "2025-09-04T10:52:17.385Z",
+    "lastDownloaded": "2025-09-04T10:52:49.564Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24315/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"24aa47f9353ee36c1424720616977d43-1\"",
+    "contentLength": "11672",
+    "statusCode": 200,
+    "hash": "6c143c3a90c5b5a3fb1dc8df9c5dbf5e",
+    "lastChecked": "2025-09-04T10:52:17.465Z",
+    "lastDownloaded": "2025-09-04T10:52:49.774Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24330/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:13 GMT",
+    "etag": "\"aa45eb9a7aa4858611af409a7e2ca0cb-1\"",
+    "contentLength": "96357",
+    "statusCode": 200,
+    "hash": "499f4137737ccf7e030fbe1bddd5234c",
+    "lastChecked": "2025-09-04T10:52:17.546Z",
+    "lastDownloaded": "2025-09-04T10:52:49.993Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24334/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:11 GMT",
+    "etag": "\"161a9021887dad4caf9c82719049b6fc-1\"",
+    "contentLength": "22403",
+    "statusCode": 200,
+    "hash": "bcff9e0dd1c56352a76fb7ffbb3d73bd",
+    "lastChecked": "2025-09-04T10:52:17.667Z",
+    "lastDownloaded": "2025-09-04T10:52:50.157Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24371/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"10b2b940ef9680fb9197ae392db255cb-1\"",
+    "contentLength": "17949",
+    "statusCode": 200,
+    "hash": "4321bbd056fd5b15495e6a57d59d0588",
+    "lastChecked": "2025-09-04T10:52:17.752Z",
+    "lastDownloaded": "2025-09-04T10:52:50.380Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24375/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"af71526611d69785a51277bbb61c616e-1\"",
+    "contentLength": "1124",
+    "statusCode": 200,
+    "hash": "0b696198edb05817308aa543992285aa",
+    "lastChecked": "2025-09-04T10:52:17.877Z",
+    "lastDownloaded": "2025-09-04T10:52:50.578Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24391/ProductsAndPrices.csv": {
+    "lastModified": "Fri, 08 Aug 2025 20:02:16 GMT",
+    "etag": "\"f561c11ddac66bdab56bcbf18f900769-1\"",
+    "contentLength": "6389",
+    "statusCode": 200,
+    "hash": "db4bfb7edbf3af190d53fce2d3870ba9",
+    "lastChecked": "2025-09-04T10:52:17.971Z",
+    "lastDownloaded": "2025-09-04T10:52:50.898Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24415/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"c368bafe8166c1a7c94dcc6ce8c18dca-1\"",
+    "contentLength": "11685",
+    "statusCode": 200,
+    "hash": "1020789c79d732ece6dd8467a6778156",
+    "lastChecked": "2025-09-04T10:52:18.075Z",
+    "lastDownloaded": "2025-09-04T10:52:51.094Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24416/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"63b02fb63f8a1d4c8b5662290897b0b9-1\"",
+    "contentLength": "13013",
+    "statusCode": 200,
+    "hash": "86ce959236cca8466b2beb0f072b9bb5",
+    "lastChecked": "2025-09-04T10:52:18.195Z",
+    "lastDownloaded": "2025-09-04T10:52:51.300Z"
+  },
+  "https://tcgcsv.com/tcgplayer/62/24417/ProductsAndPrices.csv": {
+    "lastModified": "Wed, 03 Sep 2025 20:01:10 GMT",
+    "etag": "\"626d3987f2f9bf2fd5041e50ef76c4be-1\"",
+    "contentLength": "15103",
+    "statusCode": 200,
+    "hash": "57e85715e7f2311ae6c5b296657b87fe",
+    "lastChecked": "2025-09-04T10:52:18.323Z",
+    "lastDownloaded": "2025-09-04T10:52:51.539Z"
+  }
+}
