@@ -72,44 +72,79 @@ function App() {
             )}
 
             {/* Content */}
-            <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column', width: '100%' }}>
-                <CardPanel
-                    title="Cards I Have"
-                    cards={tradeState.haveList}
-                    cardOptions={cardNames}
-                    inputValue={tradeState.haveInput}
-                    onInputChange={(e, v) => tradeState.setHaveInput(v || "")}
-                    onAddCard={tradeState.addHaveCard}
-                    onRemoveCard={tradeState.removeHaveCard}
-                    onUpdateQuantity={tradeState.updateHaveCardQuantity}
-                    isMobile={isMobile}
-                    totalColor="primary"
-                    disabled={!dataReady}
-                />
-
-                { (
-                    <TradeSummary
-                        haveList={tradeState.haveList}
-                        wantList={tradeState.wantList}
-                        haveTotal={tradeState.haveTotal}
-                        wantTotal={tradeState.wantTotal}
-                        diff={tradeState.diff}
+            <Box sx={{ 
+                display: 'flex', 
+                flexGrow: 1, 
+                flexDirection: { xs: 'column', lg: 'row' }, // Vertical on mobile, horizontal on desktop
+                width: '100%',
+                gap: { xs: 0, lg: 2 }, // Gap between panels on desktop only
+                px: { xs: 0, lg: 2 }, // Horizontal padding on desktop
+                py: { xs: 0, lg: 1 } // Vertical padding on desktop
+            }}>
+                {/* Left Panel - Cards I Have */}
+                <Box sx={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: 0 // Prevent flex items from overflowing
+                }}>
+                    <CardPanel
+                        title="Cards I Have"
+                        cards={tradeState.haveList}
+                        cardOptions={cardNames}
+                        inputValue={tradeState.haveInput}
+                        onInputChange={(e, v) => tradeState.setHaveInput(v || "")}
+                        onAddCard={tradeState.addHaveCard}
+                        onRemoveCard={tradeState.removeHaveCard}
+                        onUpdateQuantity={tradeState.updateHaveCardQuantity}
+                        isMobile={isMobile}
+                        totalColor="primary"
+                        disabled={!dataReady}
                     />
+                </Box>
+
+                {/* Trade Summary - Position changes based on screen size */}
+                {(tradeState.haveList.length > 0 || tradeState.wantList.length > 0) && (
+                    <Box sx={{
+                        // On mobile: full width between panels
+                        // On desktop: fixed width in center
+                        width: { xs: '100%', lg: '400px' },
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: { xs: 'stretch', lg: 'flex-start' },
+                        py: { xs: 0, lg: 2 }
+                    }}>
+                        <TradeSummary
+                            haveList={tradeState.haveList}
+                            wantList={tradeState.wantList}
+                            haveTotal={tradeState.haveTotal}
+                            wantTotal={tradeState.wantTotal}
+                            diff={tradeState.diff}
+                        />
+                    </Box>
                 )}
 
-                <CardPanel
-                    title="Cards I Want"
-                    cards={tradeState.wantList}
-                    cardOptions={cardNames}
-                    inputValue={tradeState.wantInput}
-                    onInputChange={(e, v) => tradeState.setWantInput(v || "")}
-                    onAddCard={tradeState.addWantCard}
-                    onRemoveCard={tradeState.removeWantCard}
-                    onUpdateQuantity={tradeState.updateWantCardQuantity}
-                    isMobile={isMobile}
-                    totalColor="success"
-                    disabled={!dataReady}
-                />
+                {/* Right Panel - Cards I Want */}
+                <Box sx={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: 0 // Prevent flex items from overflowing
+                }}>
+                    <CardPanel
+                        title="Cards I Want"
+                        cards={tradeState.wantList}
+                        cardOptions={cardNames}
+                        inputValue={tradeState.wantInput}
+                        onInputChange={(e, v) => tradeState.setWantInput(v || "")}
+                        onAddCard={tradeState.addWantCard}
+                        onRemoveCard={tradeState.removeWantCard}
+                        onUpdateQuantity={tradeState.updateWantCardQuantity}
+                        isMobile={isMobile}
+                        totalColor="success"
+                        disabled={!dataReady}
+                    />
+                </Box>
             </Box>
         </Box>
     );

@@ -9,10 +9,13 @@ const TradeSummary = ({ haveList, wantList, haveTotal, wantTotal, diff }) => {
             gap: 0,
             p: 0,
             backgroundColor: '#f8f9fa',
+            border: { xs: 'none', md: '1px solid #e9ecef' }, // Full border on desktop
             borderTop: '1px solid #e9ecef',
             borderBottom: '1px solid #e9ecef',
+            borderRadius: { xs: 0, md: 2 }, // Rounded corners on desktop
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            minHeight: { xs: 'auto', md: 'fit-content' }
         }}>
             <Box sx={{
                 display: 'flex',

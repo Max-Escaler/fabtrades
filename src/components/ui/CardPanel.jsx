@@ -24,8 +24,8 @@ const CardPanel = ({
          flex: 1,
          width: '100%',
          maxWidth: '100%',
-         minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
-         p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+         minHeight: { xs: '250px', sm: '300px', lg: '350px', xl: '400px' },
+         p: { xs: 1, sm: 1.5, lg: 2, xl: 2.5 },
          display: 'flex',
          flexDirection: 'column',
          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -43,7 +43,7 @@ const CardPanel = ({
          display: 'flex', 
          justifyContent: 'space-between', 
          alignItems: 'center', 
-         mb: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+         mb: { xs: 1, sm: 1.5, lg: 2, xl: 2.5 },
          transition: 'all 0.3s ease',
          width: '100%'
        }}>
