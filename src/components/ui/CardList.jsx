@@ -14,6 +14,7 @@ import {
   Popper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import {formatCurrency} from "../../utils/helpers.js";
 
 // Custom Popper component for upward expansion
 const CustomPopper = React.forwardRef((props, ref) => {
@@ -193,7 +194,7 @@ const CardList = ({
              }}>
               {/* Price Chip */}
               <Chip
-                label={`$${(card.price || 0).toFixed(2)}`}
+                label={`${formatCurrency((card.price || 0).toFixed(2))}`}
                 color="primary"
                 size="small"
                 sx={{

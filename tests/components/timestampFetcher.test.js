@@ -1,4 +1,4 @@
-import { fetchLastUpdatedTimestamp, formatTimestamp } from './timestampFetcher.js';
+import { fetchLastUpdatedTimestamp, formatTimestamp } from '../../utils/timestampFetcher.js';
 
 // Mock fetch globally
 global.fetch = jest.fn();

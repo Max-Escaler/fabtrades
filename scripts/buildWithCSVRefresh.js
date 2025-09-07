@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { downloadAllCSVs, checkCSVStatus } from '../src/utils/csvDownloader.js';
+import {checkCSVStatus, downloadAllCSVs} from "../src/services/csv/index.js";
 
 console.log('🏗️  FAB Trades Build with CSV Refresh');
 console.log('====================================\n');

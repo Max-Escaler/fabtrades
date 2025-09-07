@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// Download CSVs from Products and Prices Sheet
-import { downloadFromProductsSheet, checkCSVStatus, clearDiffCache } from '../src/utils/csvDownloader.js';
 
 // Parse command line arguments
+import {checkCSVStatus, clearDiffCache, downloadFromProductsSheet} from "../src/services/csv/index.js";
+
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const clearCache = args.includes('--clear-cache');
