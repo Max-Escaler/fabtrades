@@ -23,14 +23,14 @@ export function saveManifest(manifest) {
 
 export function checkCSVStatus() {
     if (!fs.existsSync(MANIFEST_FILE)) {
-        console.log('⚠️ Aucun manifest trouvé');
+        console.log('⚠️ No manifest found');
         return;
     }
 
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_FILE, 'utf8'));
     const lastUpdate = JSON.parse(fs.readFileSync(LAST_UPDATE_FILE, 'utf8'));
 
-    console.log('📊 Statut CSV:');
-    console.log(`📅 Dernière maj: ${lastUpdate.date} à ${lastUpdate.time}`);
-    console.log(`📁 Fichiers: ${manifest.totalFiles}`);
+    console.log('📊 CSV Status:');
+    console.log(`📅 Last update: ${lastUpdate.date} at ${lastUpdate.time}`);
+    console.log(`📁 Files: ${manifest.totalFiles}`);
 }

@@ -2,7 +2,7 @@
 
 
 // Parse command line arguments
-import {checkCSVStatus, clearDiffCache, downloadFromProductsSheet} from "../src/services/csv/index.js";
+import {checkCSVStatus, clearDiffCache, downloadFromProductsSheet, downloadAllCSVs} from "../src/services/csv/index.js";
 
 const args = process.argv.slice(2);
 const force = args.includes('--force');
@@ -58,7 +58,7 @@ checkCSVStatus();
 console.log('');
 
 // Download CSVs from Products Sheet
-downloadFromProductsSheet(force)
+downloadAllCSVs(force)
   .then(() => {
     console.log('\n✅ Download process completed!');
     console.log('\n📊 Final status:');
