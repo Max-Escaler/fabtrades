@@ -98,7 +98,7 @@ function App() {
                     isLandscape={isLandscape}
                 />
 
-                {(tradeState.haveList.length > 0 || tradeState.wantList.length > 0) && (
+                {(tradeState.haveList.length >= 0 || tradeState.wantList.length >= 0) && (
                     <TradeSummary
                         haveList={tradeState.haveList}
                         wantList={tradeState.wantList}
