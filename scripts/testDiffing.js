@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 // Test script to demonstrate diffing functionality
-import { checkRemoteFileChanged, loadDiffCache, clearDiffCache } from '../src/utils/csvDownloader.js';
 import fs from 'fs';
 import path from 'path';
+import {clearDiffCache} from "../src/services/csv/index.js";
+import {loadDiffCache} from "../src/services/csv/cache.js";
+import {checkRemoteFileChanged} from "../src/services/csv/diffChecker.js";
 
 console.log('🧪 Testing CSV Diffing Functionality');
 console.log('====================================\n');

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Paper, Typography, Chip } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import CardList from './CardList';
+import CardList from './CardList.jsx';
 
 const CardPanel = ({ 
   title, 

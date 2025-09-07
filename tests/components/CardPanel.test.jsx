@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CardPanel from './CardPanel';
+import CardPanel from '../../src/components/ui/CardPanel.jsx';
 
 const theme = createTheme();
 

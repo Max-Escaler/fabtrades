@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
-import { CardDataProvider, useCardData } from './cardDataProvider';
+import {CardDataProvider} from "../../src/hooks/useCardData.jsx";
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -23,7 +23,7 @@ afterAll(() => {
 // Test component to use the hook
 const TestComponent = () => {
   const { cardGroups, loading, dataReady, error, usingLocalFiles } = useCardData();
-  
+
   return (
     <div>
       <div data-testid="loading">{loading.toString()}</div>
@@ -58,11 +58,11 @@ describe('CardDataProvider', () => {
   describe('Initial State', () => {
     test('starts with correct initial state', () => {
       renderWithProvider(<TestComponent />);
-      
+
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
       expect(screen.getByTestId('data-ready')).toHaveTextContent('false');
       expect(screen.getByTestId('error')).toHaveTextContent('no-error');
-      expect(screen.getByTestId('using-local').toHaveTextContent('false');
+      expect(screen.getByTestId('using-local')).toHaveTextContent('false');
       expect(screen.getByTestId('card-count')).toHaveTextContent('0');
     });
   });
@@ -366,8 +366,8 @@ describe('CardDataProvider', () => {
 
     test('handles timeout errors', async () => {
       // Mock a timeout scenario
-      global.fetch.mockImplementationOnce(() => 
-        new Promise((_, reject) => 
+      global.fetch.mockImplementationOnce(() =>
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), 100)
         )
       );
@@ -425,7 +425,7 @@ describe('CardDataProvider', () => {
       });
 
       const startTime = performance.now();
-      
+
       renderWithProvider(<TestComponent />);
 
       await waitFor(() => {

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// CSV Download Script with Diffing Support
-import { downloadAllCSVs, checkCSVStatus, clearDiffCache } from '../src/utils/csvDownloader.js';
 
 // Parse command line arguments
+import {checkCSVStatus, clearDiffCache, downloadAllCSVs} from "../src/services/csv/index.js";
+
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const clearCache = args.includes('--clear-cache');

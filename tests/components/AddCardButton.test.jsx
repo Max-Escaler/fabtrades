@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import AddCardButton from './AddCardButton';
+import AddCardButton from '../../src/components/ui/AddCardButton.jsx';
 
 const theme = createTheme();
 
@@ -99,7 +99,7 @@ describe('AddCardButton Component', () => {
       
       renderWithTheme(<AddCardButton {...disabledProps} />);
       
-      const button = screen.getByRole('button);
+      const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
 
