@@ -13,6 +13,9 @@ function App() {
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    
+    // Detect landscape vs portrait orientation using aspect ratio
+    const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
     const { cardGroups, loading, dataReady, error } = useCardData();
     const cardNames = cardGroups.map(group => group.name);
@@ -72,7 +75,14 @@ function App() {
             )}
 
             {/* Content */}
-            <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column', width: '100%' }}>
+            <Box sx={{ 
+                display: 'flex', 
+                flexGrow: 1, 
+                flexDirection: isLandscape ? 'row' : 'column',
+                width: '100%',
+                gap: isLandscape ? 2 : 0,
+                p: isLandscape ? 2 : 0
+            }}>
                 <CardPanel
                     title="Cards I Have"
                     cards={tradeState.haveList}
@@ -85,6 +95,7 @@ function App() {
                     isMobile={isMobile}
                     totalColor="primary"
                     disabled={!dataReady}
+                    isLandscape={isLandscape}
                 />
 
                 {(tradeState.haveList.length > 0 || tradeState.wantList.length > 0) && (
@@ -94,6 +105,7 @@ function App() {
                         haveTotal={tradeState.haveTotal}
                         wantTotal={tradeState.wantTotal}
                         diff={tradeState.diff}
+                        isLandscape={isLandscape}
                     />
                 )}
 
@@ -109,6 +121,7 @@ function App() {
                     isMobile={isMobile}
                     totalColor="success"
                     disabled={!dataReady}
+                    isLandscape={isLandscape}
                 />
             </Box>
         </Box>

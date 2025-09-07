@@ -15,27 +15,27 @@ const CardPanel = ({
   onUpdateQuantity,
   isMobile, 
   totalColor = 'primary',
-  disabled = false
+  disabled = false,
+  isLandscape = false
 }) => {
   return (
          <Paper 
-       elevation={1}
+       elevation={isLandscape ? 2 : 1}
        sx={{ 
          flex: 1,
          width: '100%',
          maxWidth: '100%',
-         minHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '450px' },
-         p: { xs: 1, sm: 1.5, md: 2, lg: 2.5, xl: 3 },
+         minHeight: isLandscape ? '400px' : { xs: '250px', sm: '300px', md: '350px' },
+         p: isLandscape ? 3 : { xs: 1, sm: 1.5, md: 2 },
          display: 'flex',
          flexDirection: 'column',
          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-         borderRadius: 0,
-         border: '1px solid #e0e0e0',
-         borderTop: '1px solid #e0e0e0',
+         borderRadius: isLandscape ? 2 : 0,
+         border: isLandscape ? 'none' : '1px solid #e0e0e0',
          boxSizing: 'border-box',
          '&:hover': {
            backgroundColor: '#fafafa',
-           elevation: 2
+           elevation: isLandscape ? 3 : 2
          }
        }}
      >
