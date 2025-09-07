@@ -16,14 +16,14 @@ function readCSVUrls() {
         .filter(Boolean);
 }
 
-// 🔹 Récupération des URLs depuis Google Sheet
+// 🔹 Retrieving URLs from Google Sheet
 export async function downloadFromProductsSheet(sheetUrl) {
     return new Promise((resolve, reject) => {
         const urls = [];
 
         https.get(sheetUrl, (res) => {
             if (res.statusCode !== 200) {
-                reject(new Error(`Erreur téléchargement sheet: ${res.statusCode}`));
+                reject(new Error(`Error downloading sheet: ${res.statusCode}`));
                 return;
             }
 
@@ -33,12 +33,12 @@ export async function downloadFromProductsSheet(sheetUrl) {
                 })
                 .on('end', () => {
                     if (!urls.length) {
-                        reject(new Error('Aucune URL trouvée dans le sheet'));
+                        reject(new Error('No URL found in the sheet'));
                         return;
                     }
 
                     fs.writeFileSync(CSV_URLS_FILE, urls.join('\n'));
-                    console.log(`✅ ${urls.length} URLs sauvegardées dans ${CSV_URLS_FILE}`);
+                    console.log(`✅ ${urls.length} URLs saved in ${CSV_URLS_FILE}`);
                     resolve(urls);
                 })
                 .on('error', reject);
@@ -49,12 +49,12 @@ export async function downloadFromProductsSheet(sheetUrl) {
 export async function downloadAllCSVs(force = false) {
     const urls = readCSVUrls();
     if (!urls.length) {
-        console.log('⚠️ Pas d’URL CSV trouvées');
+        console.log('⚠️ No CSV URLs found');
         return;
     }
 
     if (!force && !shouldRefreshData()) {
-        console.log('⏭️ Données fraîches, pas besoin de re-télécharger');
+        console.log('⏭️ Fresh data, no need to re-download');
         return;
     }
 
@@ -70,7 +70,7 @@ export async function downloadAllCSVs(force = false) {
         try {
             const change = await checkRemoteFileChanged(url, outputPath, diffCache);
             if (!change.changed && !force) {
-                console.log(`⏭️ ${fileName} ignoré (${change.reason})`);
+                console.log(`⏭️ ${fileName} ignored (${change.reason})`);
                 continue;
             }
 
@@ -81,9 +81,9 @@ export async function downloadAllCSVs(force = false) {
             diffCache[url] = { hash: getFileHash(outputPath), lastDownloaded: new Date().toISOString() };
 
             manifest.files.push({ name: fileName, url, status: 'downloaded' });
-            console.log(`✓ ${fileName} téléchargé et nettoyé`);
+            console.log(`✓ ${fileName} downloaded and cleaned`);
         } catch (err) {
-            console.error(`✗ Erreur sur ${fileName}: ${err.message}`);
+            console.error(`✗ Error on ${fileName}: ${err.message}`);
         }
     }
 
@@ -91,7 +91,7 @@ export async function downloadAllCSVs(force = false) {
     saveDiffCache(diffCache);
     updateLastUpdateTimestamp();
 
-    console.log('✅ Téléchargement terminé !');
+    console.log('✅ Download completed!');
 }
 
 export {
