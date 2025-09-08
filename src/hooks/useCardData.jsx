@@ -239,7 +239,7 @@ const groupCardsByEdition = (cards) => {
             grouped[displayName].editions.push({
                 subTypeName: card.subTypeName,
                 productId: card.productId,
-                cardPrice: card.marketPrice
+                cardPrice: (card.marketPrice) ? card.marketPrice : card.lowPrice
             });
         }
     });
