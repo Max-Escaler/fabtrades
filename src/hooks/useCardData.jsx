@@ -210,7 +210,7 @@ const enhanceDisplayNames = (cards) => {
             // Single edition, keep original name
             return {
                 ...card,
-                displayName: card.name
+                displayName: card.name + ` (${card.extNumber})`
             };
         }
     });
