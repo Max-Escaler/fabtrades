@@ -1,6 +1,5 @@
 // CardDataContext.js
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
 
 // Create context
 const CardDataContext = createContext();
@@ -14,32 +13,10 @@ export const useCardData = () => {
     return context;
 };
 
-// Cache for CSV data to avoid refetching
-const csvCache = new Map();
-
 // Function to check if an item is an actual card (not a product like booster box, pack, etc.)
 const isActualCard = (row) => {
     const cardType = (row.extCardType || '').trim();
     return cardType !== '';
-};
-
-// Function to parse CSV data using papaparse
-const parseCSV = (csvText) => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-                if (results.errors.length > 0) {
-                    console.warn('CSV parsing warnings:', results.errors);
-                }
-                resolve(results.data);
-            },
-            error: (error) => {
-                reject(error);
-            }
-        });
-    });
 };
 
 // Function to safely get a value from a row with fallback options
@@ -66,51 +43,56 @@ const getIntegerValue = (row, possibleKeys, defaultValue = 0) => {
     return isNaN(parsed) ? defaultValue : parsed;
 };
 
-// Function to create a standardized card object from a CSV row
-const createCardObject = (row, sourceUrl) => {
-    // Map all possible column variations to standard properties
+// Function to create a standardized card object from a JSON record
+const createCardObject = (row) => {
+    // Since the JSON data already has the correct structure from the CSV consolidation,
+    // we mainly need to ensure proper data types and create the display name
     const card = {
-        // Core properties with multiple possible column names
-        productId: getValue(row, ['productId', 'ProductId', 'product_id']),
-        name: getValue(row, ['name', 'Name', 'cardName', 'CardName']),
-        cleanName: getValue(row, ['cleanName', 'CleanName', 'clean_name']),
-        imageUrl: getValue(row, ['imageUrl', 'ImageUrl', 'image_url']),
-        categoryId: getValue(row, ['categoryId', 'CategoryId', 'category_id']),
-        groupId: getValue(row, ['groupId', 'GroupId', 'group_id']),
-        url: getValue(row, ['url', 'Url', 'URL']),
-        modifiedOn: getValue(row, ['modifiedOn', 'ModifiedOn', 'modified_on']),
-        imageCount: getIntegerValue(row, ['imageCount', 'ImageCount', 'image_count']),
+        // Core properties - convert strings to appropriate types where needed
+        productId: row.productId || '',
+        name: row.name || '',
+        cleanName: row.cleanName || '',
+        imageUrl: row.imageUrl || '',
+        categoryId: row.categoryId || '',
+        groupId: row.groupId || '',
+        url: row.url || '',
+        modifiedOn: row.modifiedOn || '',
+        imageCount: getIntegerValue(row, ['imageCount']),
 
-        // Price properties with multiple possible column names
-        lowPrice: getNumericValue(row, ['lowPrice', 'LowPrice', 'low_price']),
-        midPrice: getNumericValue(row, ['midPrice', 'MidPrice', 'mid_price']),
-        highPrice: getNumericValue(row, ['highPrice', 'HighPrice', 'high_price']),
-        marketPrice: getNumericValue(row, ['marketPrice', 'MarketPrice', 'market_price', 'price', 'Price']),
-        directLowPrice: getNumericValue(row, ['directLowPrice', 'DirectLowPrice', 'direct_low_price']),
+        // Price properties - ensure they're numbers
+        lowPrice: getNumericValue(row, ['lowPrice']),
+        midPrice: getNumericValue(row, ['midPrice']),
+        highPrice: getNumericValue(row, ['highPrice']),
+        marketPrice: getNumericValue(row, ['marketPrice']),
+        directLowPrice: getNumericValue(row, ['directLowPrice']),
 
-        // Card properties with multiple possible column names
-        subTypeName: getValue(row, ['subTypeName', 'SubTypeName', 'sub_type_name', 'edition', 'Edition', 'set', 'Set']),
-        extRarity: getValue(row, ['extRarity', 'ExtRarity', 'ext_rarity', 'rarity', 'Rarity']),
-        extNumber: getValue(row, ['extNumber', 'ExtNumber', 'ext_number', 'number', 'Number']),
-        extCardType: getValue(row, ['extCardType', 'ExtCardType', 'ext_card_type', 'cardType', 'CardType', 'type', 'Type']),
-        extCardSubType: getValue(row, ['extCardSubType', 'ExtCardSubType', 'ext_card_sub_type', 'cardSubType', 'CardSubType']),
-        extClass: getValue(row, ['extClass', 'ExtClass', 'ext_class', 'class', 'Class']),
-        extIntellect: getIntegerValue(row, ['extIntellect', 'ExtIntellect', 'ext_intellect', 'intellect', 'Intellect']),
-        extLife: getIntegerValue(row, ['extLife', 'ExtLife', 'ext_life', 'life', 'Life']),
-        extCost: getIntegerValue(row, ['extCost', 'ExtCost', 'ext_cost', 'cost', 'Cost']),
-        extPitchValue: getIntegerValue(row, ['extPitchValue', 'ExtPitchValue', 'ext_pitch_value', 'pitchValue', 'PitchValue']),
-        extPower: getIntegerValue(row, ['extPower', 'ExtPower', 'ext_power', 'power', 'Power']),
-        extDefenseValue: getIntegerValue(row, ['extDefenseValue', 'ExtDefenseValue', 'ext_defense_value', 'defenseValue', 'DefenseValue']),
-        extTalent: getValue(row, ['extTalent', 'ExtTalent', 'ext_talent', 'talent', 'Talent']),
-        extFlavorText: getValue(row, ['extFlavorText', 'ExtFlavorText', 'ext_flavor_text', 'flavorText', 'FlavorText']),
+        // Card properties
+        subTypeName: row.subTypeName || '',
+        extRarity: row.extRarity || '',
+        extNumber: row.extNumber || '',
+        extCardType: row.extCardType || '',
+        extCardSubType: row.extCardSubType || '',
+        extClass: row.extClass || '',
+        extIntellect: getIntegerValue(row, ['extIntellect']),
+        extLife: getIntegerValue(row, ['extLife']),
+        extCost: getIntegerValue(row, ['extCost']),
+        extPitchValue: getIntegerValue(row, ['extPitchValue']),
+        extPower: getIntegerValue(row, ['extPower']),
+        extDefenseValue: getIntegerValue(row, ['extDefenseValue']),
+        extTalent: row.extTalent || '',
+        extFlavorText: row.extFlavorText || '',
 
-        // Additional properties that might exist in some CSVs
-        color: getValue(row, ['color', 'Color', 'extColor', 'ExtColor']),
-        artist: getValue(row, ['artist', 'Artist', 'extArtist', 'ExtArtist']),
+        // Additional properties
+        color: row.color || '',
+        artist: row.artist || '',
+
+        // Metadata from consolidation
+        _sourceFile: row._sourceFile || '',
+        _setNumber: row._setNumber || 0,
 
         // Computed properties for display
         displayName: '',
-        sourceUrl: sourceUrl
+        sourceUrl: `set_${row._setNumber}` // Use set number as source identifier
     };
 
     // Create display name based on available data
@@ -121,111 +103,74 @@ const createCardObject = (row, sourceUrl) => {
     return card;
 };
 
-// Function to check if local CSV files are available
-const checkLocalCSVs = async () => {
+// Function to check if consolidated JSON is available
+const checkConsolidatedData = async () => {
     try {
-        const response = await fetch('/price-guide/manifest.json');
+        const response = await fetch('/price-guide/consolidated-data.json');
         if (!response.ok) {
-            return { available: false, reason: 'No manifest file found' };
+            return { available: false, reason: 'No consolidated data file found' };
         }
 
-        const manifest = await response.json();
+        // Check if it's a valid JSON by trying to parse just the beginning
+        const text = await response.text();
+        const data = JSON.parse(text);
+        
         return {
             available: true,
-            totalFiles: manifest.totalFiles,
-            downloadDate: manifest.downloadDate
+            totalRecords: data.metadata?.totalRecords || 0,
+            totalFiles: data.metadata?.totalFiles || 0,
+            generatedAt: data.metadata?.generatedAt || null,
+            dataSize: text.length
         };
     } catch (error) {
         return { available: false, reason: error.message };
     }
 };
 
-// Function to fetch local CSV file
-const fetchLocalCSV = async (index) => {
+// Function to load consolidated JSON data
+const loadConsolidatedData = async () => {
     try {
-        const response = await fetch(`/price-guide/set_${index + 1}.csv`);
+        console.log('Loading consolidated JSON data...');
+        const response = await fetch('/price-guide/consolidated-data.json');
         if (!response.ok) {
-            throw new Error(`Failed to fetch local CSV ${index + 1}: ${response.status}`);
+            throw new Error(`Failed to fetch consolidated data: ${response.status}`);
         }
-        const csvText = await response.text();
-        return await parseCSV(csvText);
+
+        const consolidatedData = await response.json();
+        
+        if (!consolidatedData.data || !Array.isArray(consolidatedData.data)) {
+            throw new Error('Invalid consolidated data format');
+        }
+
+        console.log(`Loaded ${consolidatedData.data.length} records from consolidated JSON`);
+        return consolidatedData;
     } catch (error) {
-        console.error(`Error fetching local CSV ${index + 1}:`, error);
-        return [];
+        console.error('Error loading consolidated data:', error);
+        throw error;
     }
 };
 
-// Function to fetch and parse a single CSV with caching
-const fetchCSV = async (url) => {
-    try {
-        // Check cache first
-        if (csvCache.has(url)) {
-            console.log(`Using cached data for ${url}`);
-            return csvCache.get(url);
-        }
-
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${url}: ${response.status}`);
-        }
-        const csvText = await response.text();
-        const parsedData = await parseCSV(csvText);
-
-        // Cache the result
-        csvCache.set(url, parsedData);
-
-        return parsedData;
-    } catch (error) {
-        console.error(`Error fetching CSV from ${url}:`, error);
-        return [];
-    }
-};
-
-// Function to get CSV URLs from the assets file
-const getCSVUrls = async () => {
-    try {
-        const response = await fetch('/csv-urls.csv');
-        if (!response.ok) {
-            throw new Error('Failed to fetch CSV URLs file');
-        }
-        const text = await response.text();
-        return text.split('\n').filter(line => line.trim() && line.startsWith('http'));
-    } catch (error) {
-        console.error('Error fetching CSV URLs:', error);
-        return [];
-    }
-};
-
-// Function to process cards in batches
-const processCardsInBatches = (csvResults, csvUrls, batchSize = 100) => {
+// Function to process JSON records and filter for actual cards
+const processJsonData = (jsonData) => {
     const allCards = [];
-    let processedCount = 0;
-    let totalRows = 0;
+    let totalRows = jsonData.length;
     let filteredRows = 0;
 
-    csvResults.forEach((csvData, index) => {
-        totalRows += csvData.length;
+    console.log(`Processing ${totalRows} records from JSON data...`);
 
-        // Process in batches to avoid blocking the UI
-        for (let i = 0; i < csvData.length; i += batchSize) {
-            const batch = csvData.slice(i, i + batchSize);
-
-            batch.forEach(row => {
-                // Only process actual cards
-                if (isActualCard(row)) {
-                    const card = createCardObject(row, csvUrls[index]);
-                    if (card.name && card.name.trim()) {
-                        allCards.push(card);
-                    }
-                } else {
-                    filteredRows++;
-                }
-            });
+    jsonData.forEach(row => {
+        // Only process actual cards
+        if (isActualCard(row)) {
+            const card = createCardObject(row);
+            if (card.name && card.name.trim()) {
+                allCards.push(card);
+            }
+        } else {
+            filteredRows++;
         }
-
-        processedCount++;
     });
 
+    console.log(`Processed ${allCards.length} actual cards, filtered out ${filteredRows} non-card products`);
     return allCards;
 };
 
@@ -309,7 +254,8 @@ export const CardDataProvider = ({ children }) => {
     const [loading, setLoading] = useState(false); // Changed to false for instant page load
     const [dataReady, setDataReady] = useState(false); // New state to track when data is fully loaded
     const [error, setError] = useState(null);
-    const [usingLocalFiles, setUsingLocalFiles] = useState(false);
+    const [dataSource, setDataSource] = useState(''); // Track what data source is being used
+    const [metadata, setMetadata] = useState(null); // Store metadata about the loaded data
 
     useEffect(() => {
         const loadCardData = async () => {
@@ -317,61 +263,30 @@ export const CardDataProvider = ({ children }) => {
                 setLoading(true);
                 setError(null);
 
-                // Check if local CSV files are available
-                const localStatus = await checkLocalCSVs();
+                // Check if consolidated JSON is available
+                const consolidatedStatus = await checkConsolidatedData();
 
-                if (localStatus.available) {
-                    console.log('Using local CSV files...');
-                    setUsingLocalFiles(true);
+                if (consolidatedStatus.available) {
+                    console.log('Using consolidated JSON data...');
+                    setDataSource('consolidated-json');
 
-                    // Load all local CSV files
-                    const csvResults = [];
-                    for (let i = 0; i < localStatus.totalFiles; i++) {
-                        const csvData = await fetchLocalCSV(i);
-                        csvResults.push(csvData);
-                    }
+                    // Load consolidated JSON data
+                    const consolidatedData = await loadConsolidatedData();
+                    
+                    // Store metadata
+                    setMetadata(consolidatedData.metadata);
 
-                    // Process the cards
-                    const allCards = processCardsInBatches(csvResults, Array(localStatus.totalFiles).fill('local'));
+                    // Process the JSON data
+                    const allCards = processJsonData(consolidatedData.data);
                     const enhancedCards = enhanceDisplayNames(allCards);
                     const groupedCards = groupCardsByEdition(enhancedCards);
 
                     setCards(enhancedCards);
                     setCardGroups(groupedCards);
 
+                    console.log(`Successfully loaded ${enhancedCards.length} cards from consolidated JSON`);
                 } else {
-                    console.log('Local files not available, fetching from remote URLs...');
-                    setUsingLocalFiles(false);
-
-                    // Fetch CSV URLs and download all CSVs
-                    const csvUrls = await getCSVUrls();
-                    if (csvUrls.length === 0) {
-                        throw new Error('No CSV URLs found');
-                    }
-
-                    // Download all CSVs in parallel with batching
-                    const batchSize = 5; // Download 5 at a time to be nice to servers
-                    const csvResults = [];
-
-                    for (let i = 0; i < csvUrls.length; i += batchSize) {
-                        const batch = csvUrls.slice(i, i + batchSize);
-                        const batchPromises = batch.map(url => fetchCSV(url));
-                        const batchResults = await Promise.all(batchPromises);
-                        csvResults.push(...batchResults);
-
-                        // Small delay between batches
-                        if (i + batchSize < csvUrls.length) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    }
-
-                    // Process the cards
-                    const allCards = processCardsInBatches(csvResults, csvUrls);
-                    const enhancedCards = enhanceDisplayNames(allCards);
-                    const groupedCards = groupCardsByEdition(enhancedCards);
-
-                    setCards(enhancedCards);
-                    setCardGroups(groupedCards);
+                    throw new Error(`Consolidated data not available: ${consolidatedStatus.reason}`);
                 }
 
             } catch (err) {
@@ -391,10 +306,11 @@ export const CardDataProvider = ({ children }) => {
         cards,
         cardGroups,
         loading,
-        dataReady, // Expose the new dataReady state
+        dataReady,
         error,
-        usingLocalFiles
-    }), [cards, cardGroups, loading, dataReady, error, usingLocalFiles]);
+        dataSource,
+        metadata
+    }), [cards, cardGroups, loading, dataReady, error, dataSource, metadata]);
 
     return (
         <CardDataContext.Provider value={value}>
