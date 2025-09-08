@@ -53,7 +53,7 @@ const Header = ({ lastUpdatedTimestamp}) => {
                             textDecoration: location.pathname === '/' ? 'underline' : 'none'
                         }}
                     >
-                        Home
+                        Trade Calculator
                     </Button>
                     <Button 
                         component={Link} 
