@@ -19,7 +19,8 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "test:run": "node scripts/runTests.js",
-    "test:logs": "node scripts/viewLogs.js"
+    "test:logs": "node scripts/viewLogs.js",
+    "consolidate-csvs": "node scripts/consolidateCSVs.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

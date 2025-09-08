@@ -17,7 +17,7 @@ function App() {
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
-    const { cardGroups, loading, dataReady, error } = useCardData();
+    const { cardGroups, loading, dataReady, error, dataSource, metadata } = useCardData();
     const cardNames = cardGroups.map(group => group.name);
 
     const tradeState = useTradeState(cardGroups);
@@ -69,7 +69,9 @@ function App() {
             {showSuccessAlert && dataReady && !loading && (
                 <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
                     <Alert severity="success">
-                        Card data loaded successfully! You can now search and add cards.
+                        Card data loaded successfully from {dataSource === 'consolidated-json' ? 'consolidated JSON' : 'unknown source'}! 
+                        {metadata && ` (${metadata.totalRecords} records from ${metadata.totalFiles} files)`} 
+                        You can now search and add cards.
                     </Alert>
                 </Box>
             )}

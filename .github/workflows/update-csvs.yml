@@ -25,6 +25,9 @@ jobs:
       
     - name: Download updated CSV data
       run: npm run download-products-sheet:force
+
+    - name: Consolidate CSV data
+      run: npm run consolidate-csvs
       
     - name: Commit and push changes
       run: |
