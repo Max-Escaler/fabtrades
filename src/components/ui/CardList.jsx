@@ -368,7 +368,7 @@ const CardList = ({
           position="static" 
           elevation={1}
           sx={{ 
-            backgroundColor: 'primary.main',
+            backgroundColor: '#432a22',
             color: 'primary.contrastText'
           }}
         >
@@ -383,7 +383,7 @@ const CardList = ({
               <CloseIcon />
             </IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Search Cards for "{title}"
+              Search Cards for {title}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -423,7 +423,7 @@ const CardList = ({
             }}
             filterOptions={(options, { inputValue }) => {
               if (!inputValue) {
-                return options.slice(0, 50);
+                return options.slice(0, 6);
               }
               
               const searchTerm = inputValue.toLowerCase();
@@ -432,7 +432,7 @@ const CardList = ({
                 return cardName.includes(searchTerm);
               });
               
-              return filtered.slice(0, 100);
+              return filtered.slice(0, 6);
             }}
             getOptionLabel={(option) => {
               return typeof option === 'string' ? option : option.displayName || option.name || '';
