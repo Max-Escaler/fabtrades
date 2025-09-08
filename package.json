@@ -29,7 +29,8 @@
     "@mui/material": "^7.3.1",
     "papaparse": "^5.5.3",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
