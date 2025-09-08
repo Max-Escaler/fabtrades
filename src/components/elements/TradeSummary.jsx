@@ -66,7 +66,7 @@ const TradeSummary = ({ haveList, wantList, haveTotal, wantTotal, diff, isLandsc
                     fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem' },
                     textAlign: 'center'
                 }}>
-                    Trade Differential
+                    Difference
                 </Typography>
                 <Chip
                     label={diff > 0 ? `+${formatCurrency(diff.toFixed(2))}` : `${formatCurrency(diff.toFixed(2))}`}
