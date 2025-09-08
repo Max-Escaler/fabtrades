@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   List,
   ListItem,
@@ -11,9 +11,18 @@ import {
   Typography,
   TextField,
   Autocomplete,
-  Popper
+  Popper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  AppBar,
+  Toolbar,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import {formatCurrency} from "../../utils/helpers.js";
 
 // Custom Popper component for upward expansion
@@ -53,10 +62,33 @@ const CardList = ({
   title,
   disabled = false 
 }) => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [dialogInputValue, setDialogInputValue] = useState('');
 
   const handleQuantityChange = (cardIndex, newQuantity) => {
     if (onUpdateQuantity) {
       onUpdateQuantity(cardIndex, newQuantity);
+    }
+  };
+
+  const handleSearchClick = () => {
+    if (isSmallScreen) {
+      setSearchDialogOpen(true);
+      setDialogInputValue(inputValue || '');
+    }
+  };
+
+  const handleDialogClose = () => {
+    setSearchDialogOpen(false);
+    setDialogInputValue('');
+  };
+
+  const handleDialogAddCard = (cardName) => {
+    if (cardName) {
+      onAddCard(cardName);
+      handleDialogClose();
     }
   };
 
@@ -237,61 +269,196 @@ const CardList = ({
          p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
          width: '100%'
        }}>
-        <Autocomplete
-          freeSolo
-          options={cardOptions || []}
-          sx={{ 
-            width: '100%', 
-            transition: 'all 0.3s ease'
-          }}
-          renderInput={(params) => <TextField {...params} label={"Search for Cards"} disabled={disabled} />}
-          inputValue={inputValue || ""}
-          onChange={(event, newValue) => {
-            // Handle selection from dropdown - add immediately
-            if (newValue) {
-              // Add the card with the selected value
-              onAddCard(newValue);
-            }
-          }}
-          onInputChange={(event, newInputValue) => {
-            // Handle typing in the input field
-            onInputChange(event, newInputValue);
-          }}
-          filterOptions={(options, { inputValue }) => {
-            // Custom filtering logic
-            if (!inputValue) {
-              return options.slice(0, 20); // Show first 20 options when no input
-            }
-            
-            const searchTerm = inputValue.toLowerCase();
-            const filtered = options.filter((option) => {
-              const cardName = option.toLowerCase();
-              return cardName.includes(searchTerm);
-            });
-            
-            // Limit results to improve performance
-            return filtered.slice(0, 50);
-          }}
-          getOptionLabel={(option) => {
-            // Handle both string and object options
-            return typeof option === 'string' ? option : option.displayName || option.name || '';
-          }}
-          isOptionEqualToValue={(option, value) => {
-            // Compare options properly
-            return option === value;
-          }}
-          selectOnFocus
-          clearOnBlur={false}
-          handleHomeEndKeys
-          autoComplete
-          autoHighlight
-          blurOnSelect
-          openOnFocus
-          disableClearable={false}
-          disabled={disabled}
-          PopperComponent={title === "Cards I Want" ? CustomPopper : undefined}
-        />
+        {isSmallScreen ? (
+          // Small screen: Clickable search button that opens full-screen dialog
+          <Box
+            onClick={handleSearchClick}
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1.5,
+              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              backgroundColor: '#f5f5f5',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: '#e0e0e0'
+              },
+              transition: 'background-color 0.2s ease'
+            }}
+          >
+            <SearchIcon color="action" />
+            <Typography variant="body1" color="text.secondary">
+              Search for cards...
+            </Typography>
+          </Box>
+        ) : (
+          // Larger screens: Inline autocomplete as before
+          <Autocomplete
+            freeSolo
+            options={cardOptions || []}
+            sx={{ 
+              width: '100%', 
+              transition: 'all 0.3s ease'
+            }}
+            renderInput={(params) => <TextField {...params} label={"Search for Cards"} disabled={disabled} />}
+            inputValue={inputValue || ""}
+            onChange={(event, newValue) => {
+              // Handle selection from dropdown - add immediately
+              if (newValue) {
+                // Add the card with the selected value
+                onAddCard(newValue);
+              }
+            }}
+            onInputChange={(event, newInputValue) => {
+              // Handle typing in the input field
+              onInputChange(event, newInputValue);
+            }}
+            filterOptions={(options, { inputValue }) => {
+              // Custom filtering logic
+              if (!inputValue) {
+                return options.slice(0, 20); // Show first 20 options when no input
+              }
+              
+              const searchTerm = inputValue.toLowerCase();
+              const filtered = options.filter((option) => {
+                const cardName = option.toLowerCase();
+                return cardName.includes(searchTerm);
+              });
+              
+              // Limit results to improve performance
+              return filtered.slice(0, 50);
+            }}
+            getOptionLabel={(option) => {
+              // Handle both string and object options
+              return typeof option === 'string' ? option : option.displayName || option.name || '';
+            }}
+            isOptionEqualToValue={(option, value) => {
+              // Compare options properly
+              return option === value;
+            }}
+            selectOnFocus
+            clearOnBlur={false}
+            handleHomeEndKeys
+            autoComplete
+            autoHighlight
+            blurOnSelect
+            openOnFocus
+            disableClearable={false}
+            disabled={disabled}
+            PopperComponent={title === "Cards I Want" ? CustomPopper : undefined}
+          />
+        )}
       </ListItem>
+
+      {/* Full-screen search dialog for small screens */}
+      <Dialog
+        fullScreen
+        open={searchDialogOpen}
+        onClose={handleDialogClose}
+        sx={{
+          '& .MuiDialog-paper': {
+            backgroundColor: '#fafafa'
+          }
+        }}
+      >
+        <AppBar 
+          position="static" 
+          elevation={1}
+          sx={{ 
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText'
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleDialogClose}
+              aria-label="close"
+              sx={{ mr: 2 }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Search Cards for "{title}"
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        
+        <DialogContent sx={{ p: 2, backgroundColor: '#fafafa' }}>
+          <Autocomplete
+            freeSolo
+            autoFocus
+            open={true}
+            options={cardOptions || []}
+            sx={{ 
+              width: '100%',
+              mb: 2
+            }}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Search for Cards" 
+                variant="outlined"
+                fullWidth
+                autoFocus
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white'
+                  }
+                }}
+              />
+            )}
+            inputValue={dialogInputValue}
+            onChange={(event, newValue) => {
+              if (newValue) {
+                handleDialogAddCard(newValue);
+              }
+            }}
+            onInputChange={(event, newInputValue) => {
+              setDialogInputValue(newInputValue);
+            }}
+            filterOptions={(options, { inputValue }) => {
+              if (!inputValue) {
+                return options.slice(0, 50);
+              }
+              
+              const searchTerm = inputValue.toLowerCase();
+              const filtered = options.filter((option) => {
+                const cardName = option.toLowerCase();
+                return cardName.includes(searchTerm);
+              });
+              
+              return filtered.slice(0, 100);
+            }}
+            getOptionLabel={(option) => {
+              return typeof option === 'string' ? option : option.displayName || option.name || '';
+            }}
+            isOptionEqualToValue={(option, value) => {
+              return option === value;
+            }}
+            selectOnFocus
+            clearOnBlur={false}
+            handleHomeEndKeys
+            autoComplete
+            autoHighlight
+            blurOnSelect
+            ListboxProps={{
+              style: {
+                maxHeight: 'calc(100vh - 200px)',
+                overflow: 'auto'
+              }
+            }}
+          />
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Select a card from the dropdown to add it to your list, or type to search for specific cards.
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </List>
   );
 };
