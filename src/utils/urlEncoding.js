@@ -349,6 +349,68 @@ export function decodeTradeFromURL() {
 }
 
 /**
+ * Normalizes card names for better matching
+ * @param {string} cardName - Card name to normalize
+ * @returns {string} Normalized card name
+ */
+function normalizeCardName(cardName) {
+  return cardName
+    .toLowerCase()
+    .replace(/\s+/g, ' ')           // Normalize spaces
+    .replace(/[^\w\s()]/g, '')      // Keep only alphanumeric, spaces, and parentheses
+    .trim();
+}
+
+/**
+ * Finds the best matching card group using multiple strategies
+ * @param {string} cardName - Card name to find
+ * @param {Array} cardGroups - Available card groups
+ * @returns {Object|null} Best matching card group
+ */
+function findBestCardMatch(cardName, cardGroups) {
+  const normalizedSearchName = normalizeCardName(cardName);
+  
+  // Strategy 1: Exact match
+  let match = cardGroups.find(group => 
+    normalizeCardName(group.name) === normalizedSearchName
+  );
+  if (match) return { group: match, strategy: 'exact' };
+  
+  // Strategy 2: Base name match (remove edition info)
+  const baseName = cardName.replace(/\s*\([^)]*\).*$/, '').trim();
+  const normalizedBaseName = normalizeCardName(baseName);
+  
+  match = cardGroups.find(group => {
+    const groupBaseName = group.name.replace(/\s*\([^)]*\).*$/, '').trim();
+    return normalizeCardName(groupBaseName) === normalizedBaseName;
+  });
+  if (match) return { group: match, strategy: 'base-name' };
+  
+  // Strategy 3: Substring matching
+  match = cardGroups.find(group => {
+    const normalizedGroupName = normalizeCardName(group.name);
+    return normalizedGroupName.includes(normalizedBaseName) || 
+           normalizedBaseName.includes(normalizedGroupName);
+  });
+  if (match) return { group: match, strategy: 'substring' };
+  
+  // Strategy 4: Word-based matching (for complex names)
+  const searchWords = normalizedBaseName.split(/\s+/).filter(w => w.length > 2);
+  if (searchWords.length > 1) {
+    match = cardGroups.find(group => {
+      const groupWords = normalizeCardName(group.name).split(/\s+/);
+      const matchingWords = searchWords.filter(word => 
+        groupWords.some(groupWord => groupWord.includes(word) || word.includes(groupWord))
+      );
+      return matchingWords.length >= Math.min(2, searchWords.length);
+    });
+    if (match) return { group: match, strategy: 'word-based' };
+  }
+  
+  return null;
+}
+
+/**
  * Reconstructs full card objects from minimal URL data
  * @param {Array} cardData - Minimal card data from URL
  * @param {Array} cardGroups - Available card groups from the app
@@ -375,13 +437,32 @@ export function reconstructCardsFromURLData(cardData, cardGroups) {
         cardQuantity = urlCard.q || 1;
       }
       
-      // Find the card group by name
-      const cardGroup = cardGroups.find(group => 
-        group.name.toLowerCase() === cardName.toLowerCase()
-      );
+      // Use the enhanced card matching system
+      const matchResult = findBestCardMatch(cardName, cardGroups);
       
-      if (!cardGroup || !cardGroup.editions || cardGroup.editions.length === 0) {
-        console.warn(`Card not found in current data: ${cardName}`);
+      if (!matchResult) {
+        console.warn(`Card not found in current data after all matching attempts: ${cardName}`);
+        console.log('Available card groups sample:', cardGroups.slice(0, 5).map(g => g.name));
+        
+        // Enhanced debugging: look for similar names
+        const similarCards = cardGroups.filter(group => 
+          group.name.toLowerCase().includes('arknight') || 
+          group.name.toLowerCase().includes('shard') ||
+          normalizeCardName(group.name).includes(normalizeCardName(cardName).split(' ')[0])
+        ).slice(0, 5);
+        
+        if (similarCards.length > 0) {
+          console.log('Similar cards found:', similarCards.map(g => g.name));
+        }
+        
+        return validCards;
+      }
+      
+      const cardGroup = matchResult.group;
+      console.log(`Card matched using ${matchResult.strategy} strategy: "${cardName}" -> "${cardGroup.name}"`);
+      
+      if (!cardGroup.editions || cardGroup.editions.length === 0) {
+        console.warn(`Card group found but has no editions: ${cardGroup.name}`);
         return validCards;
       }
 
