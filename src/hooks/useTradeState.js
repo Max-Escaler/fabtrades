@@ -6,7 +6,8 @@ import {
     reconstructCardsFromURLData,
     hasTradeDataInURL,
     clearTradeFromURL,
-    estimateTradeURLSize
+    estimateTradeURLSize,
+    testURLEncoding
 } from "../utils/urlEncoding.js";
 
 export function useTradeState(cardGroups) {
@@ -97,6 +98,11 @@ export function useTradeState(cardGroups) {
         return estimateTradeURLSize(haveList, wantList);
     };
 
+    // Test URL encoding round-trip
+    const testURLRoundTrip = () => {
+        return testURLEncoding(haveList, wantList);
+    };
+
     const haveTotal = useMemo(() => calculateTotal(haveList), [haveList]);
     const wantTotal = useMemo(() => calculateTotal(wantList), [wantList]);
     const diff = useMemo(() => calculateDiff(haveTotal, wantTotal), [haveTotal, wantTotal]);
@@ -121,6 +127,7 @@ export function useTradeState(cardGroups) {
         generateShareURL,
         clearURLTradeData,
         getURLSizeInfo,
+        testURLRoundTrip,
         urlTradeData,
         hasLoadedFromURL
     };

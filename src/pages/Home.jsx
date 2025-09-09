@@ -109,6 +109,7 @@ const Home = () => {
                         generateShareURL={tradeState.generateShareURL}
                         clearURLTradeData={tradeState.clearURLTradeData}
                         getURLSizeInfo={tradeState.getURLSizeInfo}
+                        testURLRoundTrip={tradeState.testURLRoundTrip}
                         urlTradeData={tradeState.urlTradeData}
                         hasLoadedFromURL={tradeState.hasLoadedFromURL}
                     />

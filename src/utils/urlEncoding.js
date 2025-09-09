@@ -6,35 +6,98 @@
 // Advanced compression strategies for URL optimization
 function compress(str) {
   try {
+    console.log('Starting compression of:', str.substring(0, 100) + '...');
+    
     // Strategy 1: Remove unnecessary whitespace from JSON
     const minified = str.replace(/\s+/g, '');
+    console.log('After minification:', minified.length, 'chars');
     
     // Strategy 2: Use shorter field names (already done in encoding)
     
     // Strategy 3: Compress common card name patterns
     let compressed = compressCardNames(minified);
+    console.log('After card name compression:', compressed.length, 'chars');
     
     // Strategy 4: Compress repeated patterns
     compressed = compressRepeatedPatterns(compressed);
+    console.log('After pattern compression:', compressed.length, 'chars');
     
     // Strategy 5: Base64 encode the result
-    return btoa(compressed);
+    const result = btoa(unescape(encodeURIComponent(compressed)));
+    console.log('After base64 encoding:', result.length, 'chars');
+    return result;
   } catch (error) {
-    console.warn('Compression failed, using base64 fallback:', error);
-    return btoa(str);
+    console.warn('Advanced compression failed, using simple base64:', error);
+    try {
+      // Fallback to simple base64 encoding
+      return btoa(unescape(encodeURIComponent(str)));
+    } catch (fallbackError) {
+      console.error('Even simple base64 failed:', fallbackError);
+      // Last resort - return the string as-is
+      return str;
+    }
   }
 }
 
 function decompress(str) {
   try {
-    const decoded = atob(str);
-    // Decompress repeated patterns
-    const decompressed = decompressRepeatedPatterns(decoded);
-    // Decompress card names
-    return decompressCardNames(decompressed);
+    console.log('Starting decompression of:', str.substring(0, 50) + '...');
+    
+    // Step 1: Base64 decode
+    let decoded;
+    try {
+      decoded = atob(str);
+      console.log('Base64 decoded successfully, length:', decoded.length);
+    } catch (base64Error) {
+      console.error('Base64 decode failed:', base64Error);
+      throw base64Error;
+    }
+    
+    // Step 2: Handle UTF-8 decoding
+    let utf8Decoded;
+    try {
+      utf8Decoded = decodeURIComponent(escape(decoded));
+      console.log('UTF-8 decoded successfully');
+    } catch (utf8Error) {
+      console.warn('UTF-8 decode failed, using raw decoded:', utf8Error);
+      utf8Decoded = decoded;
+    }
+    
+    // Step 3: Decompress repeated patterns
+    let patternDecompressed;
+    try {
+      patternDecompressed = decompressRepeatedPatterns(utf8Decoded);
+      console.log('Pattern decompression successful');
+    } catch (patternError) {
+      console.warn('Pattern decompression failed, skipping:', patternError);
+      patternDecompressed = utf8Decoded;
+    }
+    
+    // Step 4: Decompress card names
+    let result;
+    try {
+      result = decompressCardNames(patternDecompressed);
+      console.log('Card name decompression successful');
+    } catch (cardError) {
+      console.warn('Card name decompression failed, skipping:', cardError);
+      result = patternDecompressed;
+    }
+    
+    console.log('Final decompressed result:', result.substring(0, 100) + '...');
+    return result;
   } catch (error) {
-    console.warn('Decompression failed, treating as raw string:', error);
-    return str;
+    console.error('Complete decompression failed:', error);
+    console.log('Attempting fallback decompression...');
+    
+    // Fallback: try simple base64 decode
+    try {
+      const fallback = atob(str);
+      console.log('Fallback base64 decode successful');
+      return decodeURIComponent(escape(fallback));
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      return str;
+    }
   }
 }
 
@@ -170,6 +233,7 @@ export function encodeTradeToURL(haveList, wantList, options = {}) {
     };
 
     const jsonString = JSON.stringify(tradeData);
+    console.log('Original JSON:', jsonString);
     
     // Check URL length before compression
     if (jsonString.length > 1500) {
@@ -177,10 +241,16 @@ export function encodeTradeToURL(haveList, wantList, options = {}) {
     }
 
     const compressed = compress(jsonString);
+    console.log('Compressed data:', compressed.substring(0, 100) + '...');
+    
+    // Use a more conservative encoding approach for production
     const encoded = encodeURIComponent(compressed);
+    console.log('Encoded data:', encoded.substring(0, 100) + '...');
     
     const baseUrl = options.baseUrl || window.location.origin + window.location.pathname;
     const url = `${baseUrl}?trade=${encoded}`;
+    
+    console.log('Final URL length:', url.length);
     
     // Check final URL length
     if (url.length > 2000) {
@@ -203,13 +273,50 @@ export function decodeTradeFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const tradeParam = urlParams.get('trade');
     
+    console.log('Raw trade param from URL:', tradeParam);
+    
     if (!tradeParam) {
+      console.log('No trade parameter found in URL');
       return null;
     }
 
-    const decoded = decodeURIComponent(tradeParam);
-    const decompressed = decompress(decoded);
-    const tradeData = JSON.parse(decompressed);
+    // Handle potential double encoding issues
+    let decoded;
+    try {
+      decoded = decodeURIComponent(tradeParam);
+      console.log('First decode attempt:', decoded.substring(0, 100) + '...');
+    } catch (error) {
+      console.warn('First decode failed, trying direct use:', error);
+      decoded = tradeParam;
+    }
+    
+    // Try decompression
+    let decompressed;
+    try {
+      decompressed = decompress(decoded);
+      console.log('Decompressed data:', decompressed.substring(0, 200) + '...');
+    } catch (error) {
+      console.error('Decompression failed:', error);
+      // Try direct JSON parse in case it's not compressed
+      try {
+        decompressed = atob(decoded);
+        console.log('Direct base64 decode worked:', decompressed.substring(0, 100) + '...');
+      } catch (base64Error) {
+        console.error('Base64 decode also failed:', base64Error);
+        return null;
+      }
+    }
+    
+    // Parse JSON
+    let tradeData;
+    try {
+      tradeData = JSON.parse(decompressed);
+      console.log('Parsed trade data:', tradeData);
+    } catch (parseError) {
+      console.error('JSON parse failed:', parseError);
+      console.error('Raw data was:', decompressed);
+      return null;
+    }
     
     // Validate version
     if (!tradeData.v || tradeData.v > 1) {
@@ -312,6 +419,50 @@ export function clearTradeFromURL() {
     const url = new URL(window.location);
     url.searchParams.delete('trade');
     window.history.replaceState({}, '', url);
+  }
+}
+
+/**
+ * Test URL encoding and decoding round-trip
+ * @param {Array} haveList 
+ * @param {Array} wantList 
+ * @returns {Object} Test results
+ */
+export function testURLEncoding(haveList, wantList) {
+  try {
+    console.log('Testing URL encoding round-trip...');
+    
+    // Step 1: Encode
+    const url = encodeTradeToURL(haveList, wantList);
+    if (!url) {
+      return { success: false, error: 'Failed to encode URL' };
+    }
+    
+    // Step 2: Extract trade parameter
+    const urlObj = new URL(url);
+    const tradeParam = urlObj.searchParams.get('trade');
+    
+    // Step 3: Manually test decoding
+    const decoded = decodeURIComponent(tradeParam);
+    const decompressed = decompress(decoded);
+    const parsed = JSON.parse(decompressed);
+    
+    console.log('Round-trip test successful!');
+    return {
+      success: true,
+      originalHave: haveList.length,
+      originalWant: wantList.length,
+      decodedHave: parsed.h ? parsed.h.length : 0,
+      decodedWant: parsed.w ? parsed.w.length : 0,
+      urlLength: url.length,
+      tradeParam: tradeParam.substring(0, 50) + '...'
+    };
+  } catch (error) {
+    console.error('Round-trip test failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 }
 

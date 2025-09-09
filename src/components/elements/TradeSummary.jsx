@@ -32,6 +32,7 @@ const TradeSummary = ({
     generateShareURL,
     clearURLTradeData,
     getURLSizeInfo,
+    testURLRoundTrip,
     urlTradeData,
     hasLoadedFromURL
 }) => {
@@ -45,6 +46,15 @@ const TradeSummary = ({
 
     const handleShare = async () => {
         try {
+            // First, test the round-trip encoding
+            const testResult = testURLRoundTrip();
+            console.log('URL round-trip test result:', testResult);
+            
+            if (!testResult.success) {
+                setShareError(`URL encoding test failed: ${testResult.error}`);
+                return;
+            }
+
             const url = generateShareURL();
             if (!url) {
                 setShareError('Failed to generate share URL');
