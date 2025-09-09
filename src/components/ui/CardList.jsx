@@ -329,7 +329,7 @@ const CardList = ({
               });
               
               // Limit results to improve performance
-              return filtered.slice(0, 4);
+              return filtered.slice(0, 10);
             }}
             getOptionLabel={(option) => {
               // Handle both string and object options
@@ -423,7 +423,7 @@ const CardList = ({
             }}
             filterOptions={(options, { inputValue }) => {
               if (!inputValue) {
-                return options.slice(0, 6);
+                return options.slice(0, 10);
               }
               
               const searchTerm = inputValue.toLowerCase();
@@ -432,7 +432,7 @@ const CardList = ({
                 return cardName.includes(searchTerm);
               });
               
-              return filtered.slice(0, 6);
+              return filtered.slice(0, 10);
             }}
             getOptionLabel={(option) => {
               return typeof option === 'string' ? option : option.displayName || option.name || '';
