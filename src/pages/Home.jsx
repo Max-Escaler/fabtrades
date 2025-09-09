@@ -106,6 +106,11 @@ const Home = () => {
                         wantTotal={tradeState.wantTotal}
                         diff={tradeState.diff}
                         isLandscape={isLandscape}
+                        generateShareURL={tradeState.generateShareURL}
+                        clearURLTradeData={tradeState.clearURLTradeData}
+                        getURLSizeInfo={tradeState.getURLSizeInfo}
+                        urlTradeData={tradeState.urlTradeData}
+                        hasLoadedFromURL={tradeState.hasLoadedFromURL}
                     />
                 )}
 
