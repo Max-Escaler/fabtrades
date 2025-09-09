@@ -3,25 +3,145 @@
  * Handles compression, validation, and backwards compatibility
  */
 
-// Simple compression using run-length encoding for repetitive data
+// Advanced compression strategies for URL optimization
 function compress(str) {
-  // Use built-in compression if available, fallback to base64
   try {
-    // Simple base64 encoding as fallback (could be replaced with LZ-string)
-    return btoa(str);
+    // Strategy 1: Remove unnecessary whitespace from JSON
+    const minified = str.replace(/\s+/g, '');
+    
+    // Strategy 2: Use shorter field names (already done in encoding)
+    
+    // Strategy 3: Compress common card name patterns
+    let compressed = compressCardNames(minified);
+    
+    // Strategy 4: Compress repeated patterns
+    compressed = compressRepeatedPatterns(compressed);
+    
+    // Strategy 5: Base64 encode the result
+    return btoa(compressed);
   } catch (error) {
-    console.warn('Compression failed, using raw string:', error);
-    return str;
+    console.warn('Compression failed, using base64 fallback:', error);
+    return btoa(str);
   }
 }
 
 function decompress(str) {
   try {
-    return atob(str);
+    const decoded = atob(str);
+    // Decompress repeated patterns
+    const decompressed = decompressRepeatedPatterns(decoded);
+    // Decompress card names
+    return decompressCardNames(decompressed);
   } catch (error) {
     console.warn('Decompression failed, treating as raw string:', error);
     return str;
   }
+}
+
+// Compress repeated JSON patterns
+function compressRepeatedPatterns(str) {
+  // Replace common JSON patterns with shorter equivalents
+  const patterns = [
+    ['"n":"', 'α'],      // name field
+    ['"p":', 'β'],       // price field  
+    ['"q":', 'γ'],       // quantity field
+    ['{"', 'δ'],         // object start
+    ['"}', 'ε'],         // object end
+    [',"', 'ζ'],         // comma quote
+    ['":', 'η'],         // quote colon
+  ];
+  
+  let compressed = str;
+  patterns.forEach(([pattern, replacement]) => {
+    compressed = compressed.replace(new RegExp(escapeRegExp(pattern), 'g'), replacement);
+  });
+  
+  return compressed;
+}
+
+// Decompress repeated JSON patterns
+function decompressRepeatedPatterns(str) {
+  const patterns = [
+    ['α', '"n":"'],      // name field
+    ['β', '"p":'],       // price field
+    ['γ', '"q":'],       // quantity field
+    ['δ', '{"'],         // object start
+    ['ε', '"}'],         // object end
+    ['ζ', ',"'],         // comma quote
+    ['η', '":'],         // quote colon
+  ];
+  
+  let decompressed = str;
+  patterns.forEach(([replacement, pattern]) => {
+    decompressed = decompressed.replace(new RegExp(escapeRegExp(replacement), 'g'), pattern);
+  });
+  
+  return decompressed;
+}
+
+// Compress common card name patterns
+function compressCardNames(str) {
+  // Common FAB card terms that can be abbreviated
+  const cardPatterns = [
+    // Common words in card names
+    [' of ', '◊'],
+    [' the ', '♦'],
+    [' and ', '♠'],
+    ['Lightning', 'Lt'],
+    ['Thunder', 'Th'],
+    ['Strike', 'St'],
+    ['Attack', 'At'],
+    ['Defense', 'Df'],
+    ['Action', 'Ac'],
+    ['Equipment', 'Eq'],
+    ['Weapon', 'Wp'],
+    ['Rainbow', 'Rb'],
+    ['Yellow', 'Y'],
+    ['Blue', 'B'],
+    ['Red', 'R'],
+    [' - ', '~'], // common separator
+  ];
+  
+  let compressed = str;
+  cardPatterns.forEach(([pattern, replacement]) => {
+    compressed = compressed.replace(new RegExp(escapeRegExp(pattern), 'g'), replacement);
+  });
+  
+  return compressed;
+}
+
+// Decompress card name patterns
+function decompressCardNames(str) {
+  const cardPatterns = [
+    ['◊', ' of '],
+    ['♦', ' the '],
+    ['♠', ' and '],
+    ['Lt', 'Lightning'],
+    ['Th', 'Thunder'],
+    ['St', 'Strike'],
+    ['At', 'Attack'],
+    ['Df', 'Defense'],
+    ['Ac', 'Action'],
+    ['Eq', 'Equipment'],
+    ['Wp', 'Weapon'],
+    ['Rb', 'Rainbow'],
+    ['Y', 'Yellow'],
+    ['B', 'Blue'],
+    ['R', 'Red'],
+    ['~', ' - '],
+  ];
+  
+  let decompressed = str;
+  cardPatterns.forEach(([replacement, pattern]) => {
+    decompressed = decompressed.replace(new RegExp(escapeRegExp(replacement), 'g'), pattern);
+  });
+  
+  return decompressed;
+}
+
+// Escape special characters for regex
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -33,27 +153,20 @@ function decompress(str) {
  */
 export function encodeTradeToURL(haveList, wantList, options = {}) {
   try {
-    // Create minimal trade data structure
+    // Create ultra-minimal trade data structure using arrays instead of objects
     const tradeData = {
       v: 1, // Version for backwards compatibility
-      t: Date.now(), // Timestamp for price relevance
-      h: haveList.map(card => ({
-        n: card.name, // name
-        p: Number(card.price.toFixed(2)), // price (rounded to 2 decimals)
-        q: card.quantity, // quantity
-        // Store edition info if different from default
-        ...(card.cardGroup?.editions?.[0]?.cardPrice !== card.price && {
-          e: card.price // edition price if different from default
-        })
-      })),
-      w: wantList.map(card => ({
-        n: card.name,
-        p: Number(card.price.toFixed(2)),
-        q: card.quantity,
-        ...(card.cardGroup?.editions?.[0]?.cardPrice !== card.price && {
-          e: card.price
-        })
-      }))
+      t: Math.floor(Date.now() / 60000), // Timestamp in minutes (saves ~4 characters)
+      h: haveList.map(card => [
+        card.name,
+        Number(card.price.toFixed(2)),
+        card.quantity > 1 ? card.quantity : undefined // omit quantity if it's 1
+      ].filter(x => x !== undefined)), // remove undefined values
+      w: wantList.map(card => [
+        card.name,
+        Number(card.price.toFixed(2)),
+        card.quantity > 1 ? card.quantity : undefined
+      ].filter(x => x !== undefined))
     };
 
     const jsonString = JSON.stringify(tradeData);
@@ -112,12 +225,15 @@ export function decodeTradeFromURL() {
       }
     }
     
+    // Convert timestamp back from minutes to milliseconds
+    const timestamp = tradeData.t ? tradeData.t * 60000 : null;
+    
     return {
       version: tradeData.v,
-      timestamp: tradeData.t,
+      timestamp: timestamp,
       have: tradeData.h || [],
       want: tradeData.w || [],
-      ageInDays: tradeData.t ? (Date.now() - tradeData.t) / (1000 * 60 * 60 * 24) : null
+      ageInDays: timestamp ? (Date.now() - timestamp) / (1000 * 60 * 60 * 24) : null
     };
   } catch (error) {
     console.error('Failed to decode trade from URL:', error);
@@ -138,39 +254,41 @@ export function reconstructCardsFromURLData(cardData, cardGroups) {
 
   return cardData.reduce((validCards, urlCard) => {
     try {
+      // Handle both array format [name, price, quantity] and object format {n, p, q}
+      let cardName, cardPrice, cardQuantity;
+      
+      if (Array.isArray(urlCard)) {
+        // New array format: [name, price, quantity?]
+        [cardName, cardPrice, cardQuantity] = urlCard;
+        cardQuantity = cardQuantity || 1; // default to 1 if not specified
+      } else {
+        // Legacy object format: {n: name, p: price, q: quantity}
+        cardName = urlCard.n;
+        cardPrice = urlCard.p;
+        cardQuantity = urlCard.q || 1;
+      }
+      
       // Find the card group by name
       const cardGroup = cardGroups.find(group => 
-        group.name.toLowerCase() === urlCard.n.toLowerCase()
+        group.name.toLowerCase() === cardName.toLowerCase()
       );
       
       if (!cardGroup || !cardGroup.editions || cardGroup.editions.length === 0) {
-        console.warn(`Card not found in current data: ${urlCard.n}`);
+        console.warn(`Card not found in current data: ${cardName}`);
         return validCards;
-      }
-
-      // Find the edition that matches the price, or use default
-      let selectedEdition = cardGroup.editions[0]; // default
-      if (urlCard.e && urlCard.e !== urlCard.p) {
-        // Look for edition with matching price
-        const matchingEdition = cardGroup.editions.find(edition => 
-          Math.abs(edition.cardPrice - urlCard.p) < 0.01
-        );
-        if (matchingEdition) {
-          selectedEdition = matchingEdition;
-        }
       }
 
       const reconstructedCard = {
         name: cardGroup.name, // Use canonical name from card group
-        price: urlCard.p,
-        quantity: Math.max(1, parseInt(urlCard.q) || 1), // Ensure valid quantity
+        price: cardPrice,
+        quantity: Math.max(1, parseInt(cardQuantity) || 1), // Ensure valid quantity
         cardGroup,
         availableEditions: cardGroup.editions
       };
 
       validCards.push(reconstructedCard);
     } catch (error) {
-      console.warn(`Failed to reconstruct card: ${urlCard.n}`, error);
+      console.warn(`Failed to reconstruct card:`, error);
     }
     
     return validCards;
