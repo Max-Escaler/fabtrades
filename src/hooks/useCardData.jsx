@@ -89,6 +89,7 @@ const createCardObject = (row) => {
         // Metadata from consolidation
         _sourceFile: row._sourceFile || '',
         _setNumber: row._setNumber || 0,
+        _uniqueId: row._uniqueId || '',
 
         // Computed properties for display
         displayName: '',
@@ -239,7 +240,8 @@ const groupCardsByEdition = (cards) => {
             grouped[displayName].editions.push({
                 subTypeName: card.subTypeName,
                 productId: card.productId,
-                cardPrice: (card.marketPrice) ? card.marketPrice : card.lowPrice
+                cardPrice: (card.marketPrice) ? card.marketPrice : card.lowPrice,
+                uniqueId: card._uniqueId
             });
         }
     });
@@ -251,6 +253,7 @@ const groupCardsByEdition = (cards) => {
 export const CardDataProvider = ({ children }) => {
     const [cards, setCards] = useState([]);
     const [cardGroups, setCardGroups] = useState([]);
+    const [cardIdLookup, setCardIdLookup] = useState({}); // Lookup map for unique IDs
     const [loading, setLoading] = useState(false); // Changed to false for instant page load
     const [dataReady, setDataReady] = useState(false); // New state to track when data is fully loaded
     const [error, setError] = useState(null);
@@ -281,8 +284,17 @@ export const CardDataProvider = ({ children }) => {
                     const enhancedCards = enhanceDisplayNames(allCards);
                     const groupedCards = groupCardsByEdition(enhancedCards);
 
+                    // Create unique ID lookup map
+                    const idLookup = {};
+                    enhancedCards.forEach(card => {
+                        if (card._uniqueId) {
+                            idLookup[card._uniqueId] = card;
+                        }
+                    });
+
                     setCards(enhancedCards);
                     setCardGroups(groupedCards);
+                    setCardIdLookup(idLookup);
 
                     console.log(`Successfully loaded ${enhancedCards.length} cards from consolidated JSON`);
                 } else {
@@ -305,12 +317,13 @@ export const CardDataProvider = ({ children }) => {
     const value = useMemo(() => ({
         cards,
         cardGroups,
+        cardIdLookup,
         loading,
         dataReady,
         error,
         dataSource,
         metadata
-    }), [cards, cardGroups, loading, dataReady, error, dataSource, metadata]);
+    }), [cards, cardGroups, cardIdLookup, loading, dataReady, error, dataSource, metadata]);
 
     return (
         <CardDataContext.Provider value={value}>

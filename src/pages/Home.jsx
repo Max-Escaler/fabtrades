@@ -17,10 +17,10 @@ const Home = () => {
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
-    const { cardGroups, loading, dataReady, error, dataSource, metadata } = useCardData();
+    const { cardGroups, cardIdLookup, loading, dataReady, error, dataSource, metadata } = useCardData();
     const cardNames = cardGroups.map(group => group.name);
 
-    const tradeState = useTradeState(cardGroups);
+    const tradeState = useTradeState(cardGroups, cardIdLookup);
 
     // Auto-hide success alert
     useEffect(() => {

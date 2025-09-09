@@ -10,7 +10,7 @@ import {
     testURLEncoding
 } from "../utils/urlEncoding.js";
 
-export function useTradeState(cardGroups) {
+export function useTradeState(cardGroups, cardIdLookup = {}) {
     const [haveList, setHaveList] = useState([]);
     const [wantList, setWantList] = useState([]);
     const [haveInput, setHaveInput] = useState("");
@@ -33,7 +33,9 @@ export function useTradeState(cardGroups) {
                         price: defaultEdition.cardPrice,
                         cardGroup,
                         availableEditions: cardGroup.editions,
-                        quantity: 1
+                        quantity: 1,
+                        // Store the unique ID for URL encoding
+                        uniqueId: defaultEdition.uniqueId
                     }
                 ]);
                 inputSetter("");
@@ -58,9 +60,9 @@ export function useTradeState(cardGroups) {
             if (tradeData) {
                 setUrlTradeData(tradeData);
                 
-                // Reconstruct cards from URL data
-                const reconstructedHave = reconstructCardsFromURLData(tradeData.have, cardGroups);
-                const reconstructedWant = reconstructCardsFromURLData(tradeData.want, cardGroups);
+                // Reconstruct cards from URL data using ID lookup
+                const reconstructedHave = reconstructCardsFromURLData(tradeData.have, cardGroups, cardIdLookup);
+                const reconstructedWant = reconstructCardsFromURLData(tradeData.want, cardGroups, cardIdLookup);
                 
                 setHaveList(reconstructedHave);
                 setWantList(reconstructedWant);
@@ -74,7 +76,7 @@ export function useTradeState(cardGroups) {
                 }
             }
         }
-    }, [cardGroups, hasLoadedFromURL]);
+    }, [cardGroups, cardIdLookup, hasLoadedFromURL]);
 
     // Generate shareable URL
     const generateShareURL = () => {

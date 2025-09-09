@@ -221,12 +221,12 @@ export function encodeTradeToURL(haveList, wantList, options = {}) {
       v: 1, // Version for backwards compatibility
       t: Math.floor(Date.now() / 60000), // Timestamp in minutes (saves ~4 characters)
       h: haveList.map(card => [
-        card.name,
+        card.uniqueId || card.name, // Use unique ID if available, fallback to name
         Number(card.price.toFixed(2)),
         card.quantity > 1 ? card.quantity : undefined // omit quantity if it's 1
       ].filter(x => x !== undefined)), // remove undefined values
       w: wantList.map(card => [
-        card.name,
+        card.uniqueId || card.name, // Use unique ID if available, fallback to name
         Number(card.price.toFixed(2)),
         card.quantity > 1 ? card.quantity : undefined
       ].filter(x => x !== undefined))
@@ -414,41 +414,64 @@ function findBestCardMatch(cardName, cardGroups) {
  * Reconstructs full card objects from minimal URL data
  * @param {Array} cardData - Minimal card data from URL
  * @param {Array} cardGroups - Available card groups from the app
+ * @param {Object} cardIdLookup - Lookup map for unique IDs
  * @returns {Array} Reconstructed card objects
  */
-export function reconstructCardsFromURLData(cardData, cardGroups) {
+export function reconstructCardsFromURLData(cardData, cardGroups, cardIdLookup = {}) {
   if (!cardData || !Array.isArray(cardData)) {
     return [];
   }
 
   return cardData.reduce((validCards, urlCard) => {
     try {
-      // Handle both array format [name, price, quantity] and object format {n, p, q}
-      let cardName, cardPrice, cardQuantity;
+      // Handle both array format [id/name, price, quantity] and object format {n, p, q}
+      let cardIdentifier, cardPrice, cardQuantity;
       
       if (Array.isArray(urlCard)) {
-        // New array format: [name, price, quantity?]
-        [cardName, cardPrice, cardQuantity] = urlCard;
+        // New array format: [id/name, price, quantity?]
+        [cardIdentifier, cardPrice, cardQuantity] = urlCard;
         cardQuantity = cardQuantity || 1; // default to 1 if not specified
       } else {
         // Legacy object format: {n: name, p: price, q: quantity}
-        cardName = urlCard.n;
+        cardIdentifier = urlCard.n;
         cardPrice = urlCard.p;
         cardQuantity = urlCard.q || 1;
       }
       
-      // Use the enhanced card matching system
-      const matchResult = findBestCardMatch(cardName, cardGroups);
+      let cardData = null;
+      let cardGroup = null;
+      let matchStrategy = 'unknown';
       
-      if (!matchResult) {
-        console.warn(`Card not found in current data after all matching attempts: ${cardName}`);
+      // Strategy 1: Try unique ID lookup first (fastest and most reliable)
+      if (cardIdLookup[cardIdentifier]) {
+        cardData = cardIdLookup[cardIdentifier];
+        // Find the card group that contains this card
+        cardGroup = cardGroups.find(group => 
+          group.name === cardData.displayName
+        );
+        matchStrategy = 'unique-id';
+        console.log(`Card found by unique ID: "${cardIdentifier}" -> "${cardData.displayName}"`);
+      }
+      
+      // Strategy 2: Fallback to name-based matching for legacy URLs
+      if (!cardGroup) {
+        const matchResult = findBestCardMatch(cardIdentifier, cardGroups);
+        if (matchResult) {
+          cardGroup = matchResult.group;
+          matchStrategy = matchResult.strategy;
+          console.log(`Card matched using ${matchStrategy} strategy: "${cardIdentifier}" -> "${cardGroup.name}"`);
+        }
+      }
+      
+      if (!cardGroup) {
+        console.warn(`Card not found in current data after all matching attempts: ${cardIdentifier}`);
         console.log('Available card groups sample:', cardGroups.slice(0, 5).map(g => g.name));
         
-        // Enhanced debugging: look for similar names
+        // Enhanced debugging
         const similarCards = cardGroups.filter(group => 
           group.name.toLowerCase().includes('arknight') || 
           group.name.toLowerCase().includes('shard') ||
-          normalizeCardName(group.name).includes(normalizeCardName(cardName).split(' ')[0])
+          normalizeCardName(group.name).includes(normalizeCardName(cardIdentifier).split(' ')[0])
         ).slice(0, 5);
         
         if (similarCards.length > 0) {
@@ -458,12 +481,18 @@ export function reconstructCardsFromURLData(cardData, cardGroups) {
         return validCards;
       }
       
-      const cardGroup = matchResult.group;
-      console.log(`Card matched using ${matchResult.strategy} strategy: "${cardName}" -> "${cardGroup.name}"`);
-      
       if (!cardGroup.editions || cardGroup.editions.length === 0) {
         console.warn(`Card group found but has no editions: ${cardGroup.name}`);
         return validCards;
+      }
+
+      // Find the specific edition that matches the price, or use default
+      let selectedEdition = cardGroup.editions[0]; // default
+      const matchingEdition = cardGroup.editions.find(edition => 
+        Math.abs(edition.cardPrice - cardPrice) < 0.01
+      );
+      if (matchingEdition) {
+        selectedEdition = matchingEdition;
       }
 
       const reconstructedCard = {
@@ -471,7 +500,8 @@ export function reconstructCardsFromURLData(cardData, cardGroups) {
         price: cardPrice,
         quantity: Math.max(1, parseInt(cardQuantity) || 1), // Ensure valid quantity
         cardGroup,
-        availableEditions: cardGroup.editions
+        availableEditions: cardGroup.editions,
+        uniqueId: selectedEdition.uniqueId // Include unique ID for future operations
       };
 
       validCards.push(reconstructedCard);

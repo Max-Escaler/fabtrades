@@ -139,11 +139,14 @@ async function consolidateCSVs() {
             try {
                 const csvData = await parseCSVFile(csvFile);
                 
-                // Add metadata to each record
-                const enrichedData = csvData.map(record => ({
+                // Add metadata to each record including unique ID
+                const setNumber = parseInt(fileName.match(/set_(\d+)\.csv/)?.[1] || '0');
+                const enrichedData = csvData.map((record, index) => ({
                     ...record,
                     _sourceFile: fileName,
-                    _setNumber: parseInt(fileName.match(/set_(\d+)\.csv/)?.[1] || '0')
+                    _setNumber: setNumber,
+                    // Create unique ID: setNumber (3 digits) + index (4 digits)
+                    _uniqueId: `${setNumber.toString().padStart(3, '0')}${index.toString().padStart(4, '0')}`
                 }));
 
                 allData.push(...enrichedData);
@@ -177,7 +180,7 @@ async function consolidateCSVs() {
                         "extLife", "extPower", "extDefenseValue", "extCost", "extFlavorText"
                     ],
                     additionalFields: [
-                        "_sourceFile", "_setNumber"
+                        "_sourceFile", "_setNumber", "_uniqueId"
                     ]
                 }
             },
