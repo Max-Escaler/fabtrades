@@ -69,9 +69,7 @@ const Home = () => {
             {showSuccessAlert && dataReady && !loading && (
                 <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
                     <Alert severity="success">
-                        Card data loaded successfully from {dataSource === 'consolidated-json' ? 'consolidated JSON' : 'unknown source'}! 
-                        {metadata && ` (${metadata.totalRecords} records from ${metadata.totalFiles} files)`} 
-                        You can now search and add cards.
+                        Card data loaded successfully!
                     </Alert>
                 </Box>
             )}
