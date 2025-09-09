@@ -1,23 +1,47 @@
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { useState } from 'react';
+import { 
+    AppBar, Toolbar, Typography, Box, IconButton, Drawer, List, 
+    ListItem, ListItemButton, ListItemText 
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useLocation } from 'react-router-dom';
 import {formatTimestamp} from "../../utils/helpers.js";
 
 const Header = ({ lastUpdatedTimestamp}) => {
     const location = useLocation();
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
+    const toggleDrawer = (open) => (event) => {
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+        setDrawerOpen(open);
+    };
 
     return (
+        <>
         <AppBar position="static" sx={{ backgroundColor: '#432a22' }}>
             <Toolbar sx={{
                 px: { xs: 1, sm: 2, md: 3 },
                 py: { xs: 0.75, sm: 1, md: 1.5 },
-                flexDirection: { xs: 'column', sm: 'row' },
-                alignItems: { xs: 'flex-start', sm: 'center' },
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
+                <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    onClick={toggleDrawer(true)}
+                    edge="start"
+                >
+                    <MenuIcon />
+                </IconButton>
+
                 <Box sx={{ 
                     display: 'flex', 
                     flexDirection: 'column',
-                    alignItems: 'flex-start'
+                    alignItems: 'center',
+                    flexGrow: 1
                 }}>
                     <Typography
                         variant="h4"
@@ -38,37 +62,45 @@ const Header = ({ lastUpdatedTimestamp}) => {
                         Prices last updated at: {lastUpdatedTimestamp ? formatTimestamp(lastUpdatedTimestamp) : 'Loading...'}
                     </Typography>
                 </Box>
-
-                <Box sx={{ 
-                    display: 'flex', 
-                    gap: 2,
-                    mt: { xs: 2, sm: 0 }
-                }}>
-                    <Button 
-                        component={Link} 
-                        to="/" 
-                        color="inherit"
-                        sx={{
-                            fontWeight: location.pathname === '/' ? 'bold' : 'normal',
-                            textDecoration: location.pathname === '/' ? 'underline' : 'none'
-                        }}
-                    >
-                        Trade Calculator
-                    </Button>
-                    <Button 
-                        component={Link} 
-                        to="/faqs" 
-                        color="inherit"
-                        sx={{
-                            fontWeight: location.pathname === '/faqs' ? 'bold' : 'normal',
-                            textDecoration: location.pathname === '/faqs' ? 'underline' : 'none'
-                        }}
-                    >
-                        FAQs
-                    </Button>
-                </Box>
             </Toolbar>
         </AppBar>
+        
+        <Drawer
+            anchor="left"
+            open={drawerOpen}
+            onClose={toggleDrawer(false)}
+        >
+            <Box
+                sx={{ width: 250 }}
+                role="presentation"
+                onClick={toggleDrawer(false)}
+                onKeyDown={toggleDrawer(false)}
+            >
+                <List>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/">
+                            <ListItemText 
+                                primary="Trade Calculator" 
+                                sx={{ 
+                                    fontWeight: location.pathname === '/' ? 'bold' : 'normal'
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/faqs">
+                            <ListItemText 
+                                primary="FAQs"
+                                sx={{ 
+                                    fontWeight: location.pathname === '/faqs' ? 'bold' : 'normal'
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+            </Box>
+        </Drawer>
+        </>
     );
 };
 
