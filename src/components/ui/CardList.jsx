@@ -319,7 +319,7 @@ const CardList = ({
             filterOptions={(options, { inputValue }) => {
               // Custom filtering logic
               if (!inputValue) {
-                return options.slice(0, 4); // Show first 20 options when no input
+                return options.slice(0, 20); // Show first 20 options when no input
               }
               
               const searchTerm = inputValue.toLowerCase();
