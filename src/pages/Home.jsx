@@ -58,13 +58,14 @@ const Home = () => {
             <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
 
             {/* Alerts */}
-            {loading && !dataReady && (
+            {/* Loading box removed visually - uncomment below to restore */}
+            {/* {loading && !dataReady && (
                 <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
                     <Alert severity="info" icon={<CircularProgress size={20} />}>
                         Loading card data. Please wait.
                     </Alert>
                 </Box>
-            )}
+            )} */}
 
             {showSuccessAlert && dataReady && !loading && (
                 <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
