@@ -112,37 +112,40 @@ const CardList = ({
         <ListItem
           key={`${card.name}-${index}`}
           sx={{
-            border: '1px solid #e0e0e0',
-            borderRadius: 1,
-            mb: 0.75,
-            backgroundColor: '#fafafa',
+            border: '1px solid rgba(139, 69, 19, 0.15)',
+            borderRadius: 2,
+            mb: 1,
+            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
             flexDirection: 'column',
             alignItems: 'stretch',
             gap: 0.5,
-            p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
+            p: { xs: 1, sm: 1.25, md: 1.5, lg: 1.75, xl: 2 },
             position: 'relative',
             cursor: 'pointer',
             width: '100%',
+            boxShadow: '0 2px 6px rgba(139, 69, 19, 0.08)',
             '&:hover': {
-              backgroundColor: '#f5f5f5',
-              borderColor: '#d0d0d0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              borderColor: '#8b4513',
+              boxShadow: '0 4px 12px rgba(139, 69, 19, 0.15)',
+              transform: 'translateY(-1px)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
             },
-            transition: 'all 0.2s ease',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             '&::before': {
               content: '""',
               position: 'absolute',
               top: 0,
               left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: 1,
-              pointerEvents: 'none',
-              transition: 'opacity 0.2s ease'
+              width: '4px',
+              height: '100%',
+              background: 'linear-gradient(180deg, #8b4513 0%, #d4a574 100%)',
+              borderTopLeftRadius: 8,
+              borderBottomLeftRadius: 8,
+              opacity: 0,
+              transition: 'opacity 0.25s ease'
             },
             '&:hover::before': {
-              opacity: 0.05,
-              backgroundColor: 'primary.main'
+              opacity: 1
             }
           }}
         >
@@ -261,14 +264,20 @@ const CardList = ({
       ))}
       
              {/* Search Input at End of List */}
-       <ListItem sx={{ 
-         border: '1px solid #e0e0e0',
-         borderRadius: 1,
-         mb: 0.75,
-         backgroundColor: '#ffffff',
-         p: { xs: 0.75, sm: 1, md: 1.25, lg: 1.5, xl: 1.75 },
-         width: '100%'
-       }}>
+      <ListItem sx={{ 
+        border: '2px dashed rgba(139, 69, 19, 0.2)',
+        borderRadius: 2,
+        mb: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        p: { xs: 1, sm: 1.25, md: 1.5, lg: 1.75, xl: 2 },
+        width: '100%',
+        transition: 'all 0.25s ease',
+        '&:hover': {
+          backgroundColor: '#ffffff',
+          borderColor: '#8b4513',
+          boxShadow: '0 2px 8px rgba(139, 69, 19, 0.1)'
+        }
+      }}>
         {isSmallScreen ? (
           // Small screen: Clickable search button that opens full-screen dialog
           <Box
@@ -366,10 +375,11 @@ const CardList = ({
       >
         <AppBar 
           position="static" 
-          elevation={1}
+          elevation={0}
           sx={{ 
-            backgroundColor: '#432a22',
-            color: 'primary.contrastText'
+            background: 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
+            borderBottom: '3px solid #d4a574',
+            boxShadow: '0 4px 20px rgba(139, 69, 19, 0.3)'
           }}
         >
           <Toolbar>

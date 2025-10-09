@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, useTheme, useMediaQuery, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { useCardData } from "../hooks/useCardData.jsx";
 import { useTradeState } from "../hooks/useTradeState.js";
 import Header from "../components/elements/Header.jsx";
@@ -8,7 +8,6 @@ import TradeSummary from "../components/elements/TradeSummary.jsx";
 import { fetchLastUpdatedTimestamp } from "../services/api.js";
 
 const Home = () => {
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     const theme = useTheme();
@@ -21,15 +20,6 @@ const Home = () => {
     const cardNames = cardGroups.map(group => group.name);
 
     const tradeState = useTradeState(cardGroups, cardIdLookup);
-
-    // Auto-hide success alert
-    useEffect(() => {
-        if (dataReady && !loading) {
-            setShowSuccessAlert(true);
-            const timer = setTimeout(() => setShowSuccessAlert(false), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [dataReady, loading]);
 
     // Fetch last updated timestamp
     useEffect(() => {
@@ -54,7 +44,14 @@ const Home = () => {
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: '100vh', 
+            width: '100%',
+            background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
+            backgroundAttachment: 'fixed'
+        }}>
             <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
 
             {/* Alerts */}
@@ -67,13 +64,6 @@ const Home = () => {
                 </Box>
             )} */}
 
-            {showSuccessAlert && dataReady && !loading && (
-                <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
-                    <Alert severity="success">
-                        Card data loaded successfully!
-                    </Alert>
-                </Box>
-            )}
 
             {/* Content */}
             <Box sx={{ 

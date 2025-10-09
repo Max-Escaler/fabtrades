@@ -136,16 +136,19 @@ const TradeSummary = ({
             justifyContent: 'center',
             alignItems: 'center',
             gap: 0,
-            p: isLandscape ? 2 : 0,
-            backgroundColor: '#f8f9fa',
-            borderTop: isLandscape ? 'none' : '1px solid #e9ecef',
-            borderBottom: isLandscape ? 'none' : '1px solid #e9ecef',
-            borderRadius: isLandscape ? 2 : 0,
-            width: isLandscape ? '250px' : '100%',
-            minWidth: isLandscape ? '250px' : 'auto',
-            maxWidth: isLandscape ? '300px' : '100%',
+            p: isLandscape ? 2.5 : 0,
+            background: isLandscape 
+              ? 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)'
+              : 'linear-gradient(90deg, #f5f1ed 0%, #ffffff 50%, #f5f1ed 100%)',
+            borderTop: isLandscape ? 'none' : '3px solid #d4a574',
+            borderBottom: isLandscape ? 'none' : '3px solid #d4a574',
+            borderRadius: isLandscape ? 3 : 0,
+            border: isLandscape ? '2px solid rgba(139, 69, 19, 0.15)' : 'none',
+            width: isLandscape ? '280px' : '100%',
+            minWidth: isLandscape ? '280px' : 'auto',
+            maxWidth: isLandscape ? '320px' : '100%',
             boxSizing: 'border-box',
-            boxShadow: isLandscape ? 2 : 'none'
+            boxShadow: isLandscape ? '0 8px 24px rgba(139, 69, 19, 0.15)' : '0 4px 12px rgba(139, 69, 19, 0.08)'
         }}>
             <Box sx={{
                 display: 'flex',
@@ -177,15 +180,16 @@ const TradeSummary = ({
                 justifyContent: hasCards && !isLandscape ? 'space-between' : 'center',
                 alignItems: 'center',
                 gap: isLandscape ? 1 : 2,
-                px: isLandscape ? 1 : { xs: 0.5 },
-                py: isLandscape ? 1.5 : { xs: 0.25 },
-                backgroundColor: 'white',
-                borderTop: isLandscape ? 'none' : '1px solid #dee2e6',
-                borderBottom: isLandscape ? 'none' : '1px solid #dee2e6',
-                borderRadius: isLandscape ? 1 : 0,
-                mx: isLandscape ? 1 : 0,
+                px: isLandscape ? 2 : { xs: 1 },
+                py: isLandscape ? 2 : { xs: 0.75 },
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                borderTop: isLandscape ? 'none' : '2px solid rgba(139, 69, 19, 0.1)',
+                borderBottom: isLandscape ? 'none' : '2px solid rgba(139, 69, 19, 0.1)',
+                borderRadius: isLandscape ? 2 : 0,
+                mx: isLandscape ? 0 : 0,
                 my: isLandscape ? 1 : 0,
-                flexDirection: isLandscape ? 'column' : 'row'
+                flexDirection: isLandscape ? 'column' : 'row',
+                boxShadow: isLandscape ? '0 2px 8px rgba(139, 69, 19, 0.08)' : 'none'
             }}>
                 {/* Left spacer for balance when share button is present */}
                 {hasCards && !isLandscape && (

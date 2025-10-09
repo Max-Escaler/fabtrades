@@ -31,32 +31,78 @@ const FAQs = () => {
     ];
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
+            backgroundAttachment: 'fixed'
+        }}>
             <Header />
             
-            <Container maxWidth="md" sx={{ py: 4, flexGrow: 1 }}>
+            <Container maxWidth="md" sx={{ py: 6, flexGrow: 1 }}>
                 <Typography variant="h3" component="h1" gutterBottom sx={{ 
                     textAlign: 'center', 
-                    mb: 4,
-                    fontWeight: 'bold'
+                    mb: 6,
+                    fontWeight: 800,
+                    color: '#2c1810',
+                    fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                    background: 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
                 }}>
                     Frequently Asked Questions
                 </Typography>
 
-                <Box sx={{ mb: 4 }}>
+                <Box sx={{ mb: 6 }}>
                     {faqData.map((faq, index) => (
-                        <Accordion key={index} sx={{ mb: 1 }}>
+                        <Accordion 
+                            key={index} 
+                            sx={{ 
+                                mb: 2,
+                                borderRadius: '12px !important',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(139, 69, 19, 0.15)',
+                                boxShadow: '0 2px 8px rgba(139, 69, 19, 0.08)',
+                                '&:before': {
+                                    display: 'none'
+                                },
+                                '&:hover': {
+                                    boxShadow: '0 4px 16px rgba(139, 69, 19, 0.12)',
+                                },
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
                             <AccordionSummary 
-                                expandIcon={<ExpandMoreIcon />}
+                                expandIcon={<ExpandMoreIcon sx={{ color: '#8b4513' }} />}
                                 aria-controls={`panel${index}-content`}
                                 id={`panel${index}-header`}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+                                    }
+                                }}
                             >
-                                <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                                <Typography variant="h6" sx={{ 
+                                    fontWeight: 700,
+                                    color: '#2c1810',
+                                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                                }}>
                                     {faq.question}
                                 </Typography>
                             </AccordionSummary>
-                            <AccordionDetails>
-                                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            <AccordionDetails sx={{ 
+                                backgroundColor: '#ffffff',
+                                pt: 2,
+                                pb: 3
+                            }}>
+                                <Typography variant="body1" sx={{ 
+                                    color: '#5d3a1a',
+                                    lineHeight: 1.8,
+                                    fontSize: { xs: '0.95rem', sm: '1rem' }
+                                }}>
                                     {faq.answer}
                                 </Typography>
                             </AccordionDetails>
@@ -65,17 +111,33 @@ const FAQs = () => {
                 </Box>
 
                 <Box sx={{ 
-                    mt: 6, 
-                    p: 3, 
-                    backgroundColor: 'grey.50', 
-                    borderRadius: 2,
-                    textAlign: 'center'
+                    mt: 8, 
+                    p: 4, 
+                    background: 'linear-gradient(135deg, #ffffff 0%, #f5f1ed 100%)',
+                    borderRadius: 3,
+                    textAlign: 'center',
+                    border: '2px solid rgba(139, 69, 19, 0.15)',
+                    boxShadow: '0 4px 16px rgba(139, 69, 19, 0.1)'
                 }}>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography variant="h5" gutterBottom sx={{ 
+                        fontWeight: 700,
+                        color: '#2c1810',
+                        mb: 2
+                    }}>
                         Still have questions?
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        If you can't find the answer you're looking for, feel free to reach out to us for support at fabtradesapp@gmail.com
+                    <Typography variant="body1" sx={{ 
+                        color: '#5d3a1a',
+                        lineHeight: 1.7
+                    }}>
+                        If you can't find the answer you're looking for, feel free to reach out to us for support at{' '}
+                        <Box component="span" sx={{ 
+                            color: '#8b4513',
+                            fontWeight: 600,
+                            textDecoration: 'none'
+                        }}>
+                            fabtradesapp@gmail.com
+                        </Box>
                     </Typography>
                 </Box>
             </Container>
