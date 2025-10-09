@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import CardList from './CardList.jsx';
 
-const CardPanel = ({ 
+const CardPanel = ({ allCards, 
   title, 
   cards, 
   cardOptions, 
@@ -72,7 +72,8 @@ const CardPanel = ({
      </Box>
       
       {/* List of Added Cards with Search Input */}
-      <CardList 
+      <CardList
+        allCards={allCards}
         cards={cards}
         onRemoveCard={onRemoveCard}
         onUpdateQuantity={onUpdateQuantity}

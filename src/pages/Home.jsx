@@ -16,8 +16,14 @@ const Home = () => {
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
-    const { cardGroups, cardIdLookup, loading, dataReady, error, dataSource, metadata } = useCardData();
-    const cardNames = cardGroups.map(group => group.name);
+    const { cardGroups, cardIdLookup, cards, loading, dataReady, error, dataSource, metadata } = useCardData();
+    // Create unique card options that include all editions
+    const cardOptions = cards.map(card => ({
+        label: card.displayName,
+        value: card._uniqueDisplayId,
+        subTypeName: card.subTypeName,
+        card: card
+    }));
 
     const tradeState = useTradeState(cardGroups, cardIdLookup);
 
@@ -77,7 +83,8 @@ const Home = () => {
                 <CardPanel
                     title="Cards I Have"
                     cards={tradeState.haveList}
-                    cardOptions={cardNames}
+                    cardOptions={cardOptions}
+                    allCards={cards}
                     inputValue={tradeState.haveInput}
                     onInputChange={(e, v) => tradeState.setHaveInput(v || "")}
                     onAddCard={tradeState.addHaveCard}
@@ -109,7 +116,8 @@ const Home = () => {
                 <CardPanel
                     title="Cards I Want"
                     cards={tradeState.wantList}
-                    cardOptions={cardNames}
+                    cardOptions={cardOptions}
+                    allCards={cards}
                     inputValue={tradeState.wantInput}
                     onInputChange={(e, v) => tradeState.setWantInput(v || "")}
                     onAddCard={tradeState.addWantCard}
