@@ -21,21 +21,51 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
     const getCardGroup = (cardName) =>
         cardGroups.find(group => group.name === cardName) || null;
 
-    const addCard = (list, setList, cardName, inputSetter) => {
-        if (cardName && !list.some(item => item.name === cardName)) {
+    const addCard = (list, setList, cardNameOrObject, inputSetter) => {
+        // Handle both string (for backwards compatibility/manual input) and object (from autocomplete)
+        let cardName, selectedCard;
+        
+        if (typeof cardNameOrObject === 'object' && cardNameOrObject !== null) {
+            // It's a card option object from autocomplete
+            cardName = cardNameOrObject.label;
+            selectedCard = cardNameOrObject.card;
+        } else if (typeof cardNameOrObject === 'string') {
+            // It's a string name
+            cardName = cardNameOrObject;
+        } else {
+            return; // Invalid input
+        }
+        
+        // Check if card already exists (by unique ID if we have selected card, otherwise by name)
+        const cardExists = selectedCard 
+            ? list.some(item => item.uniqueId === selectedCard._uniqueId)
+            : list.some(item => item.name === cardName);
+            
+        if (cardName && !cardExists) {
             const cardGroup = getCardGroup(cardName);
             if (cardGroup && cardGroup.editions.length > 0) {
-                const defaultEdition = cardGroup.editions[0];
+                // If we have a specific card selected, use its edition info
+                let edition, subTypeName;
+                if (selectedCard) {
+                    subTypeName = selectedCard.subTypeName || 'Normal';
+                    // Find the matching edition
+                    edition = cardGroup.editions.find(e => e.subTypeName === subTypeName) || cardGroup.editions[0];
+                } else {
+                    // Default to first edition if no specific card selected
+                    edition = cardGroup.editions[0];
+                    subTypeName = edition.subTypeName || 'Normal';
+                }
+                
                 setList([
                     ...list,
                     {
                         name: cardName,
-                        price: defaultEdition.cardPrice,
+                        price: edition.cardPrice,
                         cardGroup,
                         availableEditions: cardGroup.editions,
                         quantity: 1,
-                        // Store the unique ID for URL encoding
-                        uniqueId: defaultEdition.uniqueId
+                        subTypeName: subTypeName,  // Store subTypeName for gradient rendering
+                        uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId
                     }
                 ]);
                 inputSetter("");

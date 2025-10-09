@@ -189,31 +189,24 @@ const enhanceDisplayNames = (cards) => {
     // Enhance display names for cards with multiple editions
     return cards.map(card => {
         const sameNameCards = nameGroups[card.name];
-        if (sameNameCards.length > 1) {
-            // Multiple editions exist, include extNumber in display name
-            const extNumber = card.extNumber || '';
-            const subTypeName = card.subTypeName || '';
-
-            // Create enhanced display name
-            let enhancedName = card.name;
-            if (extNumber) {
-                enhancedName += ` (${extNumber})`;
-            }
-            if (subTypeName && subTypeName !== 'Normal') {
-                enhancedName += ` - ${subTypeName}`;
-            }
-
-            return {
-                ...card,
-                displayName: enhancedName
-            };
-        } else {
-            // Single edition, keep original name
-            return {
-                ...card,
-                displayName: card.name + ` (${card.extNumber})`
-            };
+        const extNumber = card.extNumber || '';
+        const subTypeName = card.subTypeName || '';
+        
+        // Create base display name
+        let enhancedName = card.name;
+        if (extNumber) {
+            enhancedName += ` (${extNumber})`;
         }
+        
+        // For uniqueness in data structures, append subTypeName to internal ID
+        // but keep displayName clean (without showing the foil type as text)
+        const uniqueId = `${enhancedName}|${subTypeName}`;
+
+        return {
+            ...card,
+            displayName: enhancedName,
+            _uniqueDisplayId: uniqueId  // Internal ID that includes edition info
+        };
     });
 };
 
