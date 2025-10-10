@@ -196,10 +196,10 @@ const TradeSummary = ({
                     }}
                 >
                     <ToggleButton value="market" aria-label="tcgplayer market price">
-                        TCGPlayer Market
+                        TCGMarket
                     </ToggleButton>
                     <ToggleButton value="low" aria-label="tcgplayer low price">
-                        TCGPlayer Low
+                        TCGLow
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Box>
