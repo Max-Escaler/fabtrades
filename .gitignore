@@ -95,3 +95,9 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Auto-generated price guide files (prevent merge conflicts)
+public/price-guide/diff-cache.json
+public/price-guide/last-update.json
+public/price-guide/manifest.json
+public/price-guide/consolidated-data.json
