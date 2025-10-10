@@ -12,7 +12,9 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    TextField
+    TextField,
+    ToggleButtonGroup,
+    ToggleButton
 } from '@mui/material';
 import { 
     Share as ShareIcon, 
@@ -21,6 +23,7 @@ import {
     Clear as ClearIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
+import { usePriceType } from "../../contexts/PriceContext.jsx";
 
 const TradeSummary = ({ 
     haveList, 
@@ -36,6 +39,7 @@ const TradeSummary = ({
     urlTradeData,
     hasLoadedFromURL
 }) => {
+    const { priceType, setPriceType } = usePriceType();
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [shareURL, setShareURL] = useState('');
     const [copySuccess, setCopySuccess] = useState(false);
@@ -43,6 +47,12 @@ const TradeSummary = ({
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     const hasCards = haveList.length > 0 || wantList.length > 0;
+
+    const handlePriceTypeChange = (event, newPriceType) => {
+        if (newPriceType !== null) {
+            setPriceType(newPriceType);
+        }
+    };
 
     const handleShare = async () => {
         try {
@@ -150,6 +160,50 @@ const TradeSummary = ({
             boxSizing: 'border-box',
             boxShadow: isLandscape ? '0 8px 24px rgba(139, 69, 19, 0.15)' : '0 4px 12px rgba(139, 69, 19, 0.08)'
         }}>
+            {/* Price Type Selector */}
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
+                py: isLandscape ? 1.5 : { xs: 0.75, sm: 1 },
+                borderBottom: '2px solid rgba(139, 69, 19, 0.1)'
+            }}>
+                <ToggleButtonGroup
+                    value={priceType}
+                    exclusive
+                    onChange={handlePriceTypeChange}
+                    size="small"
+                    sx={{
+                        '& .MuiToggleButton-root': {
+                            px: isLandscape ? 1 : { xs: 1, sm: 1.5 },
+                            py: isLandscape ? 0.5 : { xs: 0.25, sm: 0.5 },
+                            fontSize: isLandscape ? '0.65rem' : { xs: '0.7rem', sm: '0.75rem' },
+                            textTransform: 'none',
+                            border: '1px solid rgba(139, 69, 19, 0.3)',
+                            color: '#5d2f0d',
+                            '&.Mui-selected': {
+                                backgroundColor: '#8b4513',
+                                color: '#ffffff',
+                                '&:hover': {
+                                    backgroundColor: '#a0643f'
+                                }
+                            },
+                            '&:hover': {
+                                backgroundColor: 'rgba(139, 69, 19, 0.08)'
+                            }
+                        }
+                    }}
+                >
+                    <ToggleButton value="market" aria-label="tcgplayer market price">
+                        TCGPlayer Market
+                    </ToggleButton>
+                    <ToggleButton value="low" aria-label="tcgplayer low price">
+                        TCGPlayer Low
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'center',

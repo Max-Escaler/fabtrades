@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2025-10-09T19:08:28.189Z",
-  "totalFiles": 83,
+  "lastUpdated": "2025-10-10T15:33:29.284Z",
+  "totalFiles": 85,
   "files": [
     {
       "name": "set_2.csv",
@@ -410,6 +410,16 @@
     {
       "name": "set_83.csv",
       "url": "https://tcgcsv.com/tcgplayer/62/24417/ProductsAndPrices.csv",
+      "status": "downloaded"
+    },
+    {
+      "name": "set_84.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24446/ProductsAndPrices.csv",
+      "status": "downloaded"
+    },
+    {
+      "name": "set_85.csv",
+      "url": "https://tcgcsv.com/tcgplayer/62/24474/ProductsAndPrices.csv",
       "status": "downloaded"
     }
   ]

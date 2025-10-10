@@ -5,15 +5,18 @@ import CssBaseline from '@mui/material/CssBaseline'
 import './index.css'
 import App from './App.jsx'
 import {CardDataProvider} from "./hooks/useCardData.jsx";
+import { PriceProvider } from "./contexts/PriceContext.jsx";
 import theme from './theme'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <CardDataProvider>
-        <App />
-      </CardDataProvider>
+      <PriceProvider>
+        <CardDataProvider>
+          <App />
+        </CardDataProvider>
+      </PriceProvider>
     </ThemeProvider>
   </StrictMode>,
 )

@@ -1,5 +1,6 @@
 // CardDataContext.js
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { usePriceType } from '../contexts/PriceContext.jsx';
 
 // Create context
 const CardDataContext = createContext();
@@ -211,7 +212,7 @@ const enhanceDisplayNames = (cards) => {
 };
 
 // Function to group cards by display name and their editions
-const groupCardsByEdition = (cards) => {
+const groupCardsByEdition = (cards, priceType = 'market') => {
     const grouped = {};
 
     cards.forEach(card => {
@@ -233,7 +234,7 @@ const groupCardsByEdition = (cards) => {
             grouped[displayName].editions.push({
                 subTypeName: card.subTypeName,
                 productId: card.productId,
-                cardPrice: (card.marketPrice) ? card.marketPrice : card.lowPrice,
+                cardPrice: priceType === 'market' ? card.marketPrice : card.lowPrice,
                 uniqueId: card._uniqueId
             });
         }
@@ -244,8 +245,8 @@ const groupCardsByEdition = (cards) => {
 
 // Main provider component
 export const CardDataProvider = ({ children }) => {
+    const { priceType } = usePriceType();
     const [cards, setCards] = useState([]);
-    const [cardGroups, setCardGroups] = useState([]);
     const [cardIdLookup, setCardIdLookup] = useState({}); // Lookup map for unique IDs
     const [loading, setLoading] = useState(false); // Changed to false for instant page load
     const [dataReady, setDataReady] = useState(false); // New state to track when data is fully loaded
@@ -275,7 +276,6 @@ export const CardDataProvider = ({ children }) => {
                     // Process the JSON data
                     const allCards = processJsonData(consolidatedData.data);
                     const enhancedCards = enhanceDisplayNames(allCards);
-                    const groupedCards = groupCardsByEdition(enhancedCards);
 
                     // Create unique ID lookup map
                     const idLookup = {};
@@ -286,7 +286,6 @@ export const CardDataProvider = ({ children }) => {
                     });
 
                     setCards(enhancedCards);
-                    setCardGroups(groupedCards);
                     setCardIdLookup(idLookup);
 
                     console.log(`Successfully loaded ${enhancedCards.length} cards from consolidated JSON`);
@@ -306,6 +305,12 @@ export const CardDataProvider = ({ children }) => {
         // Start loading immediately in the background
         loadCardData();
     }, []);
+
+    // Recalculate cardGroups whenever priceType changes
+    const cardGroups = useMemo(() => {
+        if (cards.length === 0) return [];
+        return groupCardsByEdition(cards, priceType);
+    }, [cards, priceType]);
 
     const value = useMemo(() => ({
         cards,

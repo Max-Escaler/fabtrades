@@ -83,6 +83,34 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         setList(updatedList);
     };
 
+    // Update prices when cardGroups change (e.g., when price type changes)
+    useEffect(() => {
+        if (cardGroups.length === 0) return;
+
+        const updateListPrices = (list) => {
+            return list.map(card => {
+                const cardGroup = getCardGroup(card.name);
+                if (cardGroup) {
+                    // Find the matching edition for this card
+                    const edition = cardGroup.editions.find(
+                        e => e.subTypeName === card.subTypeName
+                    ) || cardGroup.editions[0];
+                    
+                    return {
+                        ...card,
+                        price: edition.cardPrice,
+                        availableEditions: cardGroup.editions,
+                        cardGroup
+                    };
+                }
+                return card;
+            });
+        };
+
+        setHaveList(prevList => updateListPrices(prevList));
+        setWantList(prevList => updateListPrices(prevList));
+    }, [cardGroups]);
+
     // Load trade data from URL when cardGroups are available
     useEffect(() => {
         if (cardGroups.length > 0 && !hasLoadedFromURL && hasTradeDataInURL()) {
