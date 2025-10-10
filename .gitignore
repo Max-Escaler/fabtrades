@@ -97,7 +97,7 @@ jspm_packages/
 .tern-port
 
 # Auto-generated price guide files (prevent merge conflicts)
+# Note: consolidated-data.json is kept in git for deployment
 public/price-guide/diff-cache.json
 public/price-guide/last-update.json
 public/price-guide/manifest.json
-public/price-guide/consolidated-data.json
