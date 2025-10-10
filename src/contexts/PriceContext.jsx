@@ -11,7 +11,7 @@ export const usePriceType = () => {
 };
 
 export const PriceProvider = ({ children }) => {
-    const [priceType, setPriceType] = useState('market'); // 'market' or 'low'
+    const [priceType, setPriceType] = useState('low'); // 'market' or 'low'
 
     const value = {
         priceType,

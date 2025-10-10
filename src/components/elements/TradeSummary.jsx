@@ -160,49 +160,51 @@ const TradeSummary = ({
             boxSizing: 'border-box',
             boxShadow: isLandscape ? '0 8px 24px rgba(139, 69, 19, 0.15)' : '0 4px 12px rgba(139, 69, 19, 0.08)'
         }}>
-            {/* Price Type Selector */}
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
-                py: isLandscape ? 1.5 : { xs: 0.75, sm: 1 },
-                borderBottom: '2px solid rgba(139, 69, 19, 0.1)'
-            }}>
-                <ToggleButtonGroup
-                    value={priceType}
-                    exclusive
-                    onChange={handlePriceTypeChange}
-                    size="small"
-                    sx={{
-                        '& .MuiToggleButton-root': {
-                            px: isLandscape ? 1 : { xs: 1, sm: 1.5 },
-                            py: isLandscape ? 0.5 : { xs: 0.25, sm: 0.5 },
-                            fontSize: isLandscape ? '0.65rem' : { xs: '0.7rem', sm: '0.75rem' },
-                            textTransform: 'none',
-                            border: '1px solid rgba(139, 69, 19, 0.3)',
-                            color: '#5d2f0d',
-                            '&.Mui-selected': {
-                                backgroundColor: '#8b4513',
-                                color: '#ffffff',
+            {/* Price Type Selector - Only show at top for landscape mode */}
+            {isLandscape && (
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    px: 1,
+                    py: 1.5,
+                    borderBottom: '2px solid rgba(139, 69, 19, 0.1)'
+                }}>
+                    <ToggleButtonGroup
+                        value={priceType}
+                        exclusive
+                        onChange={handlePriceTypeChange}
+                        size="small"
+                        sx={{
+                            '& .MuiToggleButton-root': {
+                                px: 1,
+                                py: 0.5,
+                                fontSize: '0.65rem',
+                                textTransform: 'none',
+                                border: '1px solid rgba(139, 69, 19, 0.3)',
+                                color: '#5d2f0d',
+                                '&.Mui-selected': {
+                                    backgroundColor: '#8b4513',
+                                    color: '#ffffff',
+                                    '&:hover': {
+                                        backgroundColor: '#a0643f'
+                                    }
+                                },
                                 '&:hover': {
-                                    backgroundColor: '#a0643f'
+                                    backgroundColor: 'rgba(139, 69, 19, 0.08)'
                                 }
-                            },
-                            '&:hover': {
-                                backgroundColor: 'rgba(139, 69, 19, 0.08)'
                             }
-                        }
-                    }}
-                >
-                    <ToggleButton value="market" aria-label="tcgplayer market price">
-                        TCGMarket
-                    </ToggleButton>
-                    <ToggleButton value="low" aria-label="tcgplayer low price">
-                        TCGLow
-                    </ToggleButton>
-                </ToggleButtonGroup>
-            </Box>
+                        }}
+                    >
+                        <ToggleButton value="market" aria-label="tcgplayer market price">
+                            TCGMarket
+                        </ToggleButton>
+                        <ToggleButton value="low" aria-label="tcgplayer low price">
+                            TCGLow
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+            )}
 
             <Box sx={{
                 display: 'flex',
@@ -245,9 +247,48 @@ const TradeSummary = ({
                 flexDirection: isLandscape ? 'column' : 'row',
                 boxShadow: isLandscape ? '0 2px 8px rgba(139, 69, 19, 0.08)' : 'none'
             }}>
-                {/* Left spacer for balance when share button is present */}
-                {hasCards && !isLandscape && (
-                    <Box sx={{ minWidth: { xs: 80, sm: 100 } }} />
+                {/* Price Type Selector - Only show on left for portrait mode */}
+                {!isLandscape && (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        minWidth: { xs: 80, sm: 100 },
+                        justifyContent: 'flex-start'
+                    }}>
+                        <ToggleButtonGroup
+                            value={priceType}
+                            exclusive
+                            onChange={handlePriceTypeChange}
+                            size="small"
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    px: { xs: 1, sm: 1.5 },
+                                    py: { xs: 0.25, sm: 0.5 },
+                                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                    textTransform: 'none',
+                                    border: '1px solid rgba(139, 69, 19, 0.3)',
+                                    color: '#5d2f0d',
+                                    '&.Mui-selected': {
+                                        backgroundColor: '#8b4513',
+                                        color: '#ffffff',
+                                        '&:hover': {
+                                            backgroundColor: '#a0643f'
+                                        }
+                                    },
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(139, 69, 19, 0.08)'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="market" aria-label="tcgplayer market price">
+                                TCGMarket
+                            </ToggleButton>
+                            <ToggleButton value="low" aria-label="tcgplayer low price">
+                                TCGLow
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
                 )}
 
                 {/* Difference section - centered */}
@@ -256,7 +297,8 @@ const TradeSummary = ({
                     alignItems: 'center',
                     gap: isLandscape ? 1 : 2,
                     flexDirection: isLandscape ? 'column' : 'row',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    flexGrow: !isLandscape ? 1 : 'none'
                 }}>
                     <Typography variant="h6" sx={{ 
                         fontWeight: 'bold', 
@@ -275,7 +317,7 @@ const TradeSummary = ({
                 </Box>
 
                 {/* Share Button and Clear Button - on the right side */}
-                {hasCards && !isLandscape && (
+                {!isLandscape && (
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -312,7 +354,7 @@ const TradeSummary = ({
                 )}
 
                 {/* Share Button for landscape mode - below difference */}
-                {hasCards && isLandscape && (
+                {isLandscape && (
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
