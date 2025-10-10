@@ -233,7 +233,7 @@ const TradeSummary = ({
 
             <Box sx={{
                 display: 'flex',
-                justifyContent: hasCards && !isLandscape ? 'space-between' : 'center',
+                justifyContent: (!isLandscape && hasLoadedFromURL && urlTradeData) ? 'space-between' : 'center',
                 alignItems: 'center',
                 gap: isLandscape ? 1 : 2,
                 px: isLandscape ? 2 : { xs: 1 },
@@ -316,8 +316,8 @@ const TradeSummary = ({
                     />
                 </Box>
 
-                {/* Share Button and Clear Button - on the right side */}
-                {!isLandscape && (
+                {/* Clear Button - on the right side for portrait mode */}
+                {!isLandscape && hasLoadedFromURL && urlTradeData && (
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -325,66 +325,35 @@ const TradeSummary = ({
                         minWidth: { xs: 80, sm: 100 },
                         justifyContent: 'flex-end'
                     }}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<ShareIcon />}
-                            onClick={handleShare}
-                            sx={{
-                                fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                                minWidth: 'auto',
-                                px: { xs: 1, sm: 1.5 }
-                            }}
-                        >
-                            Share Trade
-                        </Button>
-                        
-                        {hasLoadedFromURL && urlTradeData && (
-                            <Tooltip title="Clear loaded trade data from URL">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => setShowClearConfirm(true)}
-                                    sx={{ color: 'warning.main', p: 0.5 }}
-                                >
-                                    <ClearIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        )}
+                        <Tooltip title="Clear loaded trade data from URL">
+                            <IconButton
+                                size="small"
+                                onClick={() => setShowClearConfirm(true)}
+                                sx={{ color: 'warning.main', p: 0.5 }}
+                            >
+                                <ClearIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                 )}
 
-                {/* Share Button for landscape mode - below difference */}
-                {isLandscape && (
+                {/* Clear Button for landscape mode - below difference */}
+                {isLandscape && hasLoadedFromURL && urlTradeData && (
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
                         mt: 1
                     }}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<ShareIcon />}
-                            onClick={handleShare}
-                            sx={{
-                                fontSize: '0.7rem',
-                                minWidth: 'auto'
-                            }}
-                        >
-                            Share Trade
-                        </Button>
-                        
-                        {hasLoadedFromURL && urlTradeData && (
-                            <Tooltip title="Clear loaded trade data from URL">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => setShowClearConfirm(true)}
-                                    sx={{ color: 'warning.main', p: 0.5 }}
-                                >
-                                    <ClearIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        )}
+                        <Tooltip title="Clear loaded trade data from URL">
+                            <IconButton
+                                size="small"
+                                onClick={() => setShowClearConfirm(true)}
+                                sx={{ color: 'warning.main', p: 0.5 }}
+                            >
+                                <ClearIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                 )}
             </Box>
