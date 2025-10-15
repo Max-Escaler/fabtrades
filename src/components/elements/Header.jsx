@@ -6,8 +6,9 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useLocation } from 'react-router-dom';
 import {formatTimestamp} from "../../utils/helpers.js";
+import LoginButton from '../auth/LoginButton.jsx';
 
-const Header = ({ lastUpdatedTimestamp}) => {
+const Header = ({ lastUpdatedTimestamp }) => {
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -85,6 +86,8 @@ const Header = ({ lastUpdatedTimestamp}) => {
                         Prices last updated: {lastUpdatedTimestamp ? formatTimestamp(lastUpdatedTimestamp) : 'Loading...'}
                     </Typography>
                 </Box>
+
+                <LoginButton />
             </Toolbar>
         </AppBar>
         
@@ -151,10 +154,10 @@ const Header = ({ lastUpdatedTimestamp}) => {
                     <ListItem disablePadding>
                         <ListItemButton 
                             component={Link} 
-                            to="/faqs"
+                            to="/history"
                             sx={{
                                 borderRadius: 2,
-                                backgroundColor: location.pathname === '/faqs' ? 'rgba(139, 69, 19, 0.1)' : 'transparent',
+                                backgroundColor: location.pathname === '/history' ? 'rgba(139, 69, 19, 0.1)' : 'transparent',
                                 '&:hover': {
                                     backgroundColor: 'rgba(139, 69, 19, 0.15)',
                                 },
@@ -162,10 +165,10 @@ const Header = ({ lastUpdatedTimestamp}) => {
                             }}
                         >
                             <ListItemText 
-                                primary="FAQs"
+                                primary="Trade History"
                                 sx={{ 
-                                    fontWeight: location.pathname === '/faqs' ? 700 : 500,
-                                    color: location.pathname === '/faqs' ? '#8b4513' : '#2c1810',
+                                    fontWeight: location.pathname === '/history' ? 700 : 500,
+                                    color: location.pathname === '/history' ? '#8b4513' : '#2c1810',
                                     '& .MuiTypography-root': {
                                         fontSize: '1rem'
                                     }

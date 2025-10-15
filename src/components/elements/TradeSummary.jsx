@@ -20,10 +20,13 @@ import {
     Share as ShareIcon, 
     ContentCopy as CopyIcon,
     Warning as WarningIcon,
-    Clear as ClearIcon
+    Clear as ClearIcon,
+    Save as SaveIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { usePriceType } from "../../contexts/PriceContext.jsx";
+import { useAuth } from "../../contexts/AuthContext.jsx";
+import { saveTradeToHistory } from "../../services/tradeHistory.js";
 
 const TradeSummary = ({ 
     haveList, 
@@ -37,14 +40,18 @@ const TradeSummary = ({
     getURLSizeInfo,
     testURLRoundTrip,
     urlTradeData,
-    hasLoadedFromURL
+    hasLoadedFromURL,
+    loadTradeFromHistory
 }) => {
     const { priceType, setPriceType } = usePriceType();
+    const { user } = useAuth();
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [shareURL, setShareURL] = useState('');
     const [copySuccess, setCopySuccess] = useState(false);
     const [shareError, setShareError] = useState('');
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     const hasCards = haveList.length > 0 || wantList.length > 0;
 
@@ -105,7 +112,8 @@ const TradeSummary = ({
                 setCopySuccess(true);
                 setTimeout(() => setCopySuccess(false), 3000);
             }
-        } catch (error) {
+        } catch (err) {
+            console.error('Failed to copy URL:', err);
             setShareError('Failed to copy URL to clipboard');
         }
     };
@@ -119,9 +127,9 @@ const TradeSummary = ({
                     url: shareURL
                 });
                 setShowShareDialog(false);
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    setShareError('Failed to share: ' + error.message);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    setShareError('Failed to share: ' + err.message);
                 }
             }
         }
@@ -130,6 +138,31 @@ const TradeSummary = ({
     const handleClearTradeData = () => {
         clearURLTradeData();
         setShowClearConfirm(false);
+    };
+
+    const handleSaveTrade = async () => {
+        setSaving(true);
+        
+        // Auto-generate trade name based on card counts
+        const haveCount = haveList.length;
+        const wantCount = wantList.length;
+        const tradeName = `traded +${wantCount}, -${haveCount} cards`;
+        
+        const { error } = await saveTradeToHistory(
+            tradeName,
+            haveList,
+            wantList,
+            { haveTotal, wantTotal, diff }
+        );
+
+        setSaving(false);
+
+        if (error) {
+            alert('Failed to save trade: ' + (error.message || 'Unknown error'));
+        } else {
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        }
     };
 
     const formatAge = (ageInDays) => {
@@ -403,6 +436,72 @@ const TradeSummary = ({
                     </Typography>
                 </Box>
             )}
+
+            {/* Trade History Actions */}
+            <Box sx={{
+                display: 'flex',
+                gap: 1,
+                px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
+                py: isLandscape ? 1.5 : 1,
+                borderTop: '1px solid rgba(139, 69, 19, 0.1)',
+                flexDirection: isLandscape ? 'column' : 'row',
+                justifyContent: 'center'
+            }}>
+                <Tooltip title={user ? "Save this trade to your history" : "Sign in to save trades"}>
+                    <span>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<SaveIcon />}
+                            onClick={handleSaveTrade}
+                            disabled={!user || !hasCards || saving}
+                            sx={{
+                                borderColor: '#8b4513',
+                                color: '#8b4513',
+                                fontSize: isLandscape ? '0.7rem' : '0.75rem',
+                                px: isLandscape ? 1.5 : 2,
+                                '&:hover': {
+                                    borderColor: '#5d2f0d',
+                                    backgroundColor: 'rgba(139, 69, 19, 0.08)',
+                                },
+                                '&:disabled': {
+                                    borderColor: 'rgba(139, 69, 19, 0.3)',
+                                    color: 'rgba(139, 69, 19, 0.3)',
+                                }
+                            }}
+                        >
+                            {saving ? 'Saving...' : 'Save Trade'}
+                        </Button>
+                    </span>
+                </Tooltip>
+                <Tooltip title="Share this trade via URL">
+                    <span>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<ShareIcon />}
+                            onClick={handleShare}
+                            disabled={!hasCards}
+                            sx={{
+                                borderColor: '#8b4513',
+                                color: '#8b4513',
+                                fontSize: isLandscape ? '0.7rem' : '0.75rem',
+                                px: isLandscape ? 1.5 : 2,
+                                '&:hover': {
+                                    borderColor: '#5d2f0d',
+                                    backgroundColor: 'rgba(139, 69, 19, 0.08)',
+                                },
+                                '&:disabled': {
+                                    borderColor: 'rgba(139, 69, 19, 0.3)',
+                                    color: 'rgba(139, 69, 19, 0.3)',
+                                }
+                            }}
+                        >
+                            Share
+                        </Button>
+                    </span>
+                </Tooltip>
+            </Box>
         </Box>
 
         {/* Share Dialog */}
@@ -486,7 +585,7 @@ const TradeSummary = ({
             </DialogActions>
         </Dialog>
 
-        {/* Success Snackbar */}
+        {/* Success Snackbars */}
         <Snackbar
             open={copySuccess}
             autoHideDuration={3000}
@@ -495,6 +594,17 @@ const TradeSummary = ({
         >
             <Alert severity="success" onClose={() => setCopySuccess(false)}>
                 Trade URL copied to clipboard!
+            </Alert>
+        </Snackbar>
+
+        <Snackbar
+            open={saveSuccess}
+            autoHideDuration={3000}
+            onClose={() => setSaveSuccess(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+            <Alert severity="success" onClose={() => setSaveSuccess(false)}>
+                Trade saved to your history!
             </Alert>
         </Snackbar>
         </>

@@ -163,6 +163,23 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         return testURLEncoding(haveList, wantList);
     };
 
+    // Load trade from history
+    const loadTradeFromHistory = (trade) => {
+        if (!trade) return;
+
+        // Reconstruct cards from trade data
+        const reconstructedHave = reconstructCardsFromURLData(trade.have_list, cardGroups, cardIdLookup);
+        const reconstructedWant = reconstructCardsFromURLData(trade.want_list, cardGroups, cardIdLookup);
+
+        setHaveList(reconstructedHave);
+        setWantList(reconstructedWant);
+
+        // Clear URL data when loading from history
+        clearURLTradeData();
+
+        console.log(`Loaded trade from history: "${trade.name}"`);
+    };
+
     const haveTotal = useMemo(() => calculateTotal(haveList), [haveList]);
     const wantTotal = useMemo(() => calculateTotal(wantList), [wantList]);
     const diff = useMemo(() => calculateDiff(haveTotal, wantTotal), [haveTotal, wantTotal]);
@@ -189,6 +206,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         getURLSizeInfo,
         testURLRoundTrip,
         urlTradeData,
-        hasLoadedFromURL
+        hasLoadedFromURL,
+        // Trade history functionality
+        loadTradeFromHistory
     };
 }

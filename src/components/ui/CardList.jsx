@@ -285,7 +285,7 @@ const CardList = ({
             onSelect={onAddCard}
             disabled={disabled}
             fullWidth
-            placement={title === "Cards I Want" ? "top" : "bottom"}
+            placement="bottom"
           />
         )}
       </ListItem>

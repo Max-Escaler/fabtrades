@@ -8,6 +8,9 @@ An app to balance Flesh and Blood card trades with efficient CSV data management
 - **Automatic Data Management**: Downloads and processes TCGPlayer CSV data automatically
 - **Trade Balancing**: Helps balance card trades by analyzing market prices
 - **Real-time Price Data**: Uses up-to-date pricing information from TCGPlayer
+- **Discord Authentication**: Sign in with Discord to access personal features
+- **Trade History**: Save and load trades from your personal history (requires authentication)
+- **Trade Sharing**: Share trades via URL with anyone
 
 ## CSV Data Management
 
@@ -69,6 +72,12 @@ You can clear this cache anytime with `--clear-cache` to force a full download.
 ```bash
 npm install
 ```
+
+### Authentication Setup
+
+To enable Discord authentication and trade history features, follow the setup guide in [DISCORD_AUTH_SETUP.md](./DISCORD_AUTH_SETUP.md).
+
+**Note:** The app works without authentication, but you'll need to set it up to save and access trade history.
 
 ### Running the App
 

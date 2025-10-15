@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 import { useCardData } from "../hooks/useCardData.jsx";
 import { useTradeState } from "../hooks/useTradeState.js";
 import Header from "../components/elements/Header.jsx";
@@ -8,6 +9,7 @@ import TradeSummary from "../components/elements/TradeSummary.jsx";
 import { fetchLastUpdatedTimestamp } from "../services/api.js";
 
 const Home = () => {
+    const location = useLocation();
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     const theme = useTheme();
@@ -36,6 +38,15 @@ const Home = () => {
         fetchTimestamp();
     }, []);
 
+    // Load trade from navigation state (when coming from history page)
+    useEffect(() => {
+        if (location.state?.loadTrade && tradeState.loadTradeFromHistory) {
+            tradeState.loadTradeFromHistory(location.state.loadTrade);
+            // Clear the state to prevent reloading on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, tradeState]);
+
     if (error) {
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
@@ -58,7 +69,9 @@ const Home = () => {
             background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
             backgroundAttachment: 'fixed'
         }}>
-            <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
+            <Header 
+                lastUpdatedTimestamp={lastUpdatedTimestamp}
+            />
 
             {/* Alerts */}
             {/* Loading box removed visually - uncomment below to restore */}
@@ -110,6 +123,7 @@ const Home = () => {
                         testURLRoundTrip={tradeState.testURLRoundTrip}
                         urlTradeData={tradeState.urlTradeData}
                         hasLoadedFromURL={tradeState.hasLoadedFromURL}
+                        loadTradeFromHistory={tradeState.loadTradeFromHistory}
                     />
                 )}
 

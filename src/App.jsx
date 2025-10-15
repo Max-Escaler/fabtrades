@@ -1,16 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Home from './pages/Home.jsx';
-import FAQs from './pages/FAQs.jsx';
+import TradeHistory from './pages/TradeHistory.jsx';
+import { AuthProvider } from './contexts/AuthContext.jsx';
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/faqs" element={<FAQs />} />
-            </Routes>
-        </Router>
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/history" element={<TradeHistory />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 }
 
