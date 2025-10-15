@@ -40,12 +40,12 @@ const Home = () => {
 
     // Load trade from navigation state (when coming from history page)
     useEffect(() => {
-        if (location.state?.loadTrade && tradeState.loadTradeFromHistory) {
+        if (location.state?.loadTrade && tradeState.loadTradeFromHistory && dataReady) {
             tradeState.loadTradeFromHistory(location.state.loadTrade);
             // Clear the state to prevent reloading on refresh
             window.history.replaceState({}, document.title);
         }
-    }, [location.state, tradeState]);
+    }, [location.state?.loadTrade, dataReady]);
 
     if (error) {
         return (

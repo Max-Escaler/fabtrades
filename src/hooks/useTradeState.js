@@ -167,9 +167,55 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
     const loadTradeFromHistory = (trade) => {
         if (!trade) return;
 
-        // Reconstruct cards from trade data
-        const reconstructedHave = reconstructCardsFromURLData(trade.have_list, cardGroups, cardIdLookup);
-        const reconstructedWant = reconstructCardsFromURLData(trade.want_list, cardGroups, cardIdLookup);
+        // Helper function to reconstruct cards from history data
+        const reconstructFromHistory = (cardList) => {
+            if (!cardList || !Array.isArray(cardList)) return [];
+            
+            return cardList.map(savedCard => {
+                // Find the current card group to get latest pricing
+                const cardGroup = getCardGroup(savedCard.name);
+                
+                if (!cardGroup || !cardGroup.editions || cardGroup.editions.length === 0) {
+                    console.warn(`Card not found or has no editions: ${savedCard.name}`);
+                    return null;
+                }
+                
+                // Find matching edition by subTypeName or price
+                let selectedEdition = cardGroup.editions[0]; // default
+                
+                if (savedCard.subTypeName) {
+                    const editionByType = cardGroup.editions.find(
+                        e => e.subTypeName === savedCard.subTypeName
+                    );
+                    if (editionByType) {
+                        selectedEdition = editionByType;
+                    }
+                }
+                
+                // If we have a uniqueId, try to find exact match
+                if (savedCard.uniqueId) {
+                    const editionById = cardGroup.editions.find(
+                        e => e.uniqueId === savedCard.uniqueId
+                    );
+                    if (editionById) {
+                        selectedEdition = editionById;
+                    }
+                }
+                
+                return {
+                    name: cardGroup.name,
+                    price: selectedEdition.cardPrice,
+                    quantity: savedCard.quantity || 1,
+                    cardGroup,
+                    availableEditions: cardGroup.editions,
+                    subTypeName: selectedEdition.subTypeName || 'Normal',
+                    uniqueId: selectedEdition.uniqueId
+                };
+            }).filter(card => card !== null);
+        };
+
+        const reconstructedHave = reconstructFromHistory(trade.have_list);
+        const reconstructedWant = reconstructFromHistory(trade.want_list);
 
         setHaveList(reconstructedHave);
         setWantList(reconstructedWant);
@@ -177,7 +223,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         // Clear URL data when loading from history
         clearURLTradeData();
 
-        console.log(`Loaded trade from history: "${trade.name}"`);
+        console.log(`Loaded trade from history: "${trade.name}" - ${reconstructedHave.length} have, ${reconstructedWant.length} want cards`);
     };
 
     const haveTotal = useMemo(() => calculateTotal(haveList), [haveList]);
