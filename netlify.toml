@@ -4,4 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # Tell Netlify to ignore these environment variables in secret scanning
+  # These are Supabase public keys that are safe to expose in client-side code
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
