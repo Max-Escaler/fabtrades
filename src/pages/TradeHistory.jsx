@@ -189,11 +189,12 @@ const TradeHistory = () => {
                         pb: 2,
                         borderBottom: '2px solid #d4a574'
                     }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: '#8b4513' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#8b4513' }}>
                             Trade History
                         </Typography>
                         <Button
                             variant="outlined"
+                            size="small"
                             startIcon={<ArrowBackIcon />}
                             onClick={() => navigate('/')}
                             sx={{
