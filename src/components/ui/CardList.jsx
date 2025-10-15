@@ -67,7 +67,6 @@ const CardList = ({
     <List sx={{
       flexGrow: 1,
       overflow: 'auto',
-      maxHeight: { xs: '250px', sm: '300px', md: '350px', lg: '400px', xl: '500px' },
       width: '100%',
       p: 0,
       m: 0,
