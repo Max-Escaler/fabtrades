@@ -17,6 +17,12 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // If Supabase is not configured, set loading to false and return
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
@@ -37,6 +43,10 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const signInWithDiscord = async () => {
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+        
         try {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'discord',
@@ -54,6 +64,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signOut = async () => {
+        if (!supabase) {
+            return { error: { message: 'Authentication not configured' } };
+        }
+        
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;

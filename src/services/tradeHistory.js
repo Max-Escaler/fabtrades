@@ -10,6 +10,11 @@ import { supabase } from '../lib/supabase';
  */
 export async function saveTradeToHistory(name, haveList, wantList, totals) {
     try {
+        // Check if Supabase is configured
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -55,6 +60,11 @@ export async function saveTradeToHistory(name, haveList, wantList, totals) {
  */
 export async function getUserTrades() {
     try {
+        // Check if Supabase is configured
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -85,6 +95,11 @@ export async function getUserTrades() {
  */
 export async function getTradeById(id) {
     try {
+        // Check if Supabase is configured
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -117,6 +132,11 @@ export async function getTradeById(id) {
  */
 export async function updateTrade(id, updates) {
     try {
+        // Check if Supabase is configured
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -152,6 +172,11 @@ export async function updateTrade(id, updates) {
  */
 export async function deleteTrade(id) {
     try {
+        // Check if Supabase is configured
+        if (!supabase) {
+            return { data: null, error: { message: 'Authentication not configured' } };
+        }
+
         // Check if user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
         

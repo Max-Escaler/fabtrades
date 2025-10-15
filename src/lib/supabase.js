@@ -6,17 +6,22 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+// Only create client if credentials are provided
+let supabaseClient = null;
+
+if (supabaseUrl && supabaseAnonKey) {
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
+} else {
     console.warn('Supabase credentials not configured. Authentication features will be disabled.');
 }
 
-// Create a single supabase client for interacting with your database
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
-    auth: {
-        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-    }
-});
+// Export the client (will be null if not configured)
+export const supabase = supabaseClient;
 
