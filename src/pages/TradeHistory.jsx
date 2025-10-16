@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
+import { fetchLastUpdatedTimestamp } from '../services/api';
 import Header from '../components/elements/Header.jsx';
 
 const TradeHistory = () => {
@@ -36,12 +37,22 @@ const TradeHistory = () => {
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState(null);
+    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     useEffect(() => {
         if (user) {
             loadTrades();
         }
     }, [user]);
+
+    // Fetch last updated timestamp
+    useEffect(() => {
+        const fetchTimestamp = async () => {
+            const timestamp = await fetchLastUpdatedTimestamp();
+            setLastUpdatedTimestamp(timestamp);
+        };
+        fetchTimestamp();
+    }, []);
 
     const loadTrades = async () => {
         setLoading(true);
@@ -108,19 +119,28 @@ const TradeHistory = () => {
     };
 
     const formatTradeSummary = (haveList, wantList) => {
-        const maxCards = 2;
+        const maxCards = 5; // Show up to 5 total cards
+        const allCards = [];
         
-        // Get first 2 cards from have list
-        const haveCards = haveList.slice(0, maxCards).map(card => card.name || 'Unknown');
-        const haveRemaining = haveList.length - maxCards;
-        const haveText = haveCards.join(', ') + (haveRemaining > 0 ? `... (+${haveRemaining})` : '');
+        // Add have cards with - prefix
+        haveList.forEach(card => {
+            allCards.push(`-${card.quantity} ${card.name || 'Unknown'}`);
+        });
         
-        // Get first 2 cards from want list
-        const wantCards = wantList.slice(0, maxCards).map(card => card.name || 'Unknown');
-        const wantRemaining = wantList.length - maxCards;
-        const wantText = wantCards.join(', ') + (wantRemaining > 0 ? `... (+${wantRemaining})` : '');
+        // Add want cards with + prefix
+        wantList.forEach(card => {
+            allCards.push(`+${card.quantity} ${card.name || 'Unknown'}`);
+        });
         
-        return `${haveText} → ${wantText}`;
+        // Show first maxCards, then indicate if there are more
+        const displayCards = allCards.slice(0, maxCards);
+        const remaining = allCards.length - maxCards;
+        
+        if (remaining > 0) {
+            return displayCards.join('  ') + `  ... (+${remaining} more)`;
+        }
+        
+        return displayCards.join('  ');
     };
 
     const filteredTrades = trades.filter(trade =>
@@ -136,7 +156,7 @@ const TradeHistory = () => {
                 height: '100vh',
                 background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
             }}>
-                <Header />
+                <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
                 <Container maxWidth="md" sx={{ mt: 8 }}>
                     <Paper sx={{ p: 4, textAlign: 'center' }}>
                         <Typography variant="h5" sx={{ mb: 2, color: '#8b4513' }}>
@@ -170,7 +190,7 @@ const TradeHistory = () => {
             background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
             backgroundAttachment: 'fixed'
         }}>
-            <Header />
+            <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
             
             <Container maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
                 <Paper sx={{ 
