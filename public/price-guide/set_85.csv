@@ -1,3 +1,21 @@
-productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName
-656946,Armory Deck: Rhinar,Armory Deck Rhinar,https://tcgplayer-cdn.tcgplayer.com/product/656946_200w.jpg,62,24474,https://cpt.tcgcsv.com/XNg7,2025-10-10T15:12:38.057,1,76.0,78.69,89.99,78.69,,Normal
-656947,Armory Deck: Rhinar Case,Armory Deck Rhinar Case,https://tcgplayer-cdn.tcgplayer.com/product/656947_200w.jpg,62,24474,https://cpt.tcgcsv.com/ZNg7,2025-10-10T14:50:28.027,1,,,,,,
+productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName,extRarity,extNumber,extCardType,extIntellect,extLife,extCardSubType,extClass,extPower,extDefenseValue
+656946,Armory Deck: Rhinar,Armory Deck Rhinar,https://tcgplayer-cdn.tcgplayer.com/product/656946_200w.jpg,62,24474,https://cpt.tcgcsv.com/XNg7,2025-10-10T15:12:38.057,1,76.0,78.68,89.99,78.69,,Normal,,,,,,,,,
+656947,Armory Deck: Rhinar Case,Armory Deck Rhinar Case,https://tcgplayer-cdn.tcgplayer.com/product/656947_200w.jpg,62,24474,https://cpt.tcgcsv.com/ZNg7,2025-10-10T14:50:28.027,1,,,,,,,,,,,,,,,
+663012,"Rhinar, Reckless Rampage",Rhinar Reckless Rampage,https://tcgplayer-cdn.tcgplayer.com/product/663012_200w.jpg,62,24474,https://cpt.tcgcsv.com/gdk7,2025-11-10T19:53:48.7,1,,,,,,,Majestic,ARR001,Brute;Hero,4,40,,,,
+663013,Romping Club,Romping Club,https://tcgplayer-cdn.tcgplayer.com/product/663013_200w.jpg,62,24474,https://cpt.tcgcsv.com/hdk7,2025-11-10T15:35:15.89,1,,,,,,,Rare,ARR002,Weapon,,,Club (2H),Brute,4,
+663016,Echo Casque,Echo Casque,https://tcgplayer-cdn.tcgplayer.com/product/663016_200w.jpg,62,24474,https://cpt.tcgcsv.com/ldk7,2025-11-10T16:26:23.787,1,,,,,,,Rare,ARR003,Equipment,,,Head,Brute,,1
+663017,Torc of Vim,Torc of Vim,https://tcgplayer-cdn.tcgplayer.com/product/663017_200w.jpg,62,24474,https://cpt.tcgcsv.com/mdk7,2025-11-10T16:30:53.743,1,,,,,,,Majestic,ARR004,Equipment,,,Chest,Brute,,1
+663018,Goliath Gauntlet,Goliath Gauntlet,https://tcgplayer-cdn.tcgplayer.com/product/663018_200w.jpg,62,24474,https://cpt.tcgcsv.com/ndk7,2025-11-10T16:33:35.423,1,,,,,,,Rare,ARR005,Equipment,,,Arms,Generic,,0
+663019,Trampling Trackers,Trampling Trackers,https://tcgplayer-cdn.tcgplayer.com/product/663019_200w.jpg,62,24474,https://cpt.tcgcsv.com/pdk7,2025-11-10T16:45:57.263,1,,,,,,,Majestic,ARR006,Equipment,,,Legs,Brute,,2
+663026,Assault and Battery (Red),Assault and Battery Red,https://tcgplayer-cdn.tcgplayer.com/product/663026_200w.jpg,62,24474,https://cpt.tcgcsv.com/xdk7,2025-11-10T19:27:36.247,1,,,,,,,,,,,,,,,
+663027,Bare Destruction,Bare Destruction,https://tcgplayer-cdn.tcgplayer.com/product/663027_200w.jpg,62,24474,https://cpt.tcgcsv.com/zdk7,2025-11-10T19:33:10.27,1,,,,,,,,,,,,,,,
+663028,Bare Swing (Red),Bare Swing Red,https://tcgplayer-cdn.tcgplayer.com/product/663028_200w.jpg,62,24474,https://cpt.tcgcsv.com/Bdk7,2025-11-10T19:35:57.717,1,,,,,,,,,,,,,,,
+663029,Massacre,Massacre,https://tcgplayer-cdn.tcgplayer.com/product/663029_200w.jpg,62,24474,https://cpt.tcgcsv.com/Cdk7,2025-11-10T19:39:01.217,1,,,,,,,,,,,,,,,
+663030,Pound Town (Red),Pound Town Red,https://tcgplayer-cdn.tcgplayer.com/product/663030_200w.jpg,62,24474,https://cpt.tcgcsv.com/Ddk7,2025-11-10T19:42:19.503,1,,,,,,,,,,,,,,,
+663031,Rawhide Rumble,Rawhide Rumble,https://tcgplayer-cdn.tcgplayer.com/product/663031_200w.jpg,62,24474,https://cpt.tcgcsv.com/Fdk7,2025-11-10T19:46:27.68,1,,,,,,,,,,,,,,,
+663032,Show No Mercy,Show No Mercy,https://tcgplayer-cdn.tcgplayer.com/product/663032_200w.jpg,62,24474,https://cpt.tcgcsv.com/Gdk7,2025-11-10T19:48:19.117,1,,,,,,,,,,,,,,,
+663033,Strongest Survive,Strongest Survive,https://tcgplayer-cdn.tcgplayer.com/product/663033_200w.jpg,62,24474,https://cpt.tcgcsv.com/Hdk7,2025-11-10T19:50:15.8,1,,,,,,,,,,,,,,,
+663035,Bonebreaker Bellow,Bonebreaker Bellow,https://tcgplayer-cdn.tcgplayer.com/product/663035_200w.jpg,62,24474,https://cpt.tcgcsv.com/Kdk7,2025-11-10T19:54:26.467,1,,,,,,,,,,,,,,,
+663037,Assault and Battery (Yellow),Assault and Battery Yellow,https://tcgplayer-cdn.tcgplayer.com/product/663037_200w.jpg,62,24474,https://cpt.tcgcsv.com/Mdk7,2025-11-10T19:55:58.23,1,,,,,,,,,,,,,,,
+663038,Bare Swing (Yellow),Bare Swing Yellow,https://tcgplayer-cdn.tcgplayer.com/product/663038_200w.jpg,62,24474,https://cpt.tcgcsv.com/Ndk7,2025-11-10T19:57:03.187,1,,,,,,,,,,,,,,,
+663039,Beast Within,Beast Within,https://tcgplayer-cdn.tcgplayer.com/product/663039_200w.jpg,62,24474,https://cpt.tcgcsv.com/Pdk7,2025-11-10T20:01:35.49,1,,,,,,,,,,,,,,,
