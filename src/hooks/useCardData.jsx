@@ -17,7 +17,20 @@ export const useCardData = () => {
 // Function to check if an item is an actual card (not a product like booster box, pack, etc.)
 const isActualCard = (row) => {
     const cardType = (row.extCardType || '').trim();
-    return cardType !== '';
+    const cardNumber = (row.extNumber || '').trim();
+    const rarity = (row.extRarity || '').trim();
+    const cardClass = (row.extClass || '').trim();
+    
+    // Include if card has a card type (most common case)
+    if (cardType !== '') return true;
+    
+    // Also include if card has a card number AND (rarity OR class)
+    // This catches cards with incomplete data like "Imposing Visage"
+    if (cardNumber !== '' && (rarity !== '' || cardClass !== '')) {
+        return true;
+    }
+    
+    return false;
 };
 
 // Function to safely get a value from a row with fallback options
