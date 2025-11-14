@@ -57,8 +57,23 @@ console.log('📊 Checking current data status...');
 checkCSVStatus();
 console.log('');
 
-// Download CSVs from Products Sheet
-downloadAllCSVs(force)
+// Note: This script uses the legacy Google Sheets approach
+// The SHEET_URL should be provided as an environment variable
+const SHEET_URL = process.env.PRODUCTS_SHEET_URL;
+
+if (!SHEET_URL) {
+  console.error('❌ Error: PRODUCTS_SHEET_URL environment variable not set');
+  console.log('Set it like: PRODUCTS_SHEET_URL="https://your-sheet-url" npm run download-products-sheet');
+  process.exit(1);
+}
+
+// Download URLs from Products Sheet, then download CSVs
+console.log('📥 Fetching URLs from Products Sheet...');
+downloadFromProductsSheet(SHEET_URL)
+  .then((urls) => {
+    console.log('');
+    return downloadAllCSVs(urls, force);
+  })
   .then(() => {
     console.log('\n✅ Download process completed!');
     console.log('\n📊 Final status:');

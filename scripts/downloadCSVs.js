@@ -1,8 +1,48 @@
 #!/usr/bin/env node
 
-
+import https from 'https';
 // Parse command line arguments
 import {checkCSVStatus, clearDiffCache, downloadAllCSVs} from "../src/services/csv/index.js";
+
+// Fetch product groups from the API and construct CSV URLs
+async function fetchProductGroupUrls() {
+    const PRODUCT_GROUPS_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
+    
+    return new Promise((resolve, reject) => {
+        https.get(PRODUCT_GROUPS_URL, (res) => {
+            if (res.statusCode !== 200) {
+                reject(new Error(`Failed to fetch product groups: ${res.statusCode}`));
+                return;
+            }
+
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    
+                    if (!json.success || !json.results || !Array.isArray(json.results)) {
+                        reject(new Error('Invalid product groups response'));
+                        return;
+                    }
+
+                    // Construct URLs from groupIds
+                    const urls = json.results.map(group => 
+                        `https://tcgcsv.com/tcgplayer/62/${group.groupId}/ProductsAndPrices.csv`
+                    );
+
+                    console.log(`✅ Fetched ${urls.length} product groups from API`);
+                    resolve(urls);
+                } catch (err) {
+                    reject(new Error(`Failed to parse product groups JSON: ${err.message}`));
+                }
+            });
+        }).on('error', reject);
+    });
+}
 
 const args = process.argv.slice(2);
 const force = args.includes('--force');
@@ -57,8 +97,13 @@ console.log('📊 Checking current data status...');
 checkCSVStatus();
 console.log('');
 
-// Download CSVs
-downloadAllCSVs(force)
+// Fetch product groups and download CSVs
+console.log('🔍 Fetching product groups from API...');
+fetchProductGroupUrls()
+  .then((urls) => {
+    console.log('');
+    return downloadAllCSVs(urls, force);
+  })
   .then(() => {
     console.log('\n✅ Download process completed!');
     console.log('\n📊 Final status:');

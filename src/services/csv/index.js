@@ -46,10 +46,9 @@ export async function downloadFromProductsSheet(sheetUrl) {
     });
 }
 
-export async function downloadAllCSVs(force = false) {
-    const urls = readCSVUrls();
-    if (!urls.length) {
-        console.log('⚠️ No CSV URLs found');
+export async function downloadAllCSVs(urls, force = false) {
+    if (!urls || !urls.length) {
+        console.log('⚠️ No CSV URLs provided');
         return;
     }
 
