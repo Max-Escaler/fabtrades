@@ -24,7 +24,7 @@ jobs:
       run: npm ci
       
     - name: Download updated CSV data
-      run: npm run download-products-sheet:force
+      run: npm run download-csvs:force
 
     - name: Consolidate CSV data
       run: npm run consolidate-csvs
