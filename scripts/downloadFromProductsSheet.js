@@ -59,7 +59,7 @@ console.log('');
 
 // Note: This script uses the legacy Google Sheets approach
 // The SHEET_URL should be provided as an environment variable
-const SHEET_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
+SHEET_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
 
 if (!SHEET_URL) {
   console.error('❌ Error: PRODUCTS_SHEET_URL environment variable not set');
