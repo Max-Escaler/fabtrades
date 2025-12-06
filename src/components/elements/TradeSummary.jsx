@@ -12,19 +12,17 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    TextField,
     ToggleButtonGroup,
     ToggleButton
 } from '@mui/material';
 import { 
-    Share as ShareIcon, 
-    ContentCopy as CopyIcon,
     Warning as WarningIcon,
     Clear as ClearIcon,
     Save as SaveIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { usePriceType } from "../../contexts/PriceContext.jsx";
+import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
 
@@ -35,103 +33,30 @@ const TradeSummary = ({
     wantTotal, 
     diff, 
     isLandscape = false,
-    generateShareURL,
     clearURLTradeData,
-    getURLSizeInfo,
-    testURLRoundTrip,
     urlTradeData,
-    hasLoadedFromURL,
-    loadTradeFromHistory
+    hasLoadedFromURL
 }) => {
     const { priceType, setPriceType } = usePriceType();
+    const { isDark } = useThemeMode();
     const { user } = useAuth();
-    const [showShareDialog, setShowShareDialog] = useState(false);
-    const [shareURL, setShareURL] = useState('');
-    const [copySuccess, setCopySuccess] = useState(false);
-    const [shareError, setShareError] = useState('');
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
     const hasCards = haveList.length > 0 || wantList.length > 0;
 
+    // Calculate total card count including quantities
+    const getTotalCardCount = (cardList) => {
+        return cardList.reduce((sum, card) => sum + (card.quantity || 1), 0);
+    };
+
+    const haveCardCount = getTotalCardCount(haveList);
+    const wantCardCount = getTotalCardCount(wantList);
+
     const handlePriceTypeChange = (event, newPriceType) => {
         if (newPriceType !== null) {
             setPriceType(newPriceType);
-        }
-    };
-
-    const handleShare = async () => {
-        try {
-            // First, test the round-trip encoding
-            const testResult = testURLRoundTrip();
-            console.log('URL round-trip test result:', testResult);
-            
-            if (!testResult.success) {
-                setShareError(`URL encoding test failed: ${testResult.error}`);
-                return;
-            }
-
-            const url = generateShareURL();
-            if (!url) {
-                setShareError('Failed to generate share URL');
-                return;
-            }
-
-            const sizeInfo = getURLSizeInfo();
-            
-            setShareURL(url);
-            setShowShareDialog(true);
-            
-            if (sizeInfo.isTooLarge) {
-                setShareError('Trade is too complex for URL sharing (>2000 characters)');
-            } else if (sizeInfo.isLarge) {
-                setShareError('Trade URL is long (>1500 characters), may not work in all browsers');
-            } else {
-                setShareError('');
-            }
-        } catch (error) {
-            setShareError('Failed to generate share URL: ' + error.message);
-        }
-    };
-
-    const handleCopyURL = async () => {
-        try {
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(shareURL);
-                setCopySuccess(true);
-                setTimeout(() => setCopySuccess(false), 3000);
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = shareURL;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                setCopySuccess(true);
-                setTimeout(() => setCopySuccess(false), 3000);
-            }
-        } catch (err) {
-            console.error('Failed to copy URL:', err);
-            setShareError('Failed to copy URL to clipboard');
-        }
-    };
-
-    const handleNativeShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'FAB Trade Proposal',
-                    text: `Trade proposal: ${haveList.length} cards (${formatCurrency(haveTotal.toFixed(2))}) for ${wantList.length} cards (${formatCurrency(wantTotal.toFixed(2))})`,
-                    url: shareURL
-                });
-                setShowShareDialog(false);
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    setShareError('Failed to share: ' + err.message);
-                }
-            }
         }
     };
 
@@ -143,7 +68,6 @@ const TradeSummary = ({
     const handleSaveTrade = async () => {
         setSaving(true);
         
-        // Auto-generate trade name based on card counts
         const haveCount = haveList.length;
         const wantCount = wantList.length;
         const tradeName = `traded +${wantCount}, -${haveCount} cards`;
@@ -171,6 +95,35 @@ const TradeSummary = ({
         if (ageInDays < 30) return `${Math.round(ageInDays / 7)} week${Math.round(ageInDays / 7) !== 1 ? 's' : ''}`;
         return `${Math.round(ageInDays / 30)} month${Math.round(ageInDays / 30) !== 1 ? 's' : ''}`;
     };
+
+    // Common toggle button styles - FAB brown theme
+    const toggleButtonSx = {
+        '& .MuiToggleButton-root': {
+            px: { xs: 0.75, sm: 1 },
+            py: { xs: 0.25, sm: 0.5 },
+            fontSize: { xs: '0.65rem', sm: '0.7rem' },
+            textTransform: 'none',
+            border: isDark ? '1px solid rgba(200, 113, 55, 0.4)' : '1px solid rgba(139, 69, 19, 0.3)',
+            color: isDark ? '#c87137' : '#8b4513',
+            '&.Mui-selected': {
+                backgroundColor: isDark ? '#c87137' : '#8b4513',
+                color: isDark ? '#1a0f0a' : '#ffffff',
+                '&:hover': {
+                    backgroundColor: isDark ? '#e09050' : '#5d2f0d'
+                }
+            },
+            '&:hover': {
+                backgroundColor: isDark ? 'rgba(200, 113, 55, 0.15)' : 'rgba(139, 69, 19, 0.08)'
+            }
+        }
+    };
+
+    // Theme-aware colors
+    const textColor = isDark ? '#f5f1ed' : '#2c1810';
+    const bgGradient = isLandscape 
+        ? (isDark ? 'linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)')
+        : (isDark ? 'linear-gradient(90deg, #1a0f0a 0%, #2c1810 50%, #1a0f0a 100%)' : 'linear-gradient(90deg, #f5f1ed 0%, #ffffff 50%, #f5f1ed 100%)');
+
     return (
         <>
         <Box sx={{
@@ -180,60 +133,44 @@ const TradeSummary = ({
             alignItems: 'center',
             gap: 0,
             p: isLandscape ? 2.5 : 0,
-            background: isLandscape 
-              ? 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)'
-              : 'linear-gradient(90deg, #f5f1ed 0%, #ffffff 50%, #f5f1ed 100%)',
-            borderTop: isLandscape ? 'none' : '3px solid #d4a574',
-            borderBottom: isLandscape ? 'none' : '3px solid #d4a574',
+            background: bgGradient,
+            borderTop: isLandscape ? 'none' : `3px solid #d4a574`,
+            borderBottom: isLandscape ? 'none' : `3px solid #d4a574`,
             borderRadius: isLandscape ? 3 : 0,
-            border: isLandscape ? '2px solid rgba(139, 69, 19, 0.15)' : 'none',
+            border: isLandscape ? `2px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : 'rgba(139, 69, 19, 0.15)'}` : 'none',
             width: isLandscape ? '280px' : '100%',
             minWidth: isLandscape ? '280px' : 'auto',
             maxWidth: isLandscape ? '320px' : '100%',
             boxSizing: 'border-box',
-            boxShadow: isLandscape ? '0 8px 24px rgba(139, 69, 19, 0.15)' : '0 4px 12px rgba(139, 69, 19, 0.08)'
+            boxShadow: isLandscape 
+                ? (isDark ? '0 8px 24px rgba(0, 0, 0, 0.3)' : '0 8px 24px rgba(139, 69, 19, 0.15)')
+                : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(139, 69, 19, 0.08)')
         }}>
-            {/* Price Type Selector - Only show at top for landscape mode */}
+            {/* Price Type Selector - Landscape mode (stacked) */}
             {isLandscape && (
                 <Box sx={{
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
+                    gap: 1,
                     px: 1,
                     py: 1.5,
-                    borderBottom: '2px solid rgba(139, 69, 19, 0.1)'
+                    borderBottom: `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
+                    width: '100%'
                 }}>
                     <ToggleButtonGroup
                         value={priceType}
                         exclusive
                         onChange={handlePriceTypeChange}
                         size="small"
-                        sx={{
-                            '& .MuiToggleButton-root': {
-                                px: 1,
-                                py: 0.5,
-                                fontSize: '0.65rem',
-                                textTransform: 'none',
-                                border: '1px solid rgba(139, 69, 19, 0.3)',
-                                color: '#5d2f0d',
-                                '&.Mui-selected': {
-                                    backgroundColor: '#8b4513',
-                                    color: '#ffffff',
-                                    '&:hover': {
-                                        backgroundColor: '#a0643f'
-                                    }
-                                },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(139, 69, 19, 0.08)'
-                                }
-                            }
-                        }}
+                        sx={toggleButtonSx}
                     >
-                        <ToggleButton value="market" aria-label="tcgplayer market price">
-                            TCGMarket
+                        <ToggleButton value="market" aria-label="market price">
+                            Market
                         </ToggleButton>
-                        <ToggleButton value="low" aria-label="tcgplayer low price">
-                            TCGLow
+                        <ToggleButton value="low" aria-label="low price">
+                            Low
                         </ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
@@ -250,14 +187,14 @@ const TradeSummary = ({
             }}>
                 <Typography variant="h6" sx={{ 
                     fontWeight: 'medium', 
-                    color: 'black', 
+                    color: textColor, 
                     fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem', sm: '0.9rem' },
                     textAlign: 'center'
                 }}>
-                    My {haveList.length} cards
+                    My {haveCardCount} cards
                 </Typography>
                 <Chip 
-                    label={`${formatCurrency(haveTotal.toFixed(2))}`} 
+                    label={formatCurrency(haveTotal.toFixed(2))} 
                     color="primary" 
                     variant="filled" 
                     size={isLandscape ? 'small' : 'medium'}
@@ -266,59 +203,44 @@ const TradeSummary = ({
 
             <Box sx={{
                 display: 'flex',
-                justifyContent: (!isLandscape && hasLoadedFromURL && urlTradeData) ? 'space-between' : 'center',
+                justifyContent: 'center',
                 alignItems: 'center',
-                gap: isLandscape ? 1 : 2,
+                gap: isLandscape ? 1 : 1,
                 px: isLandscape ? 2 : { xs: 1 },
                 py: isLandscape ? 2 : { xs: 0.75 },
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                borderTop: isLandscape ? 'none' : '2px solid rgba(139, 69, 19, 0.1)',
-                borderBottom: isLandscape ? 'none' : '2px solid rgba(139, 69, 19, 0.1)',
+                background: isDark 
+                    ? 'linear-gradient(135deg, #1a0f0a 0%, #2c1810 100%)' 
+                    : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                borderTop: isLandscape ? 'none' : `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
+                borderBottom: isLandscape ? 'none' : `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
                 borderRadius: isLandscape ? 2 : 0,
                 mx: isLandscape ? 0 : 0,
                 my: isLandscape ? 1 : 0,
                 flexDirection: isLandscape ? 'column' : 'row',
-                boxShadow: isLandscape ? '0 2px 8px rgba(139, 69, 19, 0.08)' : 'none'
+                flexWrap: 'wrap',
+                boxShadow: isLandscape ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(139, 69, 19, 0.08)') : 'none'
             }}>
-                {/* Price Type Selector - Only show on left for portrait mode */}
+                {/* Price Type Selector - Portrait mode */}
                 {!isLandscape && (
                     <Box sx={{ 
                         display: 'flex', 
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        minWidth: { xs: 80, sm: 100 },
-                        justifyContent: 'flex-start'
+                        gap: 0.5,
+                        mr: 1
                     }}>
                         <ToggleButtonGroup
                             value={priceType}
                             exclusive
                             onChange={handlePriceTypeChange}
                             size="small"
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    px: { xs: 1, sm: 1.5 },
-                                    py: { xs: 0.25, sm: 0.5 },
-                                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                                    textTransform: 'none',
-                                    border: '1px solid rgba(139, 69, 19, 0.3)',
-                                    color: '#5d2f0d',
-                                    '&.Mui-selected': {
-                                        backgroundColor: '#8b4513',
-                                        color: '#ffffff',
-                                        '&:hover': {
-                                            backgroundColor: '#a0643f'
-                                        }
-                                    },
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(139, 69, 19, 0.08)'
-                                    }
-                                }
-                            }}
+                            sx={toggleButtonSx}
                         >
-                            <ToggleButton value="market" aria-label="tcgplayer market price">
-                                TCGMarket
+                            <ToggleButton value="market" aria-label="market price">
+                                Market
                             </ToggleButton>
-                            <ToggleButton value="low" aria-label="tcgplayer low price">
-                                TCGLow
+                            <ToggleButton value="low" aria-label="low price">
+                                Low
                             </ToggleButton>
                         </ToggleButtonGroup>
                     </Box>
@@ -335,14 +257,14 @@ const TradeSummary = ({
                 }}>
                     <Typography variant="h6" sx={{ 
                         fontWeight: 'bold', 
-                        color: 'black', 
+                        color: textColor, 
                         fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem' },
                         textAlign: 'center'
                     }}>
                         Difference
                     </Typography>
                     <Chip
-                        label={diff > 0 ? `+${formatCurrency(diff.toFixed(2))}` : `${formatCurrency(diff.toFixed(2))}`}
+                        label={diff > 0 ? `+${formatCurrency(diff.toFixed(2))}` : formatCurrency(diff.toFixed(2))}
                         color={diff > 0 ? 'primary' : diff < 0 ? 'success' : 'default'}
                         variant="filled"
                         size={isLandscape ? 'small' : 'medium'}
@@ -355,8 +277,7 @@ const TradeSummary = ({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
-                        minWidth: { xs: 80, sm: 100 },
-                        justifyContent: 'flex-end'
+                        ml: 1
                     }}>
                         <Tooltip title="Clear loaded trade data from URL">
                             <IconButton
@@ -370,7 +291,7 @@ const TradeSummary = ({
                     </Box>
                 )}
 
-                {/* Clear Button for landscape mode - below difference */}
+                {/* Clear Button for landscape mode */}
                 {isLandscape && hasLoadedFromURL && urlTradeData && (
                     <Box sx={{
                         display: 'flex',
@@ -403,20 +324,19 @@ const TradeSummary = ({
             }}>
                 <Typography variant="h6" sx={{ 
                     fontWeight: 'medium', 
-                    color: 'black', 
+                    color: textColor, 
                     fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem', sm: '0.9rem' },
                     textAlign: 'center'
                 }}>
-                    Their {wantList.length} cards
+                    Their {wantCardCount} cards
                 </Typography>
                 <Chip 
-                    label={`${formatCurrency(wantTotal.toFixed(2))}`} 
+                    label={formatCurrency(wantTotal.toFixed(2))} 
                     color="success" 
                     variant="filled" 
                     size={isLandscape ? 'small' : 'medium'}
                 />
             </Box>
-
 
             {/* URL Age Warning */}
             {urlTradeData && urlTradeData.ageInDays > 7 && (
@@ -426,24 +346,24 @@ const TradeSummary = ({
                     gap: 0.5,
                     px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
                     py: 0.5,
-                    backgroundColor: '#fff3cd',
-                    borderTop: '1px solid #ffeaa7',
-                    borderBottom: '1px solid #ffeaa7'
+                    backgroundColor: isDark ? 'rgba(212, 165, 116, 0.2)' : '#fff3cd',
+                    borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : '#ffeaa7'}`,
+                    borderBottom: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : '#ffeaa7'}`
                 }}>
-                    <WarningIcon fontSize="small" sx={{ color: '#856404' }} />
-                    <Typography variant="caption" sx={{ color: '#856404', fontSize: '0.7rem' }}>
+                    <WarningIcon fontSize="small" sx={{ color: isDark ? '#e4c09c' : '#856404' }} />
+                    <Typography variant="caption" sx={{ color: isDark ? '#e4c09c' : '#856404', fontSize: '0.7rem' }}>
                         Trade data is {formatAge(urlTradeData.ageInDays)} old
                     </Typography>
                 </Box>
             )}
 
-            {/* Trade History Actions */}
+            {/* Save Trade Button */}
             <Box sx={{
                 display: 'flex',
                 gap: 1,
                 px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
                 py: isLandscape ? 1.5 : 1,
-                borderTop: '1px solid rgba(139, 69, 19, 0.1)',
+                borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
                 flexDirection: isLandscape ? 'column' : 'row',
                 justifyContent: 'center'
             }}>
@@ -456,17 +376,17 @@ const TradeSummary = ({
                             onClick={handleSaveTrade}
                             disabled={!user || !hasCards || saving}
                             sx={{
-                                borderColor: '#8b4513',
-                                color: '#8b4513',
+                                borderColor: isDark ? '#c87137' : '#8b4513',
+                                color: isDark ? '#c87137' : '#8b4513',
                                 fontSize: isLandscape ? '0.7rem' : '0.75rem',
                                 px: isLandscape ? 1.5 : 2,
                                 '&:hover': {
-                                    borderColor: '#5d2f0d',
-                                    backgroundColor: 'rgba(139, 69, 19, 0.08)',
+                                    borderColor: isDark ? '#e09050' : '#5d2f0d',
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.15)' : 'rgba(139, 69, 19, 0.08)',
                                 },
                                 '&:disabled': {
-                                    borderColor: 'rgba(139, 69, 19, 0.3)',
-                                    color: 'rgba(139, 69, 19, 0.3)',
+                                    borderColor: isDark ? 'rgba(200, 113, 55, 0.3)' : 'rgba(139, 69, 19, 0.3)',
+                                    color: isDark ? 'rgba(200, 113, 55, 0.3)' : 'rgba(139, 69, 19, 0.3)',
                                 }
                             }}
                         >
@@ -474,99 +394,8 @@ const TradeSummary = ({
                         </Button>
                     </span>
                 </Tooltip>
-                <Tooltip title="Share this trade via URL">
-                    <span>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<ShareIcon />}
-                            onClick={handleShare}
-                            disabled={!hasCards}
-                            sx={{
-                                borderColor: '#8b4513',
-                                color: '#8b4513',
-                                fontSize: isLandscape ? '0.7rem' : '0.75rem',
-                                px: isLandscape ? 1.5 : 2,
-                                '&:hover': {
-                                    borderColor: '#5d2f0d',
-                                    backgroundColor: 'rgba(139, 69, 19, 0.08)',
-                                },
-                                '&:disabled': {
-                                    borderColor: 'rgba(139, 69, 19, 0.3)',
-                                    color: 'rgba(139, 69, 19, 0.3)',
-                                }
-                            }}
-                        >
-                            Share
-                        </Button>
-                    </span>
-                </Tooltip>
             </Box>
         </Box>
-
-        {/* Share Dialog */}
-        <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle>Share Trade</DialogTitle>
-            <DialogContent>
-                <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Share this URL to send your trade proposal to others:
-                    </Typography>
-                </Box>
-                
-                {shareError && (
-                    <Alert severity={shareError.includes('too complex') ? 'error' : 'warning'} sx={{ mb: 2 }}>
-                        {shareError}
-                    </Alert>
-                )}
-                
-                <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={shareURL}
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                    InputProps={{
-                        readOnly: true,
-                        endAdornment: (
-                            <Tooltip title="Copy to clipboard">
-                                <IconButton onClick={handleCopyURL} edge="end">
-                                    <CopyIcon />
-                                </IconButton>
-                            </Tooltip>
-                        )
-                    }}
-                />
-                
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                        URL Length: {shareURL.length} characters
-                    </Typography>
-                    {shareURL.length > 1500 && (
-                        <Chip size="small" label="Long URL" color="warning" />
-                    )}
-                </Box>
-                
-                <Typography variant="caption" color="text.secondary" display="block">
-                    Trade includes {haveList.length} cards you have ({formatCurrency(haveTotal.toFixed(2))}) 
-                    and {wantList.length} cards you want ({formatCurrency(wantTotal.toFixed(2))})
-                </Typography>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setShowShareDialog(false)}>
-                    Close
-                </Button>
-                <Button onClick={handleCopyURL} startIcon={<CopyIcon />}>
-                    Copy URL
-                </Button>
-                {navigator.share && (
-                    <Button onClick={handleNativeShare} startIcon={<ShareIcon />} variant="contained">
-                        Share
-                    </Button>
-                )}
-            </DialogActions>
-        </Dialog>
 
         {/* Clear Confirmation Dialog */}
         <Dialog open={showClearConfirm} onClose={() => setShowClearConfirm(false)}>
@@ -585,18 +414,7 @@ const TradeSummary = ({
             </DialogActions>
         </Dialog>
 
-        {/* Success Snackbars */}
-        <Snackbar
-            open={copySuccess}
-            autoHideDuration={3000}
-            onClose={() => setCopySuccess(false)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-            <Alert severity="success" onClose={() => setCopySuccess(false)}>
-                Trade URL copied to clipboard!
-            </Alert>
-        </Snackbar>
-
+        {/* Success Snackbar */}
         <Snackbar
             open={saveSuccess}
             autoHideDuration={3000}

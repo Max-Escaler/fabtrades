@@ -11,11 +11,14 @@ export const usePriceType = () => {
 };
 
 export const PriceProvider = ({ children }) => {
-    const [priceType, setPriceType] = useState('low'); // 'market' or 'low'
+    const [priceType, setPriceType] = useState('market'); // 'market' or 'low'
+    const [priceSource, setPriceSource] = useState('tcgplayer'); // 'tcgplayer' or 'cardmarket'
 
     const value = {
         priceType,
-        setPriceType
+        setPriceType,
+        priceSource,
+        setPriceSource
     };
 
     return (
@@ -26,4 +29,3 @@ export const PriceProvider = ({ children }) => {
 };
 
 export default PriceContext;
-

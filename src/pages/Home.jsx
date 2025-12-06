@@ -7,10 +7,12 @@ import Header from "../components/elements/Header.jsx";
 import CardPanel from "../components/ui/CardPanel.jsx";
 import TradeSummary from "../components/elements/TradeSummary.jsx";
 import { fetchLastUpdatedTimestamp } from "../services/api.js";
+import { useThemeMode } from "../contexts/ThemeContext.jsx";
 
 const Home = () => {
     const location = useLocation();
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
+    const { isDark } = useThemeMode();
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -19,11 +21,13 @@ const Home = () => {
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
     const { cardGroups, cardIdLookup, cards, loading, dataReady, error, dataSource, metadata } = useCardData();
+    
     // Create unique card options that include all editions
     const cardOptions = cards.map(card => ({
         label: card.displayName,
         value: card._uniqueDisplayId,
         subTypeName: card.subTypeName,
+        setName: card._setName || '',
         card: card
     }));
 
@@ -47,9 +51,21 @@ const Home = () => {
         }
     }, [location.state?.loadTrade, dataReady]);
 
+    // Background gradients based on theme - FAB brown/cream
+    const bgGradient = isDark 
+        ? 'linear-gradient(135deg, #0d0806 0%, #1a0f0a 50%, #2c1810 100%)'
+        : 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 50%, #f0e6dc 100%)';
+
     if (error) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100vh', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: bgGradient
+            }}>
                 <Typography variant="h6" color="error" sx={{ mb: 2 }}>
                     Error loading card data
                 </Typography>
@@ -66,23 +82,12 @@ const Home = () => {
             flexDirection: 'column', 
             height: '100vh', 
             width: '100%',
-            background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
+            background: bgGradient,
             backgroundAttachment: 'fixed'
         }}>
             <Header 
                 lastUpdatedTimestamp={lastUpdatedTimestamp}
             />
-
-            {/* Alerts */}
-            {/* Loading box removed visually - uncomment below to restore */}
-            {/* {loading && !dataReady && (
-                <Box sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 1 }}>
-                    <Alert severity="info" icon={<CircularProgress size={20} />}>
-                        Loading card data. Please wait.
-                    </Alert>
-                </Box>
-            )} */}
-
 
             {/* Content */}
             <Box sx={{ 

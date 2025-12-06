@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { 
     AppBar, Toolbar, Typography, Box, IconButton, Drawer, List, 
-    ListItem, ListItemButton, ListItemText 
+    ListItem, ListItemButton, ListItemText, Tooltip 
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { DarkMode, LightMode } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
-import {formatTimestamp} from "../../utils/helpers.js";
+import { formatTimestamp } from "../../utils/helpers.js";
+import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 import LoginButton from '../auth/LoginButton.jsx';
 
 const Header = ({ lastUpdatedTimestamp }) => {
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const { isDark, toggleMode } = useThemeMode();
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -25,9 +28,13 @@ const Header = ({ lastUpdatedTimestamp }) => {
             position="static" 
             elevation={0}
             sx={{ 
-                background: 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
+                background: isDark 
+                    ? 'linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%)'
+                    : 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
                 borderBottom: '3px solid #d4a574',
-                boxShadow: '0 4px 20px rgba(139, 69, 19, 0.3)'
+                boxShadow: isDark 
+                    ? '0 4px 20px rgba(0, 0, 0, 0.4)'
+                    : '0 4px 20px rgba(139, 69, 19, 0.3)'
             }}
         >
             <Toolbar sx={{
@@ -72,7 +79,7 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             textShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
                         }}
                     >
-                        FAB Trades
+                        ⚔️ FAB Trades
                     </Typography>
                     <Typography
                         variant="body2"
@@ -80,14 +87,31 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             fontSize: { xs: '0.7rem', sm: '0.8rem' },
                             mt: 0.5,
                             opacity: 0.95,
-                            fontWeight: 500
+                            fontWeight: 500,
+                            color: isDark ? '#d4a574' : 'rgba(255, 255, 255, 0.9)'
                         }}
                     >
                         Prices last updated: {lastUpdatedTimestamp ? formatTimestamp(lastUpdatedTimestamp) : 'Loading...'}
                     </Typography>
                 </Box>
 
-                <LoginButton />
+                {/* Right side: Dark mode toggle and Login */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Tooltip title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+                        <IconButton
+                            onClick={toggleMode}
+                            sx={{
+                                color: '#d4a574',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(212, 165, 116, 0.15)',
+                                }
+                            }}
+                        >
+                            {isDark ? <LightMode /> : <DarkMode />}
+                        </IconButton>
+                    </Tooltip>
+                    <LoginButton />
+                </Box>
             </Toolbar>
         </AppBar>
         
@@ -97,7 +121,9 @@ const Header = ({ lastUpdatedTimestamp }) => {
             onClose={toggleDrawer(false)}
             PaperProps={{
                 sx: {
-                    background: 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)',
+                    background: isDark 
+                        ? 'linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%)'
+                        : 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)',
                     borderRight: '2px solid #d4a574',
                 }
             }}
@@ -110,7 +136,9 @@ const Header = ({ lastUpdatedTimestamp }) => {
             >
                 <Box sx={{ 
                     p: 3, 
-                    background: 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
+                    background: isDark 
+                        ? 'linear-gradient(135deg, #3d2318 0%, #2c1810 100%)'
+                        : 'linear-gradient(135deg, #8b4513 0%, #5d2f0d 100%)',
                     borderBottom: '3px solid #d4a574',
                     mb: 2
                 }}>
@@ -132,9 +160,11 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             to="/"
                             sx={{
                                 borderRadius: 2,
-                                backgroundColor: location.pathname === '/' ? 'rgba(139, 69, 19, 0.1)' : 'transparent',
+                                backgroundColor: location.pathname === '/' 
+                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                    : 'transparent',
                                 '&:hover': {
-                                    backgroundColor: 'rgba(139, 69, 19, 0.15)',
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
                                 },
                                 transition: 'all 0.2s ease-in-out'
                             }}
@@ -143,7 +173,9 @@ const Header = ({ lastUpdatedTimestamp }) => {
                                 primary="Trade Calculator" 
                                 sx={{ 
                                     fontWeight: location.pathname === '/' ? 700 : 500,
-                                    color: location.pathname === '/' ? '#8b4513' : '#2c1810',
+                                    color: location.pathname === '/' 
+                                        ? (isDark ? '#e4c09c' : '#8b4513')
+                                        : (isDark ? '#f5f1ed' : '#2c1810'),
                                     '& .MuiTypography-root': {
                                         fontSize: '1rem'
                                     }
@@ -157,9 +189,11 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             to="/history"
                             sx={{
                                 borderRadius: 2,
-                                backgroundColor: location.pathname === '/history' ? 'rgba(139, 69, 19, 0.1)' : 'transparent',
+                                backgroundColor: location.pathname === '/history' 
+                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                    : 'transparent',
                                 '&:hover': {
-                                    backgroundColor: 'rgba(139, 69, 19, 0.15)',
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
                                 },
                                 transition: 'all 0.2s ease-in-out'
                             }}
@@ -168,7 +202,9 @@ const Header = ({ lastUpdatedTimestamp }) => {
                                 primary="Trade History"
                                 sx={{ 
                                     fontWeight: location.pathname === '/history' ? 700 : 500,
-                                    color: location.pathname === '/history' ? '#8b4513' : '#2c1810',
+                                    color: location.pathname === '/history' 
+                                        ? (isDark ? '#e4c09c' : '#8b4513')
+                                        : (isDark ? '#f5f1ed' : '#2c1810'),
                                     '& .MuiTypography-root': {
                                         fontSize: '1rem'
                                     }
