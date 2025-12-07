@@ -501,7 +501,9 @@ export function reconstructCardsFromURLData(cardData, cardGroups, cardIdLookup =
         quantity: Math.max(1, parseInt(cardQuantity) || 1), // Ensure valid quantity
         cardGroup,
         availableEditions: cardGroup.editions,
-        uniqueId: selectedEdition.uniqueId // Include unique ID for future operations
+        uniqueId: selectedEdition.uniqueId, // Include unique ID for future operations
+        subTypeName: selectedEdition.subTypeName || 'Normal',
+        imageUrl: selectedEdition.imageUrl || ''
       };
 
       validCards.push(reconstructedCard);

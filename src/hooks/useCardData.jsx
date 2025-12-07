@@ -248,7 +248,8 @@ const groupCardsByEdition = (cards, priceType = 'market') => {
                 subTypeName: card.subTypeName,
                 productId: card.productId,
                 cardPrice: priceType === 'market' ? card.marketPrice : card.lowPrice,
-                uniqueId: card._uniqueId
+                uniqueId: card._uniqueId,
+                imageUrl: card.imageUrl || ''
             });
         }
     });

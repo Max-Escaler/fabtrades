@@ -23,12 +23,27 @@ export const useSearch = ({
   const [filteredItems, setFilteredItems] = useState([]);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const debounceRef = useRef(null);
 
-  // Filter items when input changes
+  // Filter items when input changes - with debounce for performance
   useEffect(() => {
-    const filtered = filterCardOptions(items, inputValue, 10);
-    setFilteredItems(filtered);
-    setHighlightedIndex(-1);
+    // Clear any pending debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Debounce the filtering for better typing performance
+    debounceRef.current = setTimeout(() => {
+      const filtered = filterCardOptions(items, inputValue, 10);
+      setFilteredItems(filtered);
+      setHighlightedIndex(-1);
+    }, 50); // 50ms debounce - fast enough to feel responsive
+    
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
   }, [inputValue, items]);
 
   // Handle input focus

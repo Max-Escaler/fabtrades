@@ -65,7 +65,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                         availableEditions: cardGroup.editions,
                         quantity: 1,
                         subTypeName: subTypeName,  // Store subTypeName for gradient rendering
-                        uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId
+                        uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId,
+                        imageUrl: selectedCard?.imageUrl || edition.imageUrl || ''
                     }
                 ]);
                 inputSetter("");
@@ -100,7 +101,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                         ...card,
                         price: edition.cardPrice,
                         availableEditions: cardGroup.editions,
-                        cardGroup
+                        cardGroup,
+                        imageUrl: card.imageUrl || edition.imageUrl || ''
                     };
                 }
                 return card;
@@ -209,7 +211,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                     cardGroup,
                     availableEditions: cardGroup.editions,
                     subTypeName: selectedEdition.subTypeName || 'Normal',
-                    uniqueId: selectedEdition.uniqueId
+                    uniqueId: selectedEdition.uniqueId,
+                    imageUrl: savedCard.imageUrl || selectedEdition.imageUrl || ''
                 };
             }).filter(card => card !== null);
         };
