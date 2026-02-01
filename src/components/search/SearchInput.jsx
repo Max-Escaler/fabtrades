@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextField, InputAdornment, IconButton, Box } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchIcon from '@mui/icons-material/Search';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useSearch } from '../../hooks/useSearch';
 import SearchDropdown from './SearchDropdown';
 import { useThemeMode } from '../../contexts/ThemeContext.jsx';
@@ -20,9 +21,23 @@ const SearchInput = ({
   disabled = false,
   fullWidth = true,
   placement = 'bottom',
-  autoFocus = false
+  autoFocus = false,
+  keepOpenOnSelect = false,
+  keepInputOnSelect = false
 }) => {
   const { isDark } = useThemeMode();
+  const [justAdded, setJustAdded] = useState(false);
+
+  useEffect(() => {
+    if (!justAdded) return;
+    const timeout = setTimeout(() => setJustAdded(false), 600);
+    return () => clearTimeout(timeout);
+  }, [justAdded]);
+
+  const handleSelectWithFeedback = (item) => {
+    setJustAdded(true);
+    onSelect?.(item);
+  };
   const {
     isOpen,
     highlightedIndex,
@@ -38,10 +53,12 @@ const SearchInput = ({
     setHighlightedIndex
   } = useSearch({
     items,
-    onSelect,
+    onSelect: handleSelectWithFeedback,
     inputValue: value,
     onInputChange: onChange,
-    disabled
+    disabled,
+    keepOpenOnSelect,
+    keepInputOnSelect
   });
 
   return (
@@ -70,26 +87,38 @@ const SearchInput = ({
               />
             </InputAdornment>
           ),
-          endAdornment: value && !disabled ? (
+          endAdornment: (justAdded || (value && !disabled)) ? (
             <InputAdornment position="end">
-              <IconButton
-                size="small"
-                onClick={handleClear}
-                edge="end"
-                aria-label="clear search"
-                sx={{
-                  '&:hover': {
-                    backgroundColor: isDark ? 'rgba(212, 165, 116, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                <ClearIcon
-                  sx={{
-                    fontSize: '1.1rem',
-                    color: isDark ? 'rgba(212, 165, 116, 0.9)' : 'rgba(93, 58, 26, 0.7)'
-                  }}
-                />
-              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {justAdded && (
+                  <CheckCircleIcon
+                    sx={{
+                      fontSize: '1.1rem',
+                      color: isDark ? '#a7e3b7' : '#2e7d32'
+                    }}
+                  />
+                )}
+                {value && !disabled && (
+                  <IconButton
+                    size="small"
+                    onClick={handleClear}
+                    edge="end"
+                    aria-label="clear search"
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: isDark ? 'rgba(212, 165, 116, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                      }
+                    }}
+                  >
+                    <ClearIcon
+                      sx={{
+                        fontSize: '1.1rem',
+                        color: isDark ? 'rgba(212, 165, 116, 0.9)' : 'rgba(93, 58, 26, 0.7)'
+                      }}
+                    />
+                  </IconButton>
+                )}
+              </Box>
             </InputAdornment>
           ) : null
         }}
@@ -139,6 +168,7 @@ const SearchInput = ({
         onHighlight={setHighlightedIndex}
         dropdownRef={dropdownRef}
         placement={placement}
+        keepOpenOnSelect={keepOpenOnSelect}
       />
     </Box>
   );

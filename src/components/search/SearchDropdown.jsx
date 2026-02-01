@@ -15,7 +15,8 @@ const SearchDropdown = ({
     onSelect,
     onHighlight,
     dropdownRef,
-    placement = 'bottom'
+    placement = 'bottom',
+    keepOpenOnSelect = false
 }) => {
     const { isDark } = useThemeMode();
     const highlightedRef = useRef(null);
@@ -84,6 +85,7 @@ const SearchDropdown = ({
                     <div
                         key={item.value || index}
                         ref={index === highlightedIndex ? highlightedRef : null}
+                        onMouseDown={keepOpenOnSelect ? (event) => event.preventDefault() : undefined}
                     >
                         <SearchOption
                             option={item}

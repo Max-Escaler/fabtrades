@@ -103,6 +103,66 @@ const CardList = ({
                 maxWidth: '100%'
             }
         }}>
+            {/* Search Input at Top of List */}
+            <ListItem sx={{ 
+                border: isDark 
+                    ? '2px dashed rgba(200, 113, 55, 0.3)' 
+                    : '2px dashed rgba(139, 69, 19, 0.2)',
+                borderRadius: 2,
+                mb: 1,
+                backgroundColor: isDark ? 'rgba(44, 24, 16, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                p: { xs: 1, sm: 1.25, md: 1.5, lg: 1.75, xl: 2 },
+                width: '100%',
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                    backgroundColor: isDark ? 'rgba(44, 24, 16, 0.8)' : '#ffffff',
+                    borderColor: '#d4a574',
+                    boxShadow: '0 2px 8px rgba(212, 165, 116, 0.15)'
+                }
+            }}>
+                {isSmallScreen ? (
+                    // Small screen: Clickable search button that opens full-screen dialog
+                    <Box
+                        onClick={handleSearchClick}
+                        sx={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            p: 1.5,
+                            border: isDark ? '1px solid rgba(200, 113, 55, 0.3)' : '1px solid rgba(139, 69, 19, 0.2)',
+                            borderRadius: 1,
+                            backgroundColor: isDark ? '#1a0f0a' : '#f5f1ed',
+                            cursor: 'pointer',
+                            '&:hover': {
+                                backgroundColor: isDark ? '#2c1810' : '#efe8e0'
+                            },
+                            transition: 'background-color 0.2s ease'
+                        }}
+                    >
+                        <SearchIcon sx={{ color: isDark ? '#d4a574' : '#8b4513' }} />
+                        <Typography variant="body1" sx={{ color: isDark ? '#d4a574' : '#5d3a1a' }}>
+                            Search for cards...
+                        </Typography>
+                    </Box>
+                ) : (
+                    // Larger screens: Inline search input
+                    <SearchInput
+                        label="Search for Cards"
+                        placeholder="Type to search..."
+                        items={cardOptions || []}
+                        value={inputValue || ""}
+                        onChange={onInputChange}
+                        onSelect={onAddCard}
+                        disabled={disabled}
+                        fullWidth
+                        placement="bottom"
+            keepOpenOnSelect
+            keepInputOnSelect
+                    />
+                )}
+            </ListItem>
+
             {cards.map((card, index) => {
                 const gradient = getCardGradient(card.subTypeName, '', isDark);
                 return (
@@ -252,65 +312,6 @@ const CardList = ({
                     </ListItem>
                 );
             })}
-            
-            {/* Search Input at End of List */}
-            <ListItem sx={{ 
-                border: isDark 
-                    ? '2px dashed rgba(200, 113, 55, 0.3)' 
-                    : '2px dashed rgba(139, 69, 19, 0.2)',
-                borderRadius: 2,
-                mb: 0,
-                backgroundColor: isDark ? 'rgba(44, 24, 16, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                p: { xs: 1, sm: 1.25, md: 1.5, lg: 1.75, xl: 2 },
-                width: '100%',
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                    backgroundColor: isDark ? 'rgba(44, 24, 16, 0.8)' : '#ffffff',
-                    borderColor: '#d4a574',
-                    boxShadow: '0 2px 8px rgba(212, 165, 116, 0.15)'
-                }
-            }}>
-                {isSmallScreen ? (
-                    // Small screen: Clickable search button that opens full-screen dialog
-                    <Box
-                        onClick={handleSearchClick}
-                        sx={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            p: 1.5,
-                            border: isDark ? '1px solid rgba(200, 113, 55, 0.3)' : '1px solid rgba(139, 69, 19, 0.2)',
-                            borderRadius: 1,
-                            backgroundColor: isDark ? '#1a0f0a' : '#f5f1ed',
-                            cursor: 'pointer',
-                            '&:hover': {
-                                backgroundColor: isDark ? '#2c1810' : '#efe8e0'
-                            },
-                            transition: 'background-color 0.2s ease'
-                        }}
-                    >
-                        <SearchIcon sx={{ color: isDark ? '#d4a574' : '#8b4513' }} />
-                        <Typography variant="body1" sx={{ color: isDark ? '#d4a574' : '#5d3a1a' }}>
-                            Search for cards...
-                        </Typography>
-                    </Box>
-                ) : (
-                    // Larger screens: Inline search input
-                    <SearchInput
-                        label="Search for Cards"
-                        placeholder="Type to search..."
-                        items={cardOptions || []}
-                        value={inputValue || ""}
-                        onChange={onInputChange}
-                        onSelect={onAddCard}
-                        disabled={disabled}
-                        fullWidth
-                        placement="bottom"
-                    />
-                )}
-            </ListItem>
-
             {/* Full-screen search dialog for small screens */}
             <SearchDialog
                 open={searchDialogOpen}
@@ -318,6 +319,8 @@ const CardList = ({
                 title={`Search Cards for ${title}`}
                 items={cardOptions || []}
                 onSelect={handleDialogAddCard}
+        keepOpenOnSelect
+        keepInputOnSelect
             />
         </List>
 
