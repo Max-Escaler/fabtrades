@@ -1,5 +1,5 @@
 productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,extRarity,extNumber,extCardType,extCardSubType,extClass,extIntellect,extLife,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName,extPower,extDefenseValue,extCost,extPitchValue
-586642,Dorinthea,Dorinthea,https://tcgplayer-cdn.tcgplayer.com/product/586642_200w.jpg,62,23762,https://cpt.tcgcsv.com/SGJ6,2024-10-09T20:16:13.203,1,Common,1HT001,Hero,Young,Warrior,4,20,2.0,2.0,2.0,,,Normal,,,,
+586642,Dorinthea,Dorinthea,https://tcgplayer-cdn.tcgplayer.com/product/586642_200w.jpg,62,23762,https://cpt.tcgcsv.com/SGJ6,2024-10-09T20:16:13.203,1,Common,1HT001,Hero,Young,Warrior,4,20,2.0,2.0,2.0,2.0,,Normal,,,,
 586643,Dawnblade,Dawnblade,https://tcgplayer-cdn.tcgplayer.com/product/586643_200w.jpg,62,23762,https://cpt.tcgcsv.com/TGJ6,2024-10-09T20:16:13.42,1,Common,1HT002,Weapon,Sword (2H),Warrior,,,2.0,2.0,2.0,,,Normal,3,,,
 586644,Nullrune Hood,Nullrune Hood,https://tcgplayer-cdn.tcgplayer.com/product/586644_200w.jpg,62,23762,https://cpt.tcgcsv.com/VGJ6,2024-10-09T20:16:13.547,1,Common,1HT003,Equipment,Head,Generic,,,0.99,1.0,1.0,,,Normal,,0,,
 586645,Nullrune Robe,Nullrune Robe,https://tcgplayer-cdn.tcgplayer.com/product/586645_200w.jpg,62,23762,https://cpt.tcgcsv.com/WGJ6,2024-10-09T20:16:13.99,1,Common,1HT004,Equipment,Chest,Generic,,,2.33,2.33,2.33,1.0,,Normal,,0,,
