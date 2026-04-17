@@ -1,14 +1,14 @@
 productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,extRarity,extNumber,extCardType,extCardSubType,extClass,extIntellect,extLife,extPower,extDefenseValue,extCost,extPitchValue,extFlavorText
 690432,"Dorinthea, Quicksilver Prodigy",Dorinthea Quicksilver Prodigy,https://tcgplayer-cdn.tcgplayer.com/product/690432_200w.jpg,62,24671,https://cpt.tcgcsv.com/Gbx7,2026-04-16T17:52:01.777,1,Basic,MPW001,Hero,Young,Warrior,4,20,,,,,
-690433,"Dawnblade, Resplendent",Dawnblade Resplendent,https://tcgplayer-cdn.tcgplayer.com/product/690433_200w.jpg,62,24671,https://cpt.tcgcsv.com/Hbx7,2026-04-16T19:01:42.2,1,Basic,DVR002,Weapon,Sword (2H),Warrior,,,2,,,,
+690433,"Dawnblade, Resplendent",Dawnblade Resplendent,https://tcgplayer-cdn.tcgplayer.com/product/690433_200w.jpg,62,24671,https://cpt.tcgcsv.com/Hbx7,2026-04-16T19:01:42.2,1,Basic,MPW002,Weapon,Sword (2H),Warrior,,,2,,,,
 690436,Hala,Hala,https://tcgplayer-cdn.tcgplayer.com/product/690436_200w.jpg,62,24671,https://cpt.tcgcsv.com/Lbx7,2026-04-16T18:00:00.347,1,Basic,MPW004,Mentor,,Warrior,,,,3,,,
 690437,Hala (Marvel),Hala Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690437_200w.jpg,62,24671,https://cpt.tcgcsv.com/Mbx7,2026-04-16T18:04:12.957,1,Marvel,MPW004,Mentor,,Warrior,,,,3,,,
 690438,Zenith Blade,Zenith Blade,https://tcgplayer-cdn.tcgplayer.com/product/690438_200w.jpg,62,24671,https://cpt.tcgcsv.com/Nbx7,2026-04-16T18:06:02.227,1,Basic,MPW005,Weapon,Sword (2H),Warrior,,,3,,,,
-690439,Zenith Blade (Marvel),Zenith Blade Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690439_200w.jpg,62,24671,https://cpt.tcgcsv.com/Pbx7,2026-04-16T18:07:21.577,2,Marvel,MPW005,,,,,,,,,,
-690440,Olympia,Olympia,https://tcgplayer-cdn.tcgplayer.com/product/690440_200w.jpg,62,24671,https://cpt.tcgcsv.com/Qbx7,2026-04-16T18:13:22.393,1,Basic,MPW006,,,,,,,,,,
-690441,Golden Grail,Golden Grail,https://tcgplayer-cdn.tcgplayer.com/product/690441_200w.jpg,62,24671,https://cpt.tcgcsv.com/Rbx7,2026-04-16T18:17:12.43,1,Basic,MPW007,,,,,,,,,,
-690442,Golden Grail (Marvel),Golden Grail Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690442_200w.jpg,62,24671,https://cpt.tcgcsv.com/Sbx7,2026-04-16T18:18:58.287,2,Marvel,MPW007,,,,,,,,,,
-690443,Valiant Dynamo,Valiant Dynamo,https://tcgplayer-cdn.tcgplayer.com/product/690443_200w.jpg,62,24671,https://cpt.tcgcsv.com/Tbx7,2026-04-16T18:20:43.81,1,Legendary,MPW012,,,,,,,,,,
+690439,Zenith Blade (Marvel),Zenith Blade Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690439_200w.jpg,62,24671,https://cpt.tcgcsv.com/Pbx7,2026-04-16T18:07:21.577,2,Marvel,MPW005,Weapon,Sword (2H),Warrior,,,3,,,,
+690440,Olympia,Olympia,https://tcgplayer-cdn.tcgplayer.com/product/690440_200w.jpg,62,24671,https://cpt.tcgcsv.com/Qbx7,2026-04-16T18:13:22.393,1,Basic,MPW006,Hero,Young,Warrior,4,20,,,,,
+690441,Golden Grail,Golden Grail,https://tcgplayer-cdn.tcgplayer.com/product/690441_200w.jpg,62,24671,https://cpt.tcgcsv.com/Rbx7,2026-04-16T18:17:12.43,1,Basic,MPW007,Weapon,Sword (2H),Warrior,,,3,,,,
+690442,Golden Grail (Marvel),Golden Grail Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690442_200w.jpg,62,24671,https://cpt.tcgcsv.com/Sbx7,2026-04-16T18:18:58.287,2,Marvel,MPW007,Weapon,Sword (2H),Warrior,,,3,,,,
+690443,Valiant Dynamo,Valiant Dynamo,https://tcgplayer-cdn.tcgplayer.com/product/690443_200w.jpg,62,24671,https://cpt.tcgcsv.com/Tbx7,2026-04-16T18:20:43.81,1,Legendary,MPW012,Equipment,Legs,Warrior,,,1,,,,
 690444,Sharpening Sparks,Sharpening Sparks,https://tcgplayer-cdn.tcgplayer.com/product/690444_200w.jpg,62,24671,https://cpt.tcgcsv.com/Vbx7,2026-04-16T18:24:28.51,1,Majestic,MPW026,Attack Reaction,,Warrior,,,,3,0,1,
 690445,Stand Tall,Stand Tall,https://tcgplayer-cdn.tcgplayer.com/product/690445_200w.jpg,62,24671,https://cpt.tcgcsv.com/Wbx7,2026-04-16T18:27:10.893,1,Majestic,MPW037,Block,,Warrior,,,,3,,2,
 690446,Run Through (Red),Run Through Red,https://tcgplayer-cdn.tcgplayer.com/product/690446_200w.jpg,62,24671,https://cpt.tcgcsv.com/Xbx7,2026-04-16T18:31:25.347,1,Rare,MPW048,Attack Reaction,,Warrior,,,,3,1,2,"<em>""On the savage frontier, we draw our battlelines in blood"" - Lieutenant Farris</em>"
@@ -30,7 +30,7 @@ productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,e
 690459,Steel on Steel (Yellow),Steel on Steel Yellow Common,https://tcgplayer-cdn.tcgplayer.com/product/690459_200w.jpg,62,24671,https://cpt.tcgcsv.com/ccx7,2026-04-16T18:53:27.51,1,Common,MPW097,Defense Reaction,,Warrior,,,,2,0,2,"<em>""Volcai rising up and Dracai on the warpath. No wonder the Cintari doubled their price.""
 <br>-Tasha of Deshvahan</em>"
 690460,Trot Along,Trot Along,https://tcgplayer-cdn.tcgplayer.com/product/690460_200w.jpg,62,24671,https://cpt.tcgcsv.com/dcx7,2026-04-16T18:55:52.787,1,Common,MPW153,Action,,Generic,,,,3,0,3,
-690461,Dawnblade (Marvel),Dawnblade Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690461_200w.jpg,62,24671,https://cpt.tcgcsv.com/fcx7,2026-04-16T19:13:52.21,2,Marvel,MPW156,,,,,,,,,,
+690461,Dawnblade (Marvel),Dawnblade Marvel,https://tcgplayer-cdn.tcgplayer.com/product/690461_200w.jpg,62,24671,https://cpt.tcgcsv.com/fcx7,2026-04-16T19:13:52.21,2,Marvel,MPW156,Weapon,Sword (2H),Warrior,,,3,,,,
 690470,Mastery Pack Warrior Booster Box,Mastery Pack Warrior Booster Box,https://tcgplayer-cdn.tcgplayer.com/product/690470_200w.jpg,62,24671,https://cpt.tcgcsv.com/qcx7,2026-04-16T19:18:39.03,0,,,,,,,,,,,,
 690471,Mastery Pack Guardian Booster Pack,Mastery Pack Guardian Booster Pack,https://tcgplayer-cdn.tcgplayer.com/product/690471_200w.jpg,62,24671,https://cpt.tcgcsv.com/rcx7,2026-04-16T19:19:41.077,0,,,,,,,,,,,,
 690473,Mastery Pack Warrior Booster Box Case,Mastery Pack Warrior Booster Box Case,https://tcgplayer-cdn.tcgplayer.com/product/690473_200w.jpg,62,24671,https://cpt.tcgcsv.com/tcx7,2026-04-16T19:20:43.307,0,,,,,,,,,,,,
