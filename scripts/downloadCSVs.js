@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 
 import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 // Parse command line arguments
 import {checkCSVStatus, clearDiffCache, downloadAllCSVs} from "../src/services/csv/index.js";
 
-// Fetch product groups from the API and construct CSV URLs
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PRODUCT_GROUPS_OUTPUT = path.join(__dirname, '..', 'public', 'productgroups.json');
+
+// Fetch product groups from the API, persist the response to
+// public/productgroups.json, and construct CSV URLs for downloading.
 async function fetchProductGroupUrls() {
     const PRODUCT_GROUPS_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
     
@@ -27,6 +35,15 @@ async function fetchProductGroupUrls() {
                     if (!json.success || !json.results || !Array.isArray(json.results)) {
                         reject(new Error('Invalid product groups response'));
                         return;
+                    }
+
+                    // Persist the full API response so consumers (e.g. the
+                    // Browse Sets page) always see the latest set metadata.
+                    try {
+                        fs.writeFileSync(PRODUCT_GROUPS_OUTPUT, JSON.stringify(json, null, 4));
+                        console.log(`💾 Saved product groups metadata to ${path.relative(process.cwd(), PRODUCT_GROUPS_OUTPUT)}`);
+                    } catch (writeErr) {
+                        console.warn(`⚠️  Could not write productgroups.json: ${writeErr.message}`);
                     }
 
                     // Construct URLs from groupIds
