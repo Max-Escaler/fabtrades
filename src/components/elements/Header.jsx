@@ -1,19 +1,24 @@
 import { useState } from 'react';
 import { 
     AppBar, Toolbar, Typography, Box, IconButton, Drawer, List, 
-    ListItem, ListItemButton, ListItemText, Tooltip 
+    ListItem, ListItemButton, ListItemText, Tooltip, Divider 
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { DarkMode, LightMode } from '@mui/icons-material';
+import { DarkMode, LightMode, ChevronRight } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { formatTimestamp } from "../../utils/helpers.js";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
+import { useSets } from "../../hooks/useSets.js";
 import LoginButton from '../auth/LoginButton.jsx';
+
+const RECENT_SETS_LIMIT = 8;
 
 const Header = ({ lastUpdatedTimestamp }) => {
     const location = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { isDark, toggleMode } = useThemeMode();
+    const { sets } = useSets();
+    const recentSets = sets.slice(0, RECENT_SETS_LIMIT);
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -183,7 +188,7 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem disablePadding>
+                    <ListItem disablePadding sx={{ mb: 1 }}>
                         <ListItemButton 
                             component={Link} 
                             to="/history"
@@ -212,7 +217,111 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             />
                         </ListItemButton>
                     </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={Link}
+                            to="/sets"
+                            sx={{
+                                borderRadius: 2,
+                                backgroundColor: location.pathname === '/sets'
+                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                    : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
+                                },
+                                transition: 'all 0.2s ease-in-out'
+                            }}
+                        >
+                            <ListItemText
+                                primary="Browse Sets"
+                                sx={{
+                                    fontWeight: location.pathname.startsWith('/sets') ? 700 : 500,
+                                    color: location.pathname.startsWith('/sets')
+                                        ? (isDark ? '#e4c09c' : '#8b4513')
+                                        : (isDark ? '#f5f1ed' : '#2c1810'),
+                                    '& .MuiTypography-root': { fontSize: '1rem' }
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
                 </List>
+
+                {recentSets.length > 0 && (
+                    <>
+                        <Divider
+                            sx={{
+                                my: 2,
+                                mx: 2,
+                                borderColor: isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.15)'
+                            }}
+                        />
+                        <Typography
+                            variant="overline"
+                            sx={{
+                                display: 'block',
+                                px: 3,
+                                mb: 0.5,
+                                color: isDark ? '#d4a574' : '#8b4513',
+                                fontWeight: 700,
+                                letterSpacing: '0.08em',
+                                fontSize: '0.7rem'
+                            }}
+                        >
+                            Recent Sets
+                        </Typography>
+                        <List sx={{ px: 1, pt: 0 }} dense>
+                            {recentSets.map((set) => {
+                                const active = location.pathname === `/sets/${set.groupId}`;
+                                return (
+                                    <ListItem key={set.groupId} disablePadding>
+                                        <ListItemButton
+                                            component={Link}
+                                            to={`/sets/${set.groupId}`}
+                                            sx={{
+                                                borderRadius: 2,
+                                                py: 0.75,
+                                                backgroundColor: active
+                                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                                    : 'transparent',
+                                                '&:hover': {
+                                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.18)' : 'rgba(139, 69, 19, 0.1)'
+                                                },
+                                                transition: 'all 0.15s ease-in-out'
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={set.name}
+                                                secondary={`${set.cardCount} cards`}
+                                                primaryTypographyProps={{
+                                                    sx: {
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: active ? 700 : 500,
+                                                        color: active
+                                                            ? (isDark ? '#e4c09c' : '#8b4513')
+                                                            : (isDark ? '#f5f1ed' : '#2c1810'),
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }
+                                                }}
+                                                secondaryTypographyProps={{
+                                                    sx: {
+                                                        fontSize: '0.7rem',
+                                                        color: isDark ? 'rgba(212, 165, 116, 0.7)' : 'rgba(93, 58, 26, 0.65)'
+                                                    }
+                                                }}
+                                            />
+                                            <ChevronRight sx={{
+                                                fontSize: 18,
+                                                color: isDark ? 'rgba(212, 165, 116, 0.6)' : 'rgba(93, 58, 26, 0.5)'
+                                            }} />
+                                        </ListItemButton>
+                                    </ListItem>
+                                );
+                            })}
+                        </List>
+                    </>
+                )}
             </Box>
         </Drawer>
         </>
