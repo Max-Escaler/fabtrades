@@ -15,9 +15,17 @@ const PRODUCT_GROUPS_OUTPUT = path.join(__dirname, '..', 'public', 'productgroup
 // public/productgroups.json, and construct CSV URLs for downloading.
 async function fetchProductGroupUrls() {
     const PRODUCT_GROUPS_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
-    
+
+    // tcgcsv.com rejects requests without a User-Agent (returns 401).
+    const requestOptions = {
+        headers: {
+            'User-Agent': 'fabtrades-csv-downloader/1.0 (+https://github.com/Max-Escaler/fabtrades)',
+            'Accept': 'application/json',
+        },
+    };
+
     return new Promise((resolve, reject) => {
-        https.get(PRODUCT_GROUPS_URL, (res) => {
+        https.get(PRODUCT_GROUPS_URL, requestOptions, (res) => {
             if (res.statusCode !== 200) {
                 reject(new Error(`Failed to fetch product groups: ${res.statusCode}`));
                 return;

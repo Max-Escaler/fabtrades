@@ -8,7 +8,15 @@ export function downloadCSV(url, outputPath) {
     return new Promise((resolve, reject) => {
         const protocol = url.startsWith('https:') ? https : http;
 
-        const request = protocol.get(url, (response) => {
+        // tcgcsv.com rejects requests without a User-Agent (returns 401).
+        const requestOptions = {
+            headers: {
+                'User-Agent': 'fabtrades-csv-downloader/1.0 (+https://github.com/Max-Escaler/fabtrades)',
+                'Accept': 'text/csv,*/*',
+            },
+        };
+
+        const request = protocol.get(url, requestOptions, (response) => {
             if (response.statusCode !== 200) {
                 reject(new Error(`Failed to download ${url}: ${response.statusCode}`));
                 return;
