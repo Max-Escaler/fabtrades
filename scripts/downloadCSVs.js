@@ -10,22 +10,55 @@ import {checkCSVStatus, clearDiffCache, downloadAllCSVs} from "../src/services/c
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PRODUCT_GROUPS_OUTPUT = path.join(__dirname, '..', 'public', 'productgroups.json');
+const LAST_UPDATED_OUTPUT = path.join(__dirname, '..', 'public', 'last-updated.txt');
+
+// User-Agent used for all tcgcsv.com requests (they reject blank UAs).
+const REQUEST_HEADERS = {
+    'User-Agent': 'fabtrades-csv-downloader/1.0 (+https://github.com/Max-Escaler/fabtrades)',
+    'Accept': '*/*',
+};
+
+// Fetch the "last updated" timestamp from tcgcsv.com and persist it to
+// public/last-updated.txt. The browser cannot fetch this URL directly because
+// tcgcsv.com does not send CORS headers, so we mirror it locally instead.
+function fetchLastUpdatedTimestamp() {
+    const LAST_UPDATED_URL = 'https://tcgcsv.com/last-updated.txt';
+
+    return new Promise((resolve) => {
+        https.get(LAST_UPDATED_URL, { headers: REQUEST_HEADERS }, (res) => {
+            if (res.statusCode !== 200) {
+                console.warn(`⚠️  Could not fetch last-updated.txt: HTTP ${res.statusCode}`);
+                res.resume();
+                resolve(null);
+                return;
+            }
+
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                const timestamp = data.trim();
+                try {
+                    fs.writeFileSync(LAST_UPDATED_OUTPUT, timestamp);
+                    console.log(`💾 Saved last-updated timestamp (${timestamp}) to ${path.relative(process.cwd(), LAST_UPDATED_OUTPUT)}`);
+                } catch (writeErr) {
+                    console.warn(`⚠️  Could not write last-updated.txt: ${writeErr.message}`);
+                }
+                resolve(timestamp);
+            });
+        }).on('error', (err) => {
+            console.warn(`⚠️  Could not fetch last-updated.txt: ${err.message}`);
+            resolve(null);
+        });
+    });
+}
 
 // Fetch product groups from the API, persist the response to
 // public/productgroups.json, and construct CSV URLs for downloading.
 async function fetchProductGroupUrls() {
     const PRODUCT_GROUPS_URL = 'https://tcgcsv.com/tcgplayer/62/groups';
 
-    // tcgcsv.com rejects requests without a User-Agent (returns 401).
-    const requestOptions = {
-        headers: {
-            'User-Agent': 'fabtrades-csv-downloader/1.0 (+https://github.com/Max-Escaler/fabtrades)',
-            'Accept': 'application/json',
-        },
-    };
-
     return new Promise((resolve, reject) => {
-        https.get(PRODUCT_GROUPS_URL, requestOptions, (res) => {
+        https.get(PRODUCT_GROUPS_URL, { headers: REQUEST_HEADERS }, (res) => {
             if (res.statusCode !== 200) {
                 reject(new Error(`Failed to fetch product groups: ${res.statusCode}`));
                 return;
@@ -129,6 +162,7 @@ fetchProductGroupUrls()
     console.log('');
     return downloadAllCSVs(urls, force);
   })
+  .then(() => fetchLastUpdatedTimestamp())
   .then(() => {
     console.log('\n✅ Download process completed!');
     console.log('\n📊 Final status:');
