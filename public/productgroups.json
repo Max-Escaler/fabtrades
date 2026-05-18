@@ -1,5 +1,5 @@
 {
-    "totalItems": 95,
+    "totalItems": 96,
     "success": true,
     "errors": [],
     "results": [
@@ -28,6 +28,15 @@
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
             "modifiedOn": "2026-05-12T20:37:08.337",
+            "categoryId": 62
+        },
+        {
+            "groupId": 24706,
+            "name": "Silver Age Chapter 3",
+            "abbreviation": "",
+            "isSupplemental": false,
+            "publishedOn": "2026-06-05T00:00:00",
+            "modifiedOn": "2026-05-18T19:48:49.773",
             "categoryId": 62
         },
         {
