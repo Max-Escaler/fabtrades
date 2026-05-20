@@ -14,6 +14,32 @@ export const useCardData = () => {
     return context;
 };
 
+// Official Flesh & Blood card CDN. We always source images from here so the
+// app has a single, predictable image origin (no per-render fallback chain).
+// The URL pattern is `{base}/{setCode}[suffix].webp`, where suffix is `-CF`
+// for cold foil printings and `-RF` for rainbow foil printings.
+const FAB_CDN_BASE = 'https://d2wlb52bya4y8z.cloudfront.net/media/cards/large';
+
+// Extract the first usable set code from an extNumber value. Some cards have
+// composite numbers like "SUP010 // SUP072" or "SEA045//SEA247".
+const getPrimaryExtNumber = (extNumber) => {
+    if (!extNumber) return '';
+    const cleaned = String(extNumber).split(/\s*\/\/\s*|\s*\/\s*/)[0];
+    return cleaned ? cleaned.trim() : '';
+};
+
+// Build the canonical FAB CDN image URL for a card based on its set code and
+// printing. Returns an empty string when there is no usable extNumber.
+const buildFabImageUrl = (extNumber, subTypeName) => {
+    const code = getPrimaryExtNumber(extNumber);
+    if (!code) return '';
+    const sub = (subTypeName || '').toLowerCase();
+    let suffix = '';
+    if (sub.includes('cold foil')) suffix = '-CF';
+    else if (sub.includes('rainbow foil')) suffix = '-RF';
+    return `${FAB_CDN_BASE}/${code}${suffix}.webp`;
+};
+
 // Function to check if an item is an actual card (not a product like booster box, pack, etc.)
 const isActualCard = (row) => {
     const cardType = (row.extCardType || '').trim();
@@ -66,7 +92,7 @@ const createCardObject = (row) => {
         productId: row.productId || '',
         name: row.name || '',
         cleanName: row.cleanName || '',
-        imageUrl: row.imageUrl || '',
+        imageUrl: buildFabImageUrl(row.extNumber, row.subTypeName),
         categoryId: row.categoryId || '',
         groupId: row.groupId || '',
         url: row.url || '',

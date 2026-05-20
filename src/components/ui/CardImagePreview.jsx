@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useThemeMode } from '../../contexts/ThemeContext.jsx';
 
 /**
- * Get image URL - TCGPlayer CDN uses _200w suffix
+ * Get image URL - returns the FAB CDN URL as-is (constructed upstream).
  */
 export const getImageUrl = (imageUrl, size = 'medium') => {
     if (!imageUrl) return null;
