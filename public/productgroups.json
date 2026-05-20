@@ -1,5 +1,5 @@
 {
-    "totalItems": 95,
+    "totalItems": 96,
     "success": true,
     "errors": [],
     "results": [
@@ -27,7 +27,16 @@
             "abbreviation": "OMN",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-05-11T18:56:23.657",
+            "modifiedOn": "2026-05-19T15:58:15.69",
+            "categoryId": 62
+        },
+        {
+            "groupId": 24706,
+            "name": "Silver Age Chapter 3",
+            "abbreviation": "",
+            "isSupplemental": false,
+            "publishedOn": "2026-06-05T00:00:00",
+            "modifiedOn": "2026-05-19T13:36:56.413",
             "categoryId": 62
         },
         {
@@ -36,7 +45,7 @@
             "abbreviation": "AZS",
             "isSupplemental": false,
             "publishedOn": "2026-05-29T00:00:00",
-            "modifiedOn": "2026-04-14T19:43:58.5",
+            "modifiedOn": "2026-05-19T14:06:18.773",
             "categoryId": 62
         },
         {
