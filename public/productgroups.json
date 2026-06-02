@@ -1,5 +1,5 @@
 {
-    "totalItems": 96,
+    "totalItems": 97,
     "success": true,
     "errors": [],
     "results": [
@@ -22,12 +22,21 @@
             "categoryId": 62
         },
         {
+            "groupId": 24720,
+            "name": "Gem Pack 5",
+            "abbreviation": "GEM",
+            "isSupplemental": false,
+            "publishedOn": "2026-06-05T00:00:00",
+            "modifiedOn": "2026-06-02T16:38:11.15",
+            "categoryId": 62
+        },
+        {
             "groupId": 24640,
             "name": "Omens of the Third Age",
             "abbreviation": "OMN",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-06-01T12:31:52.33",
+            "modifiedOn": "2026-06-02T15:40:57.823",
             "categoryId": 62
         },
         {
@@ -36,7 +45,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-05-29T20:13:10.863",
+            "modifiedOn": "2026-06-01T19:55:46.37",
             "categoryId": 62
         },
         {
@@ -135,7 +144,7 @@
             "abbreviation": "SUP",
             "isSupplemental": false,
             "publishedOn": "2025-09-26T00:00:00",
-            "modifiedOn": "2026-03-12T13:27:40.837",
+            "modifiedOn": "2026-06-01T19:46:06.453",
             "categoryId": 62
         },
         {
