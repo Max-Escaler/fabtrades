@@ -456,6 +456,7 @@ const SetDetail = () => {
 
                                             <CardThumbnail
                                                 imageUrl={card.imageUrl}
+                                                fallbackUrl={card.imageUrlFallback}
                                                 alt={card.name}
                                                 size={isSmall ? 34 : 42}
                                                 onClick={() => openImage(card)}
@@ -543,6 +544,7 @@ const SetDetail = () => {
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 imageUrl={modalCard?.imageUrl}
+                fallbackUrl={modalCard?.imageUrlFallback}
                 cardName={modalCard?.name}
             />
         </Box>

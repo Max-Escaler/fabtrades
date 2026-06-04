@@ -28,6 +28,7 @@ const SearchOption = ({
     // Get set name and image URL
     const setName = option.setName || option.card?._setName || '';
     const imageUrl = option.card?.imageUrl || '';
+    const imageUrlFallback = option.card?.imageUrlFallback || '';
     
     // Get price from card object
     const price = option.card?.marketPrice || option.card?.lowPrice || 0;
@@ -90,6 +91,7 @@ const SearchOption = ({
             {/* Card thumbnail - smaller */}
             <CardThumbnail 
                 imageUrl={imageUrl} 
+                fallbackUrl={imageUrlFallback}
                 alt={option.label} 
                 size={28}
             />

@@ -66,7 +66,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                         quantity: 1,
                         subTypeName: subTypeName,  // Store subTypeName for gradient rendering
                         uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId,
-                        imageUrl: selectedCard?.imageUrl || edition.imageUrl || ''
+                        imageUrl: selectedCard?.imageUrl || edition.imageUrl || '',
+                        imageUrlFallback: selectedCard?.imageUrlFallback || edition.imageUrlFallback || ''
                     }
                 ]);
                 inputSetter("");
@@ -102,7 +103,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                         price: edition.cardPrice,
                         availableEditions: cardGroup.editions,
                         cardGroup,
-                        imageUrl: card.imageUrl || edition.imageUrl || ''
+                        imageUrl: card.imageUrl || edition.imageUrl || '',
+                        imageUrlFallback: card.imageUrlFallback || edition.imageUrlFallback || ''
                     };
                 }
                 return card;
@@ -212,7 +214,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                     availableEditions: cardGroup.editions,
                     subTypeName: selectedEdition.subTypeName || 'Normal',
                     uniqueId: selectedEdition.uniqueId,
-                    imageUrl: savedCard.imageUrl || selectedEdition.imageUrl || ''
+                    imageUrl: savedCard.imageUrl || selectedEdition.imageUrl || '',
+                    imageUrlFallback: savedCard.imageUrlFallback || selectedEdition.imageUrlFallback || ''
                 };
             }).filter(card => card !== null);
         };

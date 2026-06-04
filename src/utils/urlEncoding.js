@@ -503,7 +503,8 @@ export function reconstructCardsFromURLData(cardData, cardGroups, cardIdLookup =
         availableEditions: cardGroup.editions,
         uniqueId: selectedEdition.uniqueId, // Include unique ID for future operations
         subTypeName: selectedEdition.subTypeName || 'Normal',
-        imageUrl: selectedEdition.imageUrl || ''
+        imageUrl: selectedEdition.imageUrl || '',
+        imageUrlFallback: selectedEdition.imageUrlFallback || ''
       };
 
       validCards.push(reconstructedCard);

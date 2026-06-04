@@ -214,6 +214,7 @@ const CardList = ({
                         {/* Card Thumbnail */}
                         <CardThumbnail 
                             imageUrl={card.imageUrl} 
+                            fallbackUrl={card.imageUrlFallback}
                             alt={card.name}
                             size={40}
                             onClick={() => handleImageClick(card)}
@@ -329,6 +330,7 @@ const CardList = ({
             open={imageModalOpen}
             onClose={handleImageModalClose}
             imageUrl={selectedCard?.imageUrl}
+            fallbackUrl={selectedCard?.imageUrlFallback}
             cardName={selectedCard?.name}
         />
         </>

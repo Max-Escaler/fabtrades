@@ -92,9 +92,13 @@ const createCardObject = (row) => {
         productId: row.productId || '',
         name: row.name || '',
         cleanName: row.cleanName || '',
-        imageUrl: buildFabImageUrl(row.extNumber, row.subTypeName),
         categoryId: row.categoryId || '',
         groupId: row.groupId || '',
+        // Prefer the canonical FAB CDN image, but fall back to the source
+        // (TCGplayer) image when the CDN has no file for this card (e.g. heroes,
+        // tokens, and promos whose set codes the CDN doesn't host).
+        imageUrl: buildFabImageUrl(row.extNumber, row.subTypeName) || (row.imageUrl || ''),
+        imageUrlFallback: row.imageUrl || '',
         url: row.url || '',
         modifiedOn: row.modifiedOn || '',
         imageCount: getIntegerValue(row, ['imageCount']),
@@ -275,7 +279,8 @@ const groupCardsByEdition = (cards, priceType = 'market') => {
                 productId: card.productId,
                 cardPrice: priceType === 'market' ? card.marketPrice : card.lowPrice,
                 uniqueId: card._uniqueId,
-                imageUrl: card.imageUrl || ''
+                imageUrl: card.imageUrl || '',
+                imageUrlFallback: card.imageUrlFallback || ''
             });
         }
     });

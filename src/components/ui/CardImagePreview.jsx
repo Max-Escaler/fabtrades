@@ -20,18 +20,29 @@ export const getImageUrl = (imageUrl, size = 'medium') => {
 /**
  * Small thumbnail component for card lists
  */
-export const CardThumbnail = ({ imageUrl, alt, size = 40, onClick }) => {
+export const CardThumbnail = ({ imageUrl, fallbackUrl, alt, size = 40, onClick }) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
+    const [currentSrc, setCurrentSrc] = useState(imageUrl);
     const { isDark } = useThemeMode();
 
     // Reset state when imageUrl changes
     useEffect(() => {
         setLoaded(false);
         setError(false);
+        setCurrentSrc(imageUrl);
     }, [imageUrl]);
 
-    if (!imageUrl || error) {
+    // When the primary image fails, try the fallback before giving up.
+    const handleError = () => {
+        if (fallbackUrl && currentSrc !== fallbackUrl) {
+            setCurrentSrc(fallbackUrl);
+        } else {
+            setError(true);
+        }
+    };
+
+    if (!currentSrc || error) {
         return (
             <Box
                 onClick={onClick}
@@ -102,10 +113,10 @@ export const CardThumbnail = ({ imageUrl, alt, size = 40, onClick }) => {
                 </Box>
             )}
             <img
-                src={imageUrl}
+                src={currentSrc}
                 alt={alt}
                 onLoad={() => setLoaded(true)}
-                onError={() => setError(true)}
+                onError={handleError}
                 style={{
                     width: '100%',
                     height: '100%',
@@ -121,10 +132,21 @@ export const CardThumbnail = ({ imageUrl, alt, size = 40, onClick }) => {
 /**
  * Hover preview component - shows larger image on hover
  */
-export const CardHoverPreview = ({ imageUrl, alt, children, placement = 'right' }) => {
+export const CardHoverPreview = ({ imageUrl, fallbackUrl, alt, children, placement = 'right' }) => {
     const [showPreview, setShowPreview] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [currentSrc, setCurrentSrc] = useState(imageUrl);
     const { isDark } = useThemeMode();
+
+    useEffect(() => {
+        setCurrentSrc(imageUrl);
+    }, [imageUrl]);
+
+    const handleError = () => {
+        if (fallbackUrl && currentSrc !== fallbackUrl) {
+            setCurrentSrc(fallbackUrl);
+        }
+    };
 
     if (!imageUrl) {
         return children;
@@ -184,9 +206,10 @@ export const CardHoverPreview = ({ imageUrl, alt, children, placement = 'right' 
                             </Box>
                         )}
                         <img
-                            src={imageUrl}
+                            src={currentSrc}
                             alt={alt}
                             onLoad={() => setLoaded(true)}
+                            onError={handleError}
                             style={{
                                 width: '100%',
                                 height: '100%',
@@ -205,9 +228,10 @@ export const CardHoverPreview = ({ imageUrl, alt, children, placement = 'right' 
 /**
  * Full-screen modal for viewing card image
  */
-export const CardImageModal = ({ open, onClose, imageUrl, cardName }) => {
+export const CardImageModal = ({ open, onClose, imageUrl, fallbackUrl, cardName }) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
+    const [currentSrc, setCurrentSrc] = useState(imageUrl);
     const { isDark } = useThemeMode();
 
     // Reset state when modal opens/closes or imageUrl changes
@@ -215,8 +239,17 @@ export const CardImageModal = ({ open, onClose, imageUrl, cardName }) => {
         if (open) {
             setLoaded(false);
             setError(false);
+            setCurrentSrc(imageUrl);
         }
     }, [open, imageUrl]);
+
+    const handleError = () => {
+        if (fallbackUrl && currentSrc !== fallbackUrl) {
+            setCurrentSrc(fallbackUrl);
+        } else {
+            setError(true);
+        }
+    };
 
     const handleClose = () => {
         onClose();
@@ -305,10 +338,10 @@ export const CardImageModal = ({ open, onClose, imageUrl, cardName }) => {
                             </Box>
                         )}
                         <img
-                            src={imageUrl}
+                            src={currentSrc}
                             alt={cardName}
                             onLoad={() => setLoaded(true)}
-                            onError={() => setError(true)}
+                            onError={handleError}
                             style={{
                                 maxWidth: '85vw',
                                 maxHeight: '85vh',
