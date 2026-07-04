@@ -271,12 +271,13 @@ const Header = ({ lastUpdatedTimestamp }) => {
                         </Typography>
                         <List sx={{ px: 1, pt: 0 }} dense>
                             {recentSets.map((set) => {
-                                const active = location.pathname === `/sets/${set.groupId}`;
+                                const setPath = `/sets/${set.slug || set.groupId}`;
+                                const active = location.pathname === setPath;
                                 return (
                                     <ListItem key={set.groupId} disablePadding>
                                         <ListItemButton
                                             component={Link}
-                                            to={`/sets/${set.groupId}`}
+                                            to={setPath}
                                             sx={{
                                                 borderRadius: 2,
                                                 py: 0.75,

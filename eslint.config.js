@@ -29,4 +29,13 @@ export default defineConfig([
             'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
         },
     },
+    {
+        // Node.js build/utility scripts run outside the browser.
+        files: ['scripts/**/*.{js,mjs}', '*.config.js'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
 ])

@@ -24,6 +24,7 @@ import Header from '../components/elements/Header.jsx';
 import { useSets } from '../hooks/useSets.js';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { fetchLastUpdatedTimestamp } from '../services/api.js';
+import { useDocumentHead } from '../utils/seo.js';
 
 const formatDate = (iso) => {
     if (!iso) return 'Unknown';
@@ -43,6 +44,14 @@ const SetList = () => {
     const { isDark } = useThemeMode();
     const [query, setQuery] = useState('');
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
+
+    useDocumentHead({
+        title: 'Flesh and Blood Card Price Guides by Set',
+        description:
+            'Browse every Flesh and Blood TCG set and see up-to-date TCGplayer ' +
+            'market prices for each card. Pick a set for its full price guide.',
+        canonicalPath: '/sets'
+    });
 
     useEffect(() => {
         fetchLastUpdatedTimestamp().then(setLastUpdatedTimestamp);
@@ -159,7 +168,7 @@ const SetList = () => {
                                 >
                                     <ListItemButton
                                         component={Link}
-                                        to={`/sets/${set.groupId}`}
+                                        to={`/sets/${set.slug || set.groupId}`}
                                         sx={{
                                             px: 2,
                                             py: 1.5,

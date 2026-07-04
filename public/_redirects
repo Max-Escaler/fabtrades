@@ -1,0 +1,4 @@
+# Prerendered static files (e.g. /sets/<slug>/index.html, /sitemap.xml) are
+# served directly by Netlify before these rules apply. Everything else falls
+# back to the SPA shell so client-side routing works on deep links.
+/*    /index.html   200

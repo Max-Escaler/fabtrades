@@ -30,6 +30,7 @@ import { useSets } from '../hooks/useSets.js';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { fetchLastUpdatedTimestamp } from '../services/api.js';
 import { formatCardType, getCardGradient } from '../utils/searchUtils.js';
+import { useDocumentHead } from '../utils/seo.js';
 
 /**
  * Flesh and Blood frequently encodes alternate printings into the card name
@@ -198,6 +199,24 @@ const SetDetail = () => {
     }, []);
 
     const set = useMemo(() => getSetById(groupId), [getSetById, groupId]);
+
+    // Keep the document head in sync for SPA navigation & social scrapers.
+    const seoTitle = set
+        ? `${set.name}${set.abbreviation ? ` (${set.abbreviation})` : ''} Card Price Guide`
+        : 'Card Price Guide';
+    const topName = set?.cards?.length
+        ? [...set.cards].sort((a, b) => (b.marketPrice || 0) - (a.marketPrice || 0))[0]?.name
+        : null;
+    const seoDescription = set
+        ? `Up-to-date TCGplayer market, low, and high prices for all ${set.cards.length} ` +
+          `Flesh and Blood cards in ${set.name}${topName ? `, including ${topName}` : ''}. ` +
+          `Sort by value and balance trades with FAB Trades.`
+        : undefined;
+    useDocumentHead({
+        title: seoTitle,
+        description: seoDescription,
+        canonicalPath: set?.slug ? `/sets/${set.slug}` : undefined
+    });
 
     const annotated = useMemo(() => (set ? annotateCards(set.cards) : []), [set]);
 

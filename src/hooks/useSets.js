@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCardData } from './useCardData.jsx';
+import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
 
 // Module-level cache so the product groups JSON is only fetched once even
 // when multiple components mount `useSets` on the same page.
@@ -22,15 +23,8 @@ const loadGroupsCached = async () => {
     return groupsPromise;
 };
 
-/**
- * Slugify a set name for friendlier URLs (used as a visual aid only;
- * routes are keyed by groupId).
- */
-export const slugifySetName = (name = '') =>
-    name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+// Re-export the shared slug helper so existing importers keep working.
+export { slugifySetName };
 
 /**
  * Determine if a row from the consolidated data represents an actual playable
@@ -106,7 +100,7 @@ export const useSets = () => {
      */
     const sets = useMemo(() => {
         if (!groups || groups.length === 0) return [];
-        return groups
+        const eligible = groups
             .map((group) => {
                 const key = String(group.groupId);
                 const groupCards = cardsByGroupId.get(key) || [];
@@ -126,8 +120,7 @@ export const useSets = () => {
                     modifiedOn: group.modifiedOn || null,
                     isSupplemental: !!group.isSupplemental,
                     cardCount: groupCards.length,
-                    topMarketPrice,
-                    slug: slugifySetName(group.name || '')
+                    topMarketPrice
                 };
             })
             .filter(Boolean)
@@ -136,28 +129,45 @@ export const useSets = () => {
                 const db = b.publishedOn ? new Date(b.publishedOn).getTime() : 0;
                 return db - da;
             });
+
+        // Attach collision-free slugs derived from the eligible set list.
+        const slugMap = buildSetSlugMap(eligible);
+        return eligible.map((s) => ({ ...s, slug: slugMap.get(String(s.groupId)) || '' }));
     }, [groups, cardsByGroupId]);
 
+    // Reverse lookup so routes can resolve a slug back to its groupId.
+    const slugToGroupId = useMemo(() => {
+        const map = new Map();
+        for (const s of sets) {
+            if (s.slug) map.set(s.slug, String(s.groupId));
+        }
+        return map;
+    }, [sets]);
+
     /**
-     * Look up a specific set (with its cards) by groupId. Returns null if the
-     * group isn't present or has no cards.
+     * Look up a specific set (with its cards) by either its numeric groupId or
+     * its SEO slug (e.g. "omens-of-the-third-age"). Returns null if nothing
+     * matches or the group has no cards.
      */
-    const getSetById = useCallback((groupId) => {
-        if (!groupId) return null;
-        const key = String(groupId);
-        const meta = groups.find((g) => String(g.groupId) === key);
-        const groupCards = cardsByGroupId.get(key) || [];
+    const getSetById = useCallback((idOrSlug) => {
+        if (!idOrSlug) return null;
+        // Resolve slugs to a groupId first; fall back to treating the value as
+        // a raw groupId (keeps old numeric URLs working).
+        const resolvedKey = slugToGroupId.get(String(idOrSlug)) || String(idOrSlug);
+        const meta = groups.find((g) => String(g.groupId) === resolvedKey);
+        const groupCards = cardsByGroupId.get(resolvedKey) || [];
         if (!meta && groupCards.length === 0) return null;
         return {
-            groupId: meta?.groupId ?? groupId,
-            name: meta?.name || `Set ${groupId}`,
+            groupId: meta?.groupId ?? resolvedKey,
+            name: meta?.name || `Set ${resolvedKey}`,
             abbreviation: meta?.abbreviation || '',
             publishedOn: meta?.publishedOn || null,
             modifiedOn: meta?.modifiedOn || null,
             isSupplemental: !!meta?.isSupplemental,
+            slug: slugToGroupId.size ? [...slugToGroupId.entries()].find(([, id]) => id === resolvedKey)?.[0] || '' : '',
             cards: groupCards
         };
-    }, [groups, cardsByGroupId]);
+    }, [groups, cardsByGroupId, slugToGroupId]);
 
     return {
         sets,

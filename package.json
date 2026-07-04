@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generateSeoPages.js",
+    "build:app": "vite build",
+    "generate-seo": "node scripts/generateSeoPages.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "download-csvs": "node scripts/downloadCSVs.js",

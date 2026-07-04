@@ -31,3 +31,9 @@ createRoot(document.getElementById('root')).render(
         </ThemeModeProvider>
     </StrictMode>,
 )
+
+// Build-time SEO prerendering injects a static, crawlable copy of the page into
+// #seo-prerender. Once the interactive app has mounted we remove it so real
+// users don't see duplicated content.
+const seoNode = document.getElementById('seo-prerender');
+if (seoNode) seoNode.remove();
