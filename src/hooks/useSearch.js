@@ -56,7 +56,7 @@ export const useSearch = ({
   }, [disabled]);
 
   // Handle input blur
-  const handleBlur = useCallback((event) => {
+  const handleBlur = useCallback(() => {
     // Delay to allow click events on dropdown items
     setTimeout(() => {
       if (dropdownRef.current && !dropdownRef.current.contains(document.activeElement)) {

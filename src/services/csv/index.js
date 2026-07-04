@@ -8,14 +8,6 @@ import { downloadCSV, cleanCSV, getFileHash } from './downloader.js';
 import { checkRemoteFileChanged } from './diffChecker.js';
 import { shouldRefreshData, updateLastUpdateTimestamp, saveManifest, checkCSVStatus } from './updater.js';
 
-function readCSVUrls() {
-    if (!fs.existsSync(CSV_URLS_FILE)) return [];
-    return fs.readFileSync(CSV_URLS_FILE, 'utf8')
-        .split('\n')
-        .map(l => l.trim())
-        .filter(Boolean);
-}
-
 // 🔹 Retrieve URLs from Google Sheet
 export async function downloadFromProductsSheet(sheetUrl) {
     return new Promise((resolve, reject) => {

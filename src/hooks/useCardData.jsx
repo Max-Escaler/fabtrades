@@ -219,20 +219,9 @@ const processJsonData = (jsonData) => {
     return allCards;
 };
 
-// Function to identify duplicates and enhance display names
+// Function to enhance display names with edition info
 const enhanceDisplayNames = (cards) => {
-    // Group cards by name to identify duplicates
-    const nameGroups = {};
-    cards.forEach(card => {
-        if (!nameGroups[card.name]) {
-            nameGroups[card.name] = [];
-        }
-        nameGroups[card.name].push(card);
-    });
-
-    // Enhance display names for cards with multiple editions
     return cards.map(card => {
-        const sameNameCards = nameGroups[card.name];
         const extNumber = card.extNumber || '';
         const subTypeName = card.subTypeName || '';
         

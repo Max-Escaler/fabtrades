@@ -1,61 +1,17 @@
 import {
-  encodeTradeToURL,
   decodeTradeFromURL,
   reconstructCardsFromURLData,
   hasTradeDataInURL,
   clearTradeFromURL,
 } from '../../src/utils/urlEncoding.js';
 
-// Names are single tokens on purpose: the compressor strips ALL whitespace and
-// applies lossy card-name substitutions (uppercase "R"/"B"/"Y", "St", "Th"...),
-// so space-free identifiers are what actually survives an exact round-trip.
-const haveCards = [
-  { name: 'ZetaNode', price: 10, quantity: 1 },
-  { name: 'GammaCoil', price: 4.5, quantity: 3 },
-];
-const wantCards = [{ name: 'DeltaVane', price: 20, quantity: 1 }];
-
 const resetURL = () => window.history.replaceState({}, '', '/');
 
-describe('encodeTradeToURL', () => {
-  beforeEach(resetURL);
-
-  test('produces a URL carrying a `trade` query parameter', () => {
-    const url = encodeTradeToURL(haveCards, wantCards);
-    expect(typeof url).toBe('string');
-    expect(url).toContain('?trade=');
-  });
-
-  test('honors a custom baseUrl', () => {
-    const url = encodeTradeToURL(haveCards, wantCards, {
-      baseUrl: 'https://example.com/share',
-    });
-    expect(url.startsWith('https://example.com/share?trade=')).toBe(true);
-  });
-});
-
-describe('encode/decode round-trip', () => {
-  beforeEach(resetURL);
-  afterEach(resetURL);
-
-  test('decodes the same cards that were encoded', () => {
-    const url = encodeTradeToURL(haveCards, wantCards);
-    window.history.replaceState({}, '', url);
-
-    const decoded = decodeTradeFromURL();
-    expect(decoded).not.toBeNull();
-    expect(decoded.version).toBe(1);
-    expect(decoded.have).toHaveLength(2);
-    expect(decoded.want).toHaveLength(1);
-
-    // Array form: [name, price, quantity?] — quantity omitted when it is 1.
-    expect(decoded.have[0][0]).toBe('ZetaNode');
-    expect(decoded.have[0][1]).toBe(10);
-    expect(decoded.have[1][0]).toBe('GammaCoil');
-    expect(decoded.have[1][2]).toBe(3);
-    expect(decoded.want[0][0]).toBe('DeltaVane');
-  });
-});
+// Build a `trade` query param the same way a shared link would carry it:
+// base64 of the minimal JSON payload, then URL-encoded. Single-token card
+// names avoid the decompressor's lossy name substitutions.
+const makeTradeParam = (payload) =>
+  encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
 
 describe('decodeTradeFromURL', () => {
   beforeEach(resetURL);
@@ -68,6 +24,25 @@ describe('decodeTradeFromURL', () => {
   test('returns null for a malformed trade parameter', () => {
     window.history.replaceState({}, '', '/?trade=%%%not-valid%%%');
     expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('decodes a valid trade payload from the URL', () => {
+    const param = makeTradeParam({
+      v: 1,
+      t: Math.floor(Date.now() / 60000),
+      h: [['ZetaNode', 10], ['GammaCoil', 4.5, 3]],
+      w: [['DeltaVane', 20]],
+    });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded).not.toBeNull();
+    expect(decoded.version).toBe(1);
+    expect(decoded.have).toHaveLength(2);
+    expect(decoded.want).toHaveLength(1);
+    expect(decoded.have[0][0]).toBe('ZetaNode');
+    expect(decoded.have[1][2]).toBe(3);
+    expect(decoded.want[0][0]).toBe('DeltaVane');
   });
 });
 

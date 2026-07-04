@@ -25,9 +25,7 @@ const CardList = ({
     cards, 
     onRemoveCard, 
     onUpdateQuantity, 
-    isMobile, 
     cardOptions, 
-    allCards = [],
     inputValue, 
     onInputChange, 
     onAddCard, 
@@ -164,7 +162,7 @@ const CardList = ({
             </ListItem>
 
             {cards.map((card, index) => {
-                const gradient = getCardGradient(card.subTypeName, '', isDark);
+                const gradient = getCardGradient(card.subTypeName, isDark);
                 return (
                     <ListItem
                         key={`${card.name}-${index}`}

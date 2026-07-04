@@ -50,7 +50,7 @@ async function parseCSVFile(filePath) {
                 // Ensure consistent header naming
                 return header.trim();
             },
-            transform: (value, header) => {
+            transform: (value) => {
                 // Clean up data values
                 return value.trim();
             },

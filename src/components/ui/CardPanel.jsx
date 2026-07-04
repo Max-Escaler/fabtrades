@@ -4,7 +4,6 @@ import CardList from './CardList.jsx';
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 
 const CardPanel = ({ 
-    allCards, 
     title, 
     cards, 
     cardOptions, 
@@ -13,8 +12,6 @@ const CardPanel = ({
     onAddCard, 
     onRemoveCard, 
     onUpdateQuantity,
-    isMobile, 
-    totalColor = 'primary',
     disabled = false,
     isLandscape = false
 }) => {
@@ -81,11 +78,9 @@ const CardPanel = ({
             
             {/* List of Added Cards with Search Input */}
             <CardList
-                allCards={allCards}
                 cards={cards}
                 onRemoveCard={onRemoveCard}
                 onUpdateQuantity={onUpdateQuantity}
-                isMobile={isMobile}
                 cardOptions={cardOptions}
                 inputValue={inputValue}
                 onInputChange={onInputChange}

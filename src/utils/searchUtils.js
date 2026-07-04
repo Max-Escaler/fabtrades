@@ -211,11 +211,10 @@ export const highlightMatch = (text, searchTerm) => {
  * Get gradient style based on card foil type
  * FAB-themed warm brown gradients
  * @param {string} subTypeName - Card's subTypeName field (foil type)
- * @param {string} rarity - Card's rarity field
  * @param {boolean} isDark - Whether dark mode is active
  * @returns {Object} Object with background and backgroundHover properties
  */
-export const getCardGradient = (subTypeName, rarity = '', isDark = false) => {
+export const getCardGradient = (subTypeName, isDark = false) => {
     const subType = (subTypeName || '').toLowerCase();
     
     // Rainbow Foil - vibrant rainbow gradient
@@ -283,31 +282,6 @@ export const formatPrice = (price) => {
         return '—';
     }
     return `$${price.toFixed(2)}`;
-};
-
-/**
- * Get short foil label for display in badges
- * @param {string} subTypeName - Card's subTypeName field
- * @returns {string|null} Short label or null if normal
- */
-export const getShortFoilLabel = (subTypeName) => {
-    const subType = (subTypeName || '').toLowerCase();
-    
-    if (subType.includes('rainbow foil')) {
-        return 'RF';
-    }
-    if (subType.includes('cold foil')) {
-        return 'CF';
-    }
-    // Don't show a badge for normal cards
-    if (subType === 'normal' || subType === '' || !subType) {
-        return null;
-    }
-    // For any other type, show first 2 letters uppercase
-    if (subType.length > 0) {
-        return subType.substring(0, 2).toUpperCase();
-    }
-    return null;
 };
 
 /**

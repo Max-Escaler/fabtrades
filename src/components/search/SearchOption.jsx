@@ -19,7 +19,7 @@ const SearchOption = ({
     const { isDark } = useThemeMode();
     const { priceSource } = usePriceType();
     const [isHovered, setIsHovered] = useState(false);
-    const gradient = getCardGradient(option.subTypeName, '', isDark);
+    const gradient = getCardGradient(option.subTypeName, isDark);
     const textSegments = highlightMatch(option.label, searchTerm);
     
     // Get the card type badge

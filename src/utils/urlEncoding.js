@@ -3,42 +3,6 @@
  * Handles compression, validation, and backwards compatibility
  */
 
-// Advanced compression strategies for URL optimization
-function compress(str) {
-  try {
-    console.log('Starting compression of:', str.substring(0, 100) + '...');
-    
-    // Strategy 1: Remove unnecessary whitespace from JSON
-    const minified = str.replace(/\s+/g, '');
-    console.log('After minification:', minified.length, 'chars');
-    
-    // Strategy 2: Use shorter field names (already done in encoding)
-    
-    // Strategy 3: Compress common card name patterns
-    let compressed = compressCardNames(minified);
-    console.log('After card name compression:', compressed.length, 'chars');
-    
-    // Strategy 4: Compress repeated patterns
-    compressed = compressRepeatedPatterns(compressed);
-    console.log('After pattern compression:', compressed.length, 'chars');
-    
-    // Strategy 5: Base64 encode the result
-    const result = btoa(unescape(encodeURIComponent(compressed)));
-    console.log('After base64 encoding:', result.length, 'chars');
-    return result;
-  } catch (error) {
-    console.warn('Advanced compression failed, using simple base64:', error);
-    try {
-      // Fallback to simple base64 encoding
-      return btoa(unescape(encodeURIComponent(str)));
-    } catch (fallbackError) {
-      console.error('Even simple base64 failed:', fallbackError);
-      // Last resort - return the string as-is
-      return str;
-    }
-  }
-}
-
 function decompress(str) {
   try {
     console.log('Starting decompression of:', str.substring(0, 50) + '...');
@@ -101,27 +65,6 @@ function decompress(str) {
   }
 }
 
-// Compress repeated JSON patterns
-function compressRepeatedPatterns(str) {
-  // Replace common JSON patterns with shorter equivalents
-  const patterns = [
-    ['"n":"', 'α'],      // name field
-    ['"p":', 'β'],       // price field  
-    ['"q":', 'γ'],       // quantity field
-    ['{"', 'δ'],         // object start
-    ['"}', 'ε'],         // object end
-    [',"', 'ζ'],         // comma quote
-    ['":', 'η'],         // quote colon
-  ];
-  
-  let compressed = str;
-  patterns.forEach(([pattern, replacement]) => {
-    compressed = compressed.replace(new RegExp(escapeRegExp(pattern), 'g'), replacement);
-  });
-  
-  return compressed;
-}
-
 // Decompress repeated JSON patterns
 function decompressRepeatedPatterns(str) {
   const patterns = [
@@ -140,37 +83,6 @@ function decompressRepeatedPatterns(str) {
   });
   
   return decompressed;
-}
-
-// Compress common card name patterns
-function compressCardNames(str) {
-  // Common FAB card terms that can be abbreviated
-  const cardPatterns = [
-    // Common words in card names
-    [' of ', '◊'],
-    [' the ', '♦'],
-    [' and ', '♠'],
-    ['Lightning', 'Lt'],
-    ['Thunder', 'Th'],
-    ['Strike', 'St'],
-    ['Attack', 'At'],
-    ['Defense', 'Df'],
-    ['Action', 'Ac'],
-    ['Equipment', 'Eq'],
-    ['Weapon', 'Wp'],
-    ['Rainbow', 'Rb'],
-    ['Yellow', 'Y'],
-    ['Blue', 'B'],
-    ['Red', 'R'],
-    [' - ', '~'], // common separator
-  ];
-  
-  let compressed = str;
-  cardPatterns.forEach(([pattern, replacement]) => {
-    compressed = compressed.replace(new RegExp(escapeRegExp(pattern), 'g'), replacement);
-  });
-  
-  return compressed;
 }
 
 // Decompress card name patterns
@@ -205,63 +117,6 @@ function decompressCardNames(str) {
 // Escape special characters for regex
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Encodes trade data into a shareable URL
- * @param {Array} haveList - Cards the user has
- * @param {Array} wantList - Cards the user wants
- * @param {Object} options - Additional options
- * @returns {string} Shareable URL
- */
-export function encodeTradeToURL(haveList, wantList, options = {}) {
-  try {
-    // Create ultra-minimal trade data structure using arrays instead of objects
-    const tradeData = {
-      v: 1, // Version for backwards compatibility
-      t: Math.floor(Date.now() / 60000), // Timestamp in minutes (saves ~4 characters)
-      h: haveList.map(card => [
-        card.uniqueId || card.name, // Use unique ID if available, fallback to name
-        Number(card.price.toFixed(2)),
-        card.quantity > 1 ? card.quantity : undefined // omit quantity if it's 1
-      ].filter(x => x !== undefined)), // remove undefined values
-      w: wantList.map(card => [
-        card.uniqueId || card.name, // Use unique ID if available, fallback to name
-        Number(card.price.toFixed(2)),
-        card.quantity > 1 ? card.quantity : undefined
-      ].filter(x => x !== undefined))
-    };
-
-    const jsonString = JSON.stringify(tradeData);
-    console.log('Original JSON:', jsonString);
-    
-    // Check URL length before compression
-    if (jsonString.length > 1500) {
-      console.warn('Trade data is large, URL may be long');
-    }
-
-    const compressed = compress(jsonString);
-    console.log('Compressed data:', compressed.substring(0, 100) + '...');
-    
-    // Use a more conservative encoding approach for production
-    const encoded = encodeURIComponent(compressed);
-    console.log('Encoded data:', encoded.substring(0, 100) + '...');
-    
-    const baseUrl = options.baseUrl || window.location.origin + window.location.pathname;
-    const url = `${baseUrl}?trade=${encoded}`;
-    
-    console.log('Final URL length:', url.length);
-    
-    // Check final URL length
-    if (url.length > 2000) {
-      console.warn('Generated URL is very long (>2000 chars), may not work in all browsers');
-    }
-    
-    return url;
-  } catch (error) {
-    console.error('Failed to encode trade to URL:', error);
-    return null;
-  }
 }
 
 /**
@@ -533,73 +388,5 @@ export function clearTradeFromURL() {
     const url = new URL(window.location);
     url.searchParams.delete('trade');
     window.history.replaceState({}, '', url);
-  }
-}
-
-/**
- * Test URL encoding and decoding round-trip
- * @param {Array} haveList 
- * @param {Array} wantList 
- * @returns {Object} Test results
- */
-export function testURLEncoding(haveList, wantList) {
-  try {
-    console.log('Testing URL encoding round-trip...');
-    
-    // Step 1: Encode
-    const url = encodeTradeToURL(haveList, wantList);
-    if (!url) {
-      return { success: false, error: 'Failed to encode URL' };
-    }
-    
-    // Step 2: Extract trade parameter
-    const urlObj = new URL(url);
-    const tradeParam = urlObj.searchParams.get('trade');
-    
-    // Step 3: Manually test decoding
-    const decoded = decodeURIComponent(tradeParam);
-    const decompressed = decompress(decoded);
-    const parsed = JSON.parse(decompressed);
-    
-    console.log('Round-trip test successful!');
-    return {
-      success: true,
-      originalHave: haveList.length,
-      originalWant: wantList.length,
-      decodedHave: parsed.h ? parsed.h.length : 0,
-      decodedWant: parsed.w ? parsed.w.length : 0,
-      urlLength: url.length,
-      tradeParam: tradeParam.substring(0, 50) + '...'
-    };
-  } catch (error) {
-    console.error('Round-trip test failed:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Estimates the size of a trade for URL encoding
- * @param {Array} haveList 
- * @param {Array} wantList 
- * @returns {Object} Size estimation
- */
-export function estimateTradeURLSize(haveList, wantList) {
-  try {
-    const url = encodeTradeToURL(haveList, wantList);
-    return {
-      urlLength: url ? url.length : 0,
-      isLarge: url ? url.length > 1500 : false,
-      isTooLarge: url ? url.length > 2000 : false
-    };
-  } catch (error) {
-    return {
-      urlLength: 0,
-      isLarge: false,
-      isTooLarge: true,
-      error: error.message
-    };
   }
 }

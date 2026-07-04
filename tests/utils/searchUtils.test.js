@@ -3,7 +3,6 @@ import {
   highlightMatch,
   getCardGradient,
   formatPrice,
-  getShortFoilLabel,
   formatCardType,
   debounce,
 } from '../../src/utils/searchUtils.js';
@@ -89,8 +88,8 @@ describe('getCardGradient', () => {
   });
 
   test('returns a distinct style for dark mode normal cards', () => {
-    const light = getCardGradient('Normal', '', false);
-    const dark = getCardGradient('Normal', '', true);
+    const light = getCardGradient('Normal', false);
+    const dark = getCardGradient('Normal', true);
     expect(light.background).not.toBe(dark.background);
   });
 
@@ -109,23 +108,6 @@ describe('formatPrice', () => {
   test('formats a numeric price with two decimals', () => {
     expect(formatPrice(12.5)).toBe('$12.50');
     expect(formatPrice(3)).toBe('$3.00');
-  });
-});
-
-describe('getShortFoilLabel', () => {
-  test('maps known foil types', () => {
-    expect(getShortFoilLabel('Rainbow Foil')).toBe('RF');
-    expect(getShortFoilLabel('Cold Foil')).toBe('CF');
-  });
-
-  test('returns null for normal / empty cards', () => {
-    expect(getShortFoilLabel('Normal')).toBeNull();
-    expect(getShortFoilLabel('')).toBeNull();
-    expect(getShortFoilLabel()).toBeNull();
-  });
-
-  test('uses the first two letters (uppercased) for other types', () => {
-    expect(getShortFoilLabel('Promo')).toBe('PR');
   });
 });
 

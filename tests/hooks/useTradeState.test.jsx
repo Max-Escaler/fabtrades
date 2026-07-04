@@ -111,12 +111,3 @@ describe('useTradeState — totals & diff', () => {
   });
 });
 
-describe('useTradeState — share URL', () => {
-  test('generates a shareable URL from the current lists', () => {
-    const { result } = setup();
-    act(() => result.current.addHaveCard('Card A'));
-    const url = result.current.generateShareURL();
-    expect(typeof url).toBe('string');
-    expect(url).toContain('?trade=');
-  });
-});

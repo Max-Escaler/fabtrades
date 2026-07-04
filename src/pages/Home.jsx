@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, useMediaQuery } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useCardData } from "../hooks/useCardData.jsx";
 import { useTradeState } from "../hooks/useTradeState.js";
@@ -14,13 +14,10 @@ const Home = () => {
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
     const { isDark } = useThemeMode();
 
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
-    const { cardGroups, cardIdLookup, cards, loading, dataReady, error, dataSource, metadata } = useCardData();
+    const { cardGroups, cardIdLookup, cards, dataReady, error } = useCardData();
     
     // Create unique card options that include all editions
     const cardOptions = cards.map(card => ({
@@ -102,14 +99,11 @@ const Home = () => {
                     title="Cards I Have"
                     cards={tradeState.haveList}
                     cardOptions={cardOptions}
-                    allCards={cards}
                     inputValue={tradeState.haveInput}
                     onInputChange={(e, v) => tradeState.setHaveInput(v || "")}
                     onAddCard={tradeState.addHaveCard}
                     onRemoveCard={tradeState.removeHaveCard}
                     onUpdateQuantity={tradeState.updateHaveCardQuantity}
-                    isMobile={isMobile}
-                    totalColor="primary"
                     disabled={!dataReady}
                     isLandscape={isLandscape}
                 />
@@ -122,13 +116,9 @@ const Home = () => {
                         wantTotal={tradeState.wantTotal}
                         diff={tradeState.diff}
                         isLandscape={isLandscape}
-                        generateShareURL={tradeState.generateShareURL}
                         clearURLTradeData={tradeState.clearURLTradeData}
-                        getURLSizeInfo={tradeState.getURLSizeInfo}
-                        testURLRoundTrip={tradeState.testURLRoundTrip}
                         urlTradeData={tradeState.urlTradeData}
                         hasLoadedFromURL={tradeState.hasLoadedFromURL}
-                        loadTradeFromHistory={tradeState.loadTradeFromHistory}
                     />
                 )}
 
@@ -136,14 +126,11 @@ const Home = () => {
                     title="Cards I Want"
                     cards={tradeState.wantList}
                     cardOptions={cardOptions}
-                    allCards={cards}
                     inputValue={tradeState.wantInput}
                     onInputChange={(e, v) => tradeState.setWantInput(v || "")}
                     onAddCard={tradeState.addWantCard}
                     onRemoveCard={tradeState.removeWantCard}
                     onUpdateQuantity={tradeState.updateWantCardQuantity}
-                    isMobile={isMobile}
-                    totalColor="success"
                     disabled={!dataReady}
                     isLandscape={isLandscape}
                 />

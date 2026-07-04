@@ -432,7 +432,7 @@ const SetDetail = () => {
                                     const foilStyle = getFoilChipStyle(card.subTypeName, isDark);
                                     const hasSpecialPrinting = !!card._artVariant || !!foilLabel;
                                     const rowGradient = hasSpecialPrinting
-                                        ? getCardGradient(card.subTypeName, card.extRarity, isDark).background
+                                        ? getCardGradient(card.subTypeName, isDark).background
                                         : 'transparent';
 
                                     return (

@@ -2,12 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { calculateTotal, calculateDiff } from "../utils/trade.js";
 import { 
     decodeTradeFromURL, 
-    encodeTradeToURL, 
     reconstructCardsFromURLData,
     hasTradeDataInURL,
-    clearTradeFromURL,
-    estimateTradeURLSize,
-    testURLEncoding
+    clearTradeFromURL
 } from "../utils/urlEncoding.js";
 
 export function useTradeState(cardGroups, cardIdLookup = {}) {
@@ -140,31 +137,11 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         }
     }, [cardGroups, cardIdLookup, hasLoadedFromURL]);
 
-    // Generate shareable URL
-    const generateShareURL = () => {
-        try {
-            return encodeTradeToURL(haveList, wantList);
-        } catch (error) {
-            console.error('Failed to generate share URL:', error);
-            return null;
-        }
-    };
-
     // Clear URL trade data
     const clearURLTradeData = () => {
         clearTradeFromURL();
         setUrlTradeData(null);
         setHasLoadedFromURL(false);
-    };
-
-    // Get URL size estimation
-    const getURLSizeInfo = () => {
-        return estimateTradeURLSize(haveList, wantList);
-    };
-
-    // Test URL encoding round-trip
-    const testURLRoundTrip = () => {
-        return testURLEncoding(haveList, wantList);
     };
 
     // Load trade from history
@@ -252,11 +229,8 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         haveTotal,
         wantTotal,
         diff,
-        // URL sharing functionality
-        generateShareURL,
+        // URL trade-loading functionality
         clearURLTradeData,
-        getURLSizeInfo,
-        testURLRoundTrip,
         urlTradeData,
         hasLoadedFromURL,
         // Trade history functionality

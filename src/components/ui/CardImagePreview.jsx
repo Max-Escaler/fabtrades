@@ -10,14 +10,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useThemeMode } from '../../contexts/ThemeContext.jsx';
 
 /**
- * Get image URL - returns the FAB CDN URL as-is (constructed upstream).
- */
-export const getImageUrl = (imageUrl, size = 'medium') => {
-    if (!imageUrl) return null;
-    return imageUrl;
-};
-
-/**
  * Small thumbnail component for card lists
  */
 export const CardThumbnail = ({ imageUrl, fallbackUrl, alt, size = 40, onClick }) => {
@@ -125,102 +117,6 @@ export const CardThumbnail = ({ imageUrl, fallbackUrl, alt, size = 40, onClick }
                     transition: 'opacity 0.2s ease'
                 }}
             />
-        </Box>
-    );
-};
-
-/**
- * Hover preview component - shows larger image on hover
- */
-export const CardHoverPreview = ({ imageUrl, fallbackUrl, alt, children, placement = 'right' }) => {
-    const [showPreview, setShowPreview] = useState(false);
-    const [loaded, setLoaded] = useState(false);
-    const [currentSrc, setCurrentSrc] = useState(imageUrl);
-    const { isDark } = useThemeMode();
-
-    useEffect(() => {
-        setCurrentSrc(imageUrl);
-    }, [imageUrl]);
-
-    const handleError = () => {
-        if (fallbackUrl && currentSrc !== fallbackUrl) {
-            setCurrentSrc(fallbackUrl);
-        }
-    };
-
-    if (!imageUrl) {
-        return children;
-    }
-
-    return (
-        <Box
-            onMouseEnter={() => setShowPreview(true)}
-            onMouseLeave={() => {
-                setShowPreview(false);
-                setLoaded(false);
-            }}
-            sx={{ position: 'relative', display: 'flex', width: '100%' }}
-        >
-            {children}
-            
-            <Fade in={showPreview} timeout={200}>
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        [placement === 'right' ? 'left' : 'right']: '100%',
-                        transform: 'translateY(-50%)',
-                        ml: placement === 'right' ? 1 : 0,
-                        mr: placement === 'left' ? 1 : 0,
-                        zIndex: 1400,
-                        pointerEvents: 'none',
-                        display: showPreview ? 'block' : 'none'
-                    }}
-                >
-                    <Box
-                        sx={{
-                            width: 150,
-                            height: 210,
-                            borderRadius: 2,
-                            overflow: 'hidden',
-                            boxShadow: isDark 
-                                ? '0 8px 24px rgba(0, 0, 0, 0.6)' 
-                                : '0 8px 24px rgba(44, 24, 16, 0.3)',
-                            border: `2px solid ${isDark ? '#d4a574' : '#8b4513'}`,
-                            backgroundColor: isDark ? '#2c1810' : '#ffffff',
-                            position: 'relative'
-                        }}
-                    >
-                        {!loaded && (
-                            <Box
-                                sx={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: isDark ? '#2c1810' : '#f5f1ed'
-                                }}
-                            >
-                                <CircularProgress size={24} sx={{ color: isDark ? '#d4a574' : '#8b4513' }} />
-                            </Box>
-                        )}
-                        <img
-                            src={currentSrc}
-                            alt={alt}
-                            onLoad={() => setLoaded(true)}
-                            onError={handleError}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                opacity: loaded ? 1 : 0,
-                                transition: 'opacity 0.2s ease'
-                            }}
-                        />
-                    </Box>
-                </Box>
-            </Fade>
         </Box>
     );
 };
@@ -355,5 +251,5 @@ export const CardImageModal = ({ open, onClose, imageUrl, fallbackUrl, cardName 
     );
 };
 
-export default { CardThumbnail, CardHoverPreview, CardImageModal, getImageUrl };
+export default { CardThumbnail, CardImageModal };
 
