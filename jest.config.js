@@ -24,6 +24,7 @@ export default {
         'src/utils/trade.js',
         'src/utils/helpers.js',
         'src/utils/setSlug.js',
+        'src/utils/seo.js',
         'src/utils/searchUtils.js',
         'src/utils/urlEncoding.js',
         'src/hooks/useTradeState.js',
