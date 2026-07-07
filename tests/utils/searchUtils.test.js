@@ -45,6 +45,31 @@ describe('filterCardOptions', () => {
     const many = Array.from({ length: 50 }, (_, i) => opt(`Card Number ${i}`));
     expect(filterCardOptions(many, 'card', 5)).toHaveLength(5);
   });
+
+  test('returns a capped slice when the term normalizes to nothing', () => {
+    // "'''" is non-empty/non-whitespace but reduces to '' after normalization,
+    // so there are no search words to match on.
+    expect(filterCardOptions(options, "'''")).toHaveLength(options.length);
+  });
+
+  test('excludes labels missing one of several search words', () => {
+    // "command" matches "Command and Conquer" but "zzz" matches nothing,
+    // so the multi-word requirement rejects it.
+    expect(filterCardOptions(options, 'command zzz')).toHaveLength(0);
+  });
+
+  test('scores an exact normalized match highest', () => {
+    const withExact = [opt('Zephyr'), opt('Zephyr Blade'), opt('Zephyr Wing')];
+    const result = filterCardOptions(withExact, 'zephyr');
+    expect(result[0].label).toBe('Zephyr');
+  });
+
+  test('still matches when words appear out of order in the label', () => {
+    const outOfOrder = [opt('Conquer and Command')];
+    const result = filterCardOptions(outOfOrder, 'command conquer');
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe('Conquer and Command');
+  });
 });
 
 describe('highlightMatch', () => {
@@ -74,6 +99,26 @@ describe('highlightMatch', () => {
     expect(segments.map((s) => s.text).join('')).toBe('aaa');
     expect(segments.some((s) => s.highlight)).toBe(true);
   });
+
+  test('returns a single segment when the term is only whitespace', () => {
+    expect(highlightMatch('Lightning Press', '   ')).toEqual([
+      { text: 'Lightning Press', highlight: false },
+    ]);
+  });
+
+  test('keeps disjoint word matches as separate highlighted segments', () => {
+    const segments = highlightMatch('Lightning Press', 'lightning press');
+    const highlighted = segments.filter((s) => s.highlight).map((s) => s.text);
+    expect(highlighted).toEqual(['Lightning', 'Press']);
+    // The unmatched separator between the words is preserved verbatim.
+    expect(segments.map((s) => s.text).join('')).toBe('Lightning Press');
+  });
+
+  test('preserves a trailing unmatched segment', () => {
+    const segments = highlightMatch('Lightning Press', 'lightning');
+    expect(segments[segments.length - 1]).toEqual({ text: ' Press', highlight: false });
+    expect(segments[0]).toEqual({ text: 'Lightning', highlight: true });
+  });
 });
 
 describe('getCardGradient', () => {
@@ -91,6 +136,22 @@ describe('getCardGradient', () => {
     const light = getCardGradient('Normal', false);
     const dark = getCardGradient('Normal', true);
     expect(light.background).not.toBe(dark.background);
+  });
+
+  test('returns distinct dark-mode gradients for each foil family', () => {
+    const rainbow = getCardGradient('Rainbow Foil', true);
+    const cold = getCardGradient('Cold Foil', true);
+    const generic = getCardGradient('Extended Art Foil', true);
+    const holo = getCardGradient('Holo Card', true);
+
+    for (const style of [rainbow, cold, generic, holo]) {
+      expect(style.background).toContain('linear-gradient');
+      expect(style.backgroundHover).toContain('linear-gradient');
+    }
+    // Dark variants must differ from their light counterparts.
+    expect(rainbow.background).not.toBe(getCardGradient('Rainbow Foil', false).background);
+    expect(cold.background).not.toBe(getCardGradient('Cold Foil', false).background);
+    expect(generic.background).not.toBe(getCardGradient('Extended Art Foil', false).background);
   });
 
   test('handles missing subtype without throwing', () => {
