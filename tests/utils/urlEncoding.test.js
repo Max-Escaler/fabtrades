@@ -44,6 +44,26 @@ describe('decodeTradeFromURL', () => {
     expect(decoded.have[1][2]).toBe(3);
     expect(decoded.want[0][0]).toBe('DeltaVane');
   });
+
+  test('rejects a payload with an unsupported (future) version', () => {
+    const param = makeTradeParam({ v: 2, h: [], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('rejects a payload that is missing a version', () => {
+    const param = makeTradeParam({ h: [], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('defaults missing lists and timestamp to safe values', () => {
+    const param = makeTradeParam({ v: 1 });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    const decoded = decodeTradeFromURL();
+    expect(decoded).toMatchObject({ version: 1, have: [], want: [], timestamp: null });
+    expect(decoded.ageInDays).toBeNull();
+  });
 });
 
 describe('hasTradeDataInURL / clearTradeFromURL', () => {
@@ -120,5 +140,30 @@ describe('reconstructCardsFromURLData', () => {
       cardGroups
     );
     expect(card).toMatchObject({ name: 'Gamma Coil', quantity: 4 });
+  });
+
+  test('skips a matched group that has no editions without throwing', () => {
+    const groups = [{ name: 'Empty Group', editions: [] }];
+    expect(reconstructCardsFromURLData([['Empty Group', 1, 1]], groups)).toEqual([]);
+  });
+
+  test('skips malformed entries without aborting the whole reconstruction', () => {
+    // `null` cannot be destructured as an object, so it must be caught per-entry
+    // and not prevent the following valid card from being reconstructed.
+    const result = reconstructCardsFromURLData([null, ['Gamma Coil', 4.5, 1]], cardGroups);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ name: 'Gamma Coil' });
+  });
+
+  test('skips unknown cards even when similar-named groups exist', () => {
+    const groups = [
+      { name: 'Shard Keeper', editions: [{ subTypeName: 'Normal', cardPrice: 1, uniqueId: 's1' }] },
+    ];
+    expect(reconstructCardsFromURLData([['Shard Nonexistentxyz', 1, 1]], groups)).toEqual([]);
+  });
+
+  test('clamps an invalid quantity up to at least 1', () => {
+    const [card] = reconstructCardsFromURLData([['Gamma Coil', 4.5, 0]], cardGroups);
+    expect(card.quantity).toBe(1);
   });
 });
