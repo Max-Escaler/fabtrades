@@ -26,6 +26,7 @@ export default {
         'src/utils/setSlug.js',
         'src/utils/searchUtils.js',
         'src/utils/urlEncoding.js',
+        'src/utils/seo.js',
         'src/hooks/useTradeState.js',
         'src/hooks/useSearch.js',
         'src/services/tradeHistory.js',
