@@ -28,6 +28,7 @@ export default {
         'src/utils/urlEncoding.js',
         'src/hooks/useTradeState.js',
         'src/hooks/useSearch.js',
+        'src/hooks/useSets.js',
         'src/services/tradeHistory.js',
     ],
     testPathIgnorePatterns: [
