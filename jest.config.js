@@ -29,6 +29,10 @@ export default {
         'src/hooks/useTradeState.js',
         'src/hooks/useSearch.js',
         'src/services/tradeHistory.js',
+        'src/services/csv/downloader.js',
+        'src/services/csv/diffChecker.js',
+        'src/services/csv/cache.js',
+        'src/services/csv/updater.js',
     ],
     testPathIgnorePatterns: [
         '/node_modules/',
