@@ -1,0 +1,572 @@
+import 'dart:io' show Platform;
+
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+
+import '../../app/app.dart';
+import '../../app/card_actions.dart';
+import '../../app/widgets.dart';
+import '../../core/data/card_repository.dart';
+import '../../core/models/card_model.dart';
+import '../../core/models/trade.dart';
+import '../../core/providers.dart';
+import '../card_detail/card_detail_screen.dart';
+
+/// Live card scanner. Streams camera frames through ML Kit text recognition and
+/// matches the printed name + collector number against the in-memory catalog
+/// (fully offline). Locks onto a card once it has been seen on two consecutive
+/// frames, so a steady aim identifies it hands-free.
+class ScanScreen extends ConsumerStatefulWidget {
+  const ScanScreen({super.key, this.tradeSide});
+
+  /// When set, tapping a match adds that card straight to the given side of the
+  /// live trade draft, shows a confirmation, and keeps scanning — so several
+  /// cards can be added in a row without leaving the scanner.
+  final TradeSide? tradeSide;
+
+  /// Opens the scanner wired to add scanned cards to [side] of the trade draft.
+  static Future<void> forTrade(BuildContext context, TradeSide side) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => ScanScreen(tradeSide: side)),
+    );
+  }
+
+  @override
+  ConsumerState<ScanScreen> createState() => _ScanScreenState();
+}
+
+class _ScanScreenState extends ConsumerState<ScanScreen>
+    with WidgetsBindingObserver {
+  /// Device-orientation → degrees, used to compute ML Kit's rotation on Android.
+  static const _orientationDegrees = {
+    DeviceOrientation.portraitUp: 0,
+    DeviceOrientation.landscapeLeft: 90,
+    DeviceOrientation.portraitDown: 180,
+    DeviceOrientation.landscapeRight: 270,
+  };
+
+  /// Cap OCR to a sustainable rate; running it on every frame floods the
+  /// pipeline and drops UI frames.
+  static const _throttle = Duration(milliseconds: 350);
+
+  CameraController? _controller;
+  final _recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+  bool _initializing = true;
+  bool _cameraAvailable = false;
+  bool _streaming = false;
+  bool _processing = false;
+  bool _torchOn = false;
+  DateTime? _lastProcessedAt;
+
+  /// True once we've locked onto a result and paused the live scan.
+  bool _locked = false;
+
+  // Two-frame confirmation to reject transient false positives.
+  String? _pendingKey;
+  int _pendingHits = 0;
+
+  String? _statusMessage;
+  List<CardModel> _matches = const [];
+  String? _lastNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _disposeCamera();
+    _recognizer.close();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      _disposeCamera();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
+  }
+
+  Future<void> _disposeCamera() async {
+    final controller = _controller;
+    _controller = null;
+    _streaming = false;
+    if (controller == null) return;
+    try {
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+    } catch (_) {}
+    await controller.dispose();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _initializing = false;
+          _cameraAvailable = false;
+        });
+        return;
+      }
+      final back = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+      final controller = CameraController(
+        back,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup:
+            Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+      );
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _controller = controller;
+        _cameraAvailable = true;
+        _initializing = false;
+        _torchOn = false;
+      });
+      if (!_locked) await _startStream();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _initializing = false;
+        _cameraAvailable = false;
+      });
+    }
+  }
+
+  Future<void> _startStream() async {
+    final controller = _controller;
+    if (controller == null || _streaming) return;
+    try {
+      await controller.startImageStream(_processImage);
+      _streaming = true;
+      if (mounted && _statusMessage == null) {
+        setState(() => _statusMessage = 'Point at a card to identify it.');
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _stopStream() async {
+    final controller = _controller;
+    if (controller == null || !_streaming) return;
+    _streaming = false;
+    try {
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _processImage(CameraImage image) async {
+    if (_processing || _locked) return;
+    final now = DateTime.now();
+    if (_lastProcessedAt != null &&
+        now.difference(_lastProcessedAt!) < _throttle) {
+      return;
+    }
+    _processing = true;
+    _lastProcessedAt = now;
+    try {
+      final input = _toInputImage(image);
+      if (input == null) return;
+      final result = await _recognizer.processImage(input);
+      if (!mounted || _locked) return;
+
+      final catalog = ref.read(catalogProvider).asData?.value ?? const [];
+      if (catalog.isEmpty) {
+        setState(() => _statusMessage = 'Loading card catalog…');
+        return;
+      }
+      final matches = identifyCards(catalog, result.text);
+      if (matches.isEmpty) {
+        // Keep scanning; don't clear any prior hint aggressively.
+        _pendingKey = null;
+        _pendingHits = 0;
+        return;
+      }
+
+      // Require the same top card on two consecutive reads before locking.
+      final key = matches.first.id;
+      if (key == _pendingKey) {
+        _pendingHits++;
+      } else {
+        _pendingKey = key;
+        _pendingHits = 1;
+      }
+      if (_pendingHits >= 2) {
+        await _lockOn(matches);
+      } else if (mounted) {
+        setState(() => _statusMessage =
+            'Reading ${matches.first.name}… hold steady.');
+      }
+    } catch (_) {
+      // Ignore per-frame failures; the next frame will retry.
+    } finally {
+      _processing = false;
+    }
+  }
+
+  /// Builds an ML Kit [InputImage] from a streamed camera frame, computing the
+  /// correct rotation per platform (see the ML Kit Flutter example).
+  InputImage? _toInputImage(CameraImage image) {
+    final controller = _controller;
+    if (controller == null) return null;
+    final camera = controller.description;
+    final sensorOrientation = camera.sensorOrientation;
+
+    InputImageRotation? rotation;
+    if (Platform.isIOS) {
+      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+    } else {
+      final deviceRotation =
+          _orientationDegrees[controller.value.deviceOrientation];
+      if (deviceRotation == null) return null;
+      final compensated = camera.lensDirection == CameraLensDirection.front
+          ? (sensorOrientation + deviceRotation) % 360
+          : (sensorOrientation - deviceRotation + 360) % 360;
+      rotation = InputImageRotationValue.fromRawValue(compensated);
+    }
+    if (rotation == null) return null;
+
+    final format = InputImageFormatValue.fromRawValue(image.format.raw);
+    if (format == null) return null;
+    if (image.planes.isEmpty) return null;
+    final plane = image.planes.first;
+
+    return InputImage.fromBytes(
+      bytes: plane.bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: plane.bytesPerRow,
+      ),
+    );
+  }
+
+  Future<void> _lockOn(List<CardModel> matches) async {
+    _locked = true;
+    await _stopStream();
+    if (!mounted) return;
+    final number = matches.first.collectorNumber;
+    setState(() {
+      _matches = matches;
+      _lastNumber = number;
+      _statusMessage = matches.length == 1
+          ? 'Found ${matches.first.name}.'
+          : 'Found ${matches.length} possible matches — tap the right one.';
+    });
+  }
+
+  /// Adds a scanned card to the trade draft, confirms with a snackbar, and
+  /// immediately resumes scanning so more cards can be added in a row.
+  Future<void> _addToTrade(CardModel card) async {
+    final side = widget.tradeSide;
+    if (side == null) return;
+    ref.read(tradeDraftProvider.notifier).addCard(side, card);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Added ${card.name} to trade'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    await _scanAgain();
+  }
+
+  Future<void> _scanAgain() async {
+    setState(() {
+      _locked = false;
+      _matches = const [];
+      _pendingKey = null;
+      _pendingHits = 0;
+      _statusMessage = 'Point at a card to identify it.';
+    });
+    if (_controller == null) {
+      await _initCamera();
+    } else {
+      await _startStream();
+    }
+  }
+
+  Future<void> _toggleTorch() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    try {
+      final next = !_torchOn;
+      await controller.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (mounted) setState(() => _torchOn = next);
+    } catch (_) {}
+  }
+
+  Future<void> _manualEntry() async {
+    final controller = TextEditingController(text: _lastNumber ?? '');
+    final result = await showAdaptiveDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog.adaptive(
+        title: const Text('Find a card'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Name or number, e.g. 147/219',
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Look up'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      await _lookup(result);
+    }
+  }
+
+  /// Resolves free text (a name or a collector number) against the catalog,
+  /// falling back to a network lookup by number if the catalog isn't loaded.
+  Future<void> _lookup(String text) async {
+    _locked = true;
+    await _stopStream();
+    final parsed = parseScanNumber(text);
+    setState(() {
+      _lastNumber = parsed?.total != null
+          ? '${parsed!.number.toString().padLeft(3, '0')}/${parsed.total}'
+          : _lastNumber;
+      _statusMessage = 'Looking up “$text”…';
+      _matches = const [];
+    });
+    try {
+      final catalog = ref.read(catalogProvider).asData?.value ?? const [];
+      var matches = identifyCards(catalog, text, limit: 30);
+      if (matches.isEmpty && catalog.isEmpty && _lastNumber != null) {
+        matches = await ref
+            .read(cardRepositoryProvider)
+            .findByCollectorNumber(_lastNumber!);
+      }
+      if (!mounted) return;
+      setState(() {
+        _matches = matches;
+        _statusMessage = matches.isEmpty
+            ? 'No card found for “$text”.'
+            : 'Found ${matches.length} match(es).';
+      });
+    } catch (e) {
+      if (mounted) setState(() => _statusMessage = 'Lookup failed: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Keep the widget rebuilding as the catalog finishes loading.
+    ref.watch(catalogProvider);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.tradeSide != null ? 'Scan a card to add' : 'Scan'),
+        actions: [
+          if (_cameraAvailable && !_locked)
+            IconButton(
+              icon: Icon(_torchOn ? Icons.flash_on : Icons.flash_off),
+              tooltip: 'Toggle flash',
+              onPressed: _toggleTorch,
+            ),
+          IconButton(
+            icon: const Icon(Icons.keyboard),
+            tooltip: 'Enter name or number',
+            onPressed: _manualEntry,
+          ),
+          const SettingsAction(),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildViewport(),
+          if (_statusMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: Text(
+                _statusMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+            ),
+          Expanded(child: _buildMatches()),
+        ],
+      ),
+      floatingActionButton: (_cameraAvailable && _locked)
+          ? FloatingActionButton.extended(
+              heroTag: 'scanAgainFab',
+              onPressed: _scanAgain,
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Scan again'),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildViewport() {
+    if (_initializing) {
+      return const AspectRatio(
+        aspectRatio: 3 / 4,
+        child: Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
+    if (!_cameraAvailable || _controller == null) {
+      return Container(
+        height: 220,
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.no_photography_outlined,
+                size: 40, color: Theme.of(context).colorScheme.outline),
+            const SizedBox(height: 12),
+            const Text('Camera unavailable'),
+            const SizedBox(height: 4),
+            Text(
+              'Enter a name or collector number instead.',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonalIcon(
+              icon: const Icon(Icons.keyboard),
+              label: const Text('Find a card'),
+              onPressed: _manualEntry,
+            ),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: AspectRatio(
+          aspectRatio: 3 / 4,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CameraPreview(_controller!),
+              _ScanOverlay(scanning: _streaming && !_locked),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMatches() {
+    if (_matches.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            _cameraAvailable
+                ? 'Hold a card steady inside the frame. It identifies automatically — no button needed.'
+                : 'Use the keyboard icon to find a card by name or collector number.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
+      );
+    }
+    final pricing = ref.watch(pricingProvider);
+    return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 88),
+      itemCount: _matches.length,
+      separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
+      itemBuilder: (context, i) {
+        final card = _matches[i];
+        if (widget.tradeSide != null) {
+          return CardRow(
+            card: card,
+            priceLabel: pricing.priceLabel(card),
+            trailing: const Icon(Icons.add_circle),
+            onTap: () => _addToTrade(card),
+          );
+        }
+        return CardRow(
+          card: card,
+          priceLabel: pricing.priceLabel(card),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => CardDetailScreen(card: card))),
+          onAdd: () => showCardActions(context, ref, card),
+        );
+      },
+    );
+  }
+}
+
+class _ScanOverlay extends StatelessWidget {
+  const _ScanOverlay({required this.scanning});
+
+  final bool scanning;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: scanning ? Colors.lightGreenAccent : Colors.white70,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                scanning
+                    ? 'Fill the frame with the card • name + number visible'
+                    : 'Paused',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

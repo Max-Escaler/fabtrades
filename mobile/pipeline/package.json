@@ -1,0 +1,19 @@
+{
+  "name": "fabtrades-pipeline",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Daily pipeline: TCGCSV (TCGplayer) -> Supabase shared Flesh and Blood card & price database.",
+  "scripts": {
+    "ingest": "node src/run.js",
+    "dry-run": "node src/run.js --dry-run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
+    "dotenv": "^17.4.2",
+    "papaparse": "^5.5.4"
+  }
+}
