@@ -4,32 +4,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Central theme for FAB Trades — a modern, Flesh and Blood-inspired look built
-/// on a deep charcoal canvas with crimson and gold accents (dark-first) and a
-/// clean crimson-and-gold light variant.
+/// Central theme for FAB Trades — a warm, earthy look matching fabtrades.net:
+/// saddle-brown primary with a tan/gold accent on a cream canvas (light-first),
+/// plus a cozy dark-brown variant.
 class AppTheme {
-  // ── Flesh and Blood brand palette ──────────────────────────────────────
-  /// Signature gold — the premium accent (buttons, highlights on dark).
-  static const gold = Color(0xFFD9B14E);
-  static const goldBright = Color(0xFFF0CE7A);
-  static const goldDeep = Color(0xFFB2872C);
+  // ── FAB brand palette (mirrors fabtrades.net) ──────────────────────────
+  /// Saddle brown — the signature FAB brand color (app bar, primary actions).
+  static const brown = Color(0xFF8B4513);
+  static const brownBright = Color(0xFFA0643F);
+  static const brownDeep = Color(0xFF5D2F0D);
 
-  /// FAB crimson — interactive/brand red.
-  static const fabRed = Color(0xFFC1272D);
-  static const fabRedBright = Color(0xFFE85C58);
-  static const fabRedDeep = Color(0xFF8E1B1F);
+  /// Tan / soft gold — the complementary accent (borders, highlights).
+  static const tan = Color(0xFFD4A574);
+  static const tanBright = Color(0xFFE4C09C);
+  static const tanDeep = Color(0xFFA8824E);
 
-  /// Deep charcoal canvas used across the dark theme.
-  static const navy = Color(0xFF15100F);
+  /// Cream canvas used across the light theme.
+  static const cream = Color(0xFFF5F1ED);
+
+  /// Deep espresso canvas used across the dark theme.
+  static const espresso = Color(0xFF2C1810);
+  static const espressoDeep = Color(0xFF1A0F0A);
 
   // Kept for backwards-compat with existing references.
-  static const seed = fabRed;
+  static const seed = brown;
 
   // Semantic colors for trade deltas / have vs want.
-  static const positive = Color(0xFF35B87E); // in your favor / owned
-  static const negative = Color(0xFFE5675E); // against you
-  static const haveAccent = Color(0xFF35B87E);
-  static const wantAccent = gold;
+  static const positive = Color(0xFF2E7D32); // in your favor / owned (green)
+  static const negative = Color(0xFFC62828); // against you (red)
+  static const haveAccent = positive;
+  static const wantAccent = brown;
 
   static ThemeData light() => _base(Brightness.light);
   static ThemeData dark() => _base(Brightness.dark);
@@ -37,62 +41,63 @@ class AppTheme {
   // ── Color schemes ──────────────────────────────────────────────────────
   static ColorScheme _darkScheme() {
     final base =
-        ColorScheme.fromSeed(seedColor: fabRed, brightness: Brightness.dark);
+        ColorScheme.fromSeed(seedColor: brown, brightness: Brightness.dark);
     return base.copyWith(
-      primary: goldBright,
-      onPrimary: const Color(0xFF2A2000),
-      primaryContainer: const Color(0xFF4A3B10),
-      onPrimaryContainer: goldBright,
-      secondary: fabRedBright,
-      onSecondary: const Color(0xFF032046),
-      secondaryContainer: const Color(0xFF163457),
-      onSecondaryContainer: const Color(0xFFD5E4FF),
-      tertiary: goldBright,
-      onTertiary: const Color(0xFF2A2000),
-      tertiaryContainer: const Color(0xFF4A3B10),
-      onTertiaryContainer: goldBright,
+      primary: tanBright,
+      onPrimary: espresso,
+      primaryContainer: const Color(0xFF4A2E1A),
+      onPrimaryContainer: tanBright,
+      secondary: tan,
+      onSecondary: espresso,
+      secondaryContainer: const Color(0xFF4A3B22),
+      onSecondaryContainer: tanBright,
+      tertiary: brownBright,
+      onTertiary: Colors.white,
+      tertiaryContainer: const Color(0xFF4A2E1A),
+      onTertiaryContainer: tanBright,
       error: negative,
-      onError: const Color(0xFF3A0906),
-      surface: const Color(0xFF0E1D31),
-      onSurface: const Color(0xFFE7ECF4),
-      onSurfaceVariant: const Color(0xFFA7B4C6),
-      surfaceContainerLowest: const Color(0xFF081321),
-      surfaceContainerLow: const Color(0xFF0E1D31),
-      surfaceContainer: const Color(0xFF13253C),
-      surfaceContainerHigh: const Color(0xFF1A2E48),
-      surfaceContainerHighest: const Color(0xFF223755),
-      outline: const Color(0xFF3B4D66),
-      outlineVariant: const Color(0xFF283a52),
+      onError: Colors.white,
+      surface: espresso,
+      onSurface: const Color(0xFFF5EDE3),
+      onSurfaceVariant: const Color(0xFFC6AE97),
+      surfaceContainerLowest: espressoDeep,
+      surfaceContainerLow: const Color(0xFF241812),
+      surfaceContainer: const Color(0xFF2C1810),
+      surfaceContainerHigh: const Color(0xFF382318),
+      surfaceContainerHighest: const Color(0xFF45301F),
+      outline: const Color(0xFF6E5442),
+      outlineVariant: const Color(0xFF3E2C1F),
     );
   }
 
   static ColorScheme _lightScheme() {
     final base =
-        ColorScheme.fromSeed(seedColor: fabRed, brightness: Brightness.light);
+        ColorScheme.fromSeed(seedColor: brown, brightness: Brightness.light);
     return base.copyWith(
-      primary: fabRedDeep,
+      primary: brown,
       onPrimary: Colors.white,
-      primaryContainer: const Color(0xFFD6E3F8),
-      onPrimaryContainer: const Color(0xFF0A2444),
-      secondary: goldDeep,
+      primaryContainer: const Color(0xFFF4E3D3),
+      onPrimaryContainer: const Color(0xFF3A1D08),
+      secondary: tanDeep,
       onSecondary: Colors.white,
       secondaryContainer: const Color(0xFFF4E6C0),
       onSecondaryContainer: const Color(0xFF3B2E06),
-      tertiary: goldDeep,
+      tertiary: brownBright,
       onTertiary: Colors.white,
-      tertiaryContainer: const Color(0xFFF4E6C0),
-      onTertiaryContainer: const Color(0xFF3B2E06),
+      tertiaryContainer: const Color(0xFFF4E3D3),
+      onTertiaryContainer: const Color(0xFF3A1D08),
       error: negative,
+      onError: Colors.white,
       surface: Colors.white,
-      onSurface: const Color(0xFF11202F),
-      onSurfaceVariant: const Color(0xFF566476),
+      onSurface: const Color(0xFF2C1810),
+      onSurfaceVariant: const Color(0xFF6B4A2E),
       surfaceContainerLowest: Colors.white,
-      surfaceContainerLow: const Color(0xFFF4F7FB),
-      surfaceContainer: const Color(0xFFEDF2F8),
-      surfaceContainerHigh: const Color(0xFFE6EDF5),
-      surfaceContainerHighest: const Color(0xFFDFE7F1),
-      outline: const Color(0xFFAFBCCB),
-      outlineVariant: const Color(0xFFD5DEE8),
+      surfaceContainerLow: const Color(0xFFFBF7F2),
+      surfaceContainer: cream,
+      surfaceContainerHigh: const Color(0xFFEFE7DE),
+      surfaceContainerHighest: const Color(0xFFE9DFD3),
+      outline: const Color(0xFFC9B49E),
+      outlineVariant: const Color(0xFFE4D8C9),
     );
   }
 
@@ -100,11 +105,14 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
     final scheme = isDark ? _darkScheme() : _lightScheme();
 
-    final scaffoldBg =
-        isDark ? navy : const Color(0xFFEFF3F8);
+    final scaffoldBg = isDark ? espressoDeep : cream;
 
-    // Modern typography via Manrope (falls back to system if unavailable).
-    final baseText = GoogleFonts.manropeTextTheme(
+    // App bar mirrors the site's brown gradient header with a tan underline.
+    final appBarBg = isDark ? espresso : brown;
+    const appBarFg = Colors.white;
+
+    // Modern typography via Outfit (matches the web app; falls back to system).
+    final baseText = GoogleFonts.outfitTextTheme(
       isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
     ).apply(
       bodyColor: scheme.onSurface,
@@ -142,17 +150,19 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         centerTitle: isIOS,
-        backgroundColor: scaffoldBg,
+        backgroundColor: appBarBg,
         surfaceTintColor: Colors.transparent,
-        foregroundColor: scheme.onSurface,
+        foregroundColor: appBarFg,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle:
-            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        // Tan underline echoing the web header's 3px accent border.
+        shape: const Border(bottom: BorderSide(color: tan, width: 3)),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        iconTheme: const IconThemeData(color: appBarFg),
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontSize: 22,
           fontWeight: FontWeight.w800,
-          color: scheme.onSurface,
+          color: appBarFg,
           letterSpacing: -0.4,
         ),
       ),
@@ -244,19 +254,19 @@ Color rarityColor(String? rarity, ColorScheme scheme) {
     case 'common':
       return scheme.onSurfaceVariant;
     case 'rare':
-      return const Color(0xFF5AA0E7); // blue
+      return const Color(0xFF0277BD); // blue
     case 'super rare':
-      return const Color(0xFF35B87E); // green
+      return const Color(0xFF2E7D32); // green
     case 'majestic':
-      return const Color(0xFFE0724D); // orange
+      return const Color(0xFFF57C00); // orange
     case 'legendary':
-      return const Color(0xFFB07CF0); // purple
+      return const Color(0xFF7E57C2); // purple
     case 'fabled':
-      return const Color(0xFFE24BA6); // magenta
+      return const Color(0xFFC2185B); // magenta
     case 'marvel':
-      return AppTheme.goldBright;
+      return AppTheme.tanBright;
     case 'promo':
-      return AppTheme.gold;
+      return AppTheme.brownBright;
     default:
       return scheme.outline;
   }

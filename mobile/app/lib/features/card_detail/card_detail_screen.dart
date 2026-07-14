@@ -137,6 +137,9 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   }
 }
 
+/// One printing paired with the concise finish label shown on its chip.
+typedef _LabeledPrinting = ({CardModel card, String label});
+
 class _PrintingSelector extends StatelessWidget {
   const _PrintingSelector({
     required this.printings,
@@ -166,11 +169,12 @@ class _PrintingSelector extends StatelessWidget {
     return out.trim();
   }
 
-  /// Concise label describing what makes a printing distinct within its group:
-  /// its finish/edition ("Rainbow Foil", "Cold Foil", "1st Ed. Normal") plus any
-  /// non-pitch art qualifier from the name ("Extended Art"). Pitch color is
-  /// excluded since every version shares it. Falls back to "Foil"/"Normal".
-  static String _label(CardModel c) {
+  /// The finish/edition of a printing *within its set*: its subType
+  /// ("Rainbow Foil", "Cold Foil", "1st Edition Normal") plus any non-pitch art
+  /// qualifier from the name ("Extended Art"). The set is intentionally omitted
+  /// here because it is rendered as a section header. Falls back to
+  /// "Foil"/"Normal".
+  static String _finishLabel(CardModel c) {
     final parts = <String>[];
     final qualifier = nameQualifier(c.name);
     if (qualifier != null && !_pitchWords.contains(qualifier.toLowerCase())) {
@@ -184,10 +188,59 @@ class _PrintingSelector extends StatelessWidget {
     return parts.join(' · ');
   }
 
+  /// Groups printings by set name, preserving the incoming (base-first) order so
+  /// the representative printing's set stays first. In Flesh and Blood the same
+  /// card is often reprinted across sets/editions, so the set is the primary way
+  /// to tell otherwise-identical finishes apart (e.g. a plain "Normal" from
+  /// The Hunted vs one from Compendium of Rathe).
+  List<({String set, List<_LabeledPrinting> items})> _groupBySet() {
+    final bySet = <String, List<CardModel>>{};
+    final order = <String>[];
+    for (final c in printings) {
+      final raw = c.setName?.trim();
+      final set = (raw != null && raw.isNotEmpty) ? raw : 'Other';
+      final list = bySet[set];
+      if (list == null) {
+        bySet[set] = [c];
+        order.add(set);
+      } else {
+        list.add(c);
+      }
+    }
+
+    return [
+      for (final set in order)
+        (set: set, items: _labelWithinSet(bySet[set]!)),
+    ];
+  }
+
+  /// Assigns each printing its finish label, disambiguating any collisions
+  /// within a single set by appending the collector number.
+  static List<_LabeledPrinting> _labelWithinSet(List<CardModel> cards) {
+    final counts = <String, int>{};
+    for (final c in cards) {
+      final l = _finishLabel(c);
+      counts[l] = (counts[l] ?? 0) + 1;
+    }
+    return [
+      for (final c in cards)
+        (
+          card: c,
+          label: (counts[_finishLabel(c)] ?? 0) > 1 &&
+                  (c.collectorNumber?.trim().isNotEmpty ?? false)
+              ? '${_finishLabel(c)} · #${c.collectorNumber!.trim()}'
+              : _finishLabel(c),
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (printings.length < 2) return const SizedBox.shrink();
     final theme = Theme.of(context);
+    final groups = _groupBySet();
+    final showSetHeaders = groups.length > 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,25 +255,40 @@ class _PrintingSelector extends StatelessWidget {
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final c in printings)
-              ChoiceChip(
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                side: BorderSide(color: theme.colorScheme.outline),
-                avatar: c.isFoil
-                    ? const Icon(Icons.auto_awesome, size: 14)
-                    : null,
-                label: Text(_label(c)),
-                selected: c.id == selectedId,
-                onSelected: (_) => onSelect(c),
+        const SizedBox(height: 8),
+        for (var i = 0; i < groups.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
+          if (showSetHeaders)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                groups[i].set,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4,
+                ),
               ),
-          ],
-        ),
+            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final p in groups[i].items)
+                ChoiceChip(
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  side: BorderSide(color: theme.colorScheme.outline),
+                  avatar: p.card.isFoil
+                      ? const Icon(Icons.auto_awesome, size: 14)
+                      : null,
+                  label: Text(p.label),
+                  selected: p.card.id == selectedId,
+                  onSelected: (_) => onSelect(p.card),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
