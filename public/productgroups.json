@@ -1,15 +1,42 @@
 {
-    "totalItems": 97,
+    "totalItems": 100,
     "success": true,
     "errors": [],
     "results": [
+        {
+            "groupId": 24762,
+            "name": "Usurp the Shadow Throne",
+            "abbreviation": "IAR",
+            "isSupplemental": false,
+            "publishedOn": "2026-09-25T00:00:00",
+            "modifiedOn": "2026-07-09T21:23:32.573",
+            "categoryId": 62
+        },
+        {
+            "groupId": 24763,
+            "name": "Armory Deck: Malice",
+            "abbreviation": "",
+            "isSupplemental": false,
+            "publishedOn": "2026-09-18T00:00:00",
+            "modifiedOn": "2026-07-08T17:44:08.657",
+            "categoryId": 62
+        },
+        {
+            "groupId": 24764,
+            "name": "Silver Age: Usurp the Shadow Throne",
+            "abbreviation": "",
+            "isSupplemental": false,
+            "publishedOn": "2026-09-18T00:00:00",
+            "modifiedOn": "2026-07-08T19:08:42.963",
+            "categoryId": 62
+        },
         {
             "groupId": 24672,
             "name": "Armory Deck: Olympia",
             "abbreviation": "AOL",
             "isSupplemental": false,
             "publishedOn": "2026-08-07T00:00:00",
-            "modifiedOn": "2026-04-16T17:57:53.047",
+            "modifiedOn": "2026-07-08T17:25:00.023",
             "categoryId": 62
         },
         {
@@ -27,7 +54,7 @@
             "abbreviation": "GEM",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-06-12T19:27:11.26",
+            "modifiedOn": "2026-07-13T18:53:55.78",
             "categoryId": 62
         },
         {
@@ -36,7 +63,7 @@
             "abbreviation": "OMN",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-07-01T20:30:59.643",
+            "modifiedOn": "2026-07-13T17:10:38.38",
             "categoryId": 62
         },
         {
@@ -45,7 +72,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-06-01T19:55:46.37",
+            "modifiedOn": "2026-07-08T17:26:11.103",
             "categoryId": 62
         },
         {
@@ -144,7 +171,7 @@
             "abbreviation": "SUP",
             "isSupplemental": false,
             "publishedOn": "2025-09-26T00:00:00",
-            "modifiedOn": "2026-06-15T13:45:45.36",
+            "modifiedOn": "2026-07-07T13:29:57.943",
             "categoryId": 62
         },
         {
@@ -261,7 +288,7 @@
             "abbreviation": "GEM",
             "isSupplemental": false,
             "publishedOn": "2025-02-01T00:00:00",
-            "modifiedOn": "2025-06-04T15:12:30.123",
+            "modifiedOn": "2026-07-08T17:30:21.35",
             "categoryId": 62
         },
         {
@@ -540,7 +567,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2025-03-18T12:28:37.09",
+            "modifiedOn": "2026-07-08T17:34:42.933",
             "categoryId": 62
         },
         {
@@ -549,7 +576,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2024-10-09T19:46:28.467",
+            "modifiedOn": "2026-07-08T17:44:15.587",
             "categoryId": 62
         },
         {
@@ -558,7 +585,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2025-03-03T19:31:09.16",
+            "modifiedOn": "2026-07-08T17:39:10.693",
             "categoryId": 62
         },
         {
@@ -567,7 +594,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2024-10-10T16:19:38.78",
+            "modifiedOn": "2026-07-08T17:40:28.05",
             "categoryId": 62
         },
         {
@@ -576,7 +603,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2024-10-10T20:55:13.893",
+            "modifiedOn": "2026-07-08T17:40:56.993",
             "categoryId": 62
         },
         {
@@ -666,7 +693,7 @@
             "abbreviation": "DRO",
             "isSupplemental": false,
             "publishedOn": "2022-07-01T00:00:00",
-            "modifiedOn": "2025-03-03T20:11:50.56",
+            "modifiedOn": "2026-07-06T15:04:51.67",
             "categoryId": 62
         },
         {
@@ -819,7 +846,7 @@
             "abbreviation": "PR",
             "isSupplemental": false,
             "publishedOn": "2019-10-11T00:00:00",
-            "modifiedOn": "2026-06-26T20:20:42.333",
+            "modifiedOn": "2026-07-13T14:15:10.663",
             "categoryId": 62
         },
         {

@@ -1,3 +1,5 @@
-productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,lowPrice,midPrice,highPrice,marketPrice,directLowPrice,subTypeName
-690417,Armory Deck: Olympia,Armory Deck Olympia,https://tcgplayer-cdn.tcgplayer.com/product/690417_200w.jpg,62,24672,https://cpt.tcgcsv.com/mbx7,2026-05-18T19:24:33.67,1,59.99,72.4,76.0,,,Normal
-690419,Armory Deck: Olympia Case,Armory Deck Olympia Case,https://tcgplayer-cdn.tcgplayer.com/product/690419_200w.jpg,62,24672,https://cpt.tcgcsv.com/pbx7,2026-04-16T17:44:33.56,1,,,,,,
+productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount
+705069,Usurp the Shadow Throne Booster Pack,Usurp the Shadow Throne Booster Pack,https://tcgplayer-cdn.tcgplayer.com/product/705069_200w.jpg,62,24762,https://cpt.tcgcsv.com/p2G7,2026-07-09T21:23:32.573,0
+705070,Usurp the Shadow Throne Booster Box,Usurp the Shadow Throne Booster Box,https://tcgplayer-cdn.tcgplayer.com/product/705070_200w.jpg,62,24762,https://cpt.tcgcsv.com/q2G7,2026-07-08T15:45:36.037,0
+705071,Usurp the Shadow Throne Booster Box Case,Usurp the Shadow Throne Booster Box Case,https://tcgplayer-cdn.tcgplayer.com/product/705071_200w.jpg,62,24762,https://cpt.tcgcsv.com/r2G7,2026-07-08T15:46:33.397,0
+705077,Usurp the Shadow Throne Prerelease Kit,Usurp the Shadow Throne Prerelease Kit,https://tcgplayer-cdn.tcgplayer.com/product/705077_200w.jpg,62,24762,https://cpt.tcgcsv.com/z2G7,2026-07-09T21:21:43.243,0
