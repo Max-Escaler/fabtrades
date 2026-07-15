@@ -435,6 +435,38 @@ List<CardModel> identifyCards(
   return result;
 }
 
+/// Fuses the scanner's two candidate lists — visual (perceptual-hash) matches
+/// and OCR (name/collector-number) matches — into one ranking using Reciprocal
+/// Rank Fusion: score(card) = Σ 1/(k + rank in each list). A card found by
+/// BOTH signals therefore outranks one found by either alone, which is how
+/// production scanners disambiguate near-identical printings.
+List<CardModel> fuseScanCandidates({
+  required List<CardModel> visual,
+  required List<CardModel> ocr,
+  int limit = 12,
+}) {
+  if (visual.isEmpty) return ocr.take(limit).toList();
+  if (ocr.isEmpty) return visual.take(limit).toList();
+
+  const k = 3.0;
+  final scores = <String, double>{};
+  final byId = <String, CardModel>{};
+  void addList(List<CardModel> list) {
+    for (var i = 0; i < list.length; i++) {
+      final card = list[i];
+      byId[card.id] = card;
+      scores[card.id] = (scores[card.id] ?? 0) + 1 / (k + i);
+    }
+  }
+
+  addList(visual);
+  addList(ocr);
+
+  final ranked = scores.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return [for (final e in ranked.take(limit)) byId[e.key]!];
+}
+
 /// Keeps the best name-matching group of number [candidates]. When the name
 /// could not be read (all overlaps 0), returns the candidates as-is so the user
 /// can disambiguate manually.

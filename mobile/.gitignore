@@ -14,6 +14,9 @@ Thumbs.db
 # Flutter/Dart (for later)
 .dart_tool/
 build/
+
+# Card image cache used by app/tool/generate_card_hashes.dart
+app/tool/.cache/
 .flutter-plugins
 .flutter-plugins-dependencies
 *.iml

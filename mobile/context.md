@@ -73,9 +73,16 @@ the scan key), `is_sealed` (filter `= false`), `cardmarket_id`, `cardmarket_name
   Supabase (no drift mirror yet — TODO if offline catalog is needed).
 - Phase 3 trade balancer + history: DONE (Have/Want + cash, live delta, save → history).
 - Phase 4 collection & want lists: DONE (owned/want tabs, totals, condition, qty, swipe-delete).
-- Phase 5 scan (OCR): DONE (camera + ML Kit collector-number OCR + manual entry fallback +
-  lookup). Camera fails on the emulator (no virtual cam) but preview + fallback work; needs
-  a real device to fully validate OCR.
+- Phase 5 scan: DONE, now VISUAL + OCR. The scanner fuses two offline signals per frame:
+  (a) a 256-bit perceptual hash (pHash) of the card inside the guide rectangle, matched by
+  Hamming distance against precomputed hashes of every catalog image (bundled asset
+  `assets/scan/card_hashes.json`, regenerated with `dart run tool/generate_card_hashes.dart`),
+  and (b) the existing ML Kit name/collector-number OCR. Candidates merged via Reciprocal
+  Rank Fusion; two-consecutive-frame lock unchanged. Scan code in `lib/core/scan/`
+  (phash.dart / card_hash_index.dart / frame_hasher.dart — pure Dart, shared bit-for-bit
+  with the offline tools). `tool/verify_hash_robustness.dart` benchmarks accuracy against
+  perturbed real card images. Camera fails on the emulator (no virtual cam) but preview +
+  fallback work; needs a real device to validate end-to-end.
 - Phase 6 cloud sync: not started (optional).
 
 ## App code map (lib/)

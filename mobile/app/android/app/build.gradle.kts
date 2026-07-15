@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         // Application ID must match the package name registered in Google Play Console.
-        applicationId = "com.fabtrades.app"
+        applicationId = "fabtrades.myapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

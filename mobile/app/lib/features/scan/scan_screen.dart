@@ -13,12 +13,15 @@ import '../../core/data/card_repository.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
+import '../../core/scan/frame_hasher.dart';
 import '../card_detail/card_detail_screen.dart';
 
-/// Live card scanner. Streams camera frames through ML Kit text recognition and
-/// matches the printed name + collector number against the in-memory catalog
-/// (fully offline). Locks onto a card once it has been seen on two consecutive
-/// frames, so a steady aim identifies it hands-free.
+/// Live card scanner. Streams camera frames through two offline recognizers —
+/// a perceptual-hash match of the card image inside the guide rectangle
+/// against precomputed hashes of every catalog scan, and ML Kit OCR of the
+/// printed name + collector number — then fuses both candidate lists. Locks
+/// onto a card once the same top match is seen on two consecutive frames, so
+/// a steady aim identifies it hands-free.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key, this.tradeSide});
 
@@ -189,17 +192,41 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     _processing = true;
     _lastProcessedAt = now;
     try {
-      final input = _toInputImage(image);
-      if (input == null) return;
-      final result = await _recognizer.processImage(input);
-      if (!mounted || _locked) return;
+      final rotation = _rotationDegrees();
+      if (rotation == null) return;
 
       final catalog = ref.read(catalogProvider).asData?.value ?? const [];
       if (catalog.isEmpty) {
-        setState(() => _statusMessage = 'Loading card catalog…');
+        if (mounted) setState(() => _statusMessage = 'Loading card catalog…');
         return;
       }
-      final matches = identifyCards(catalog, result.text);
+
+      // Signal 1: perceptual hash of the card inside the guide rectangle,
+      // matched against the precomputed catalog hashes.
+      var visual = const <CardModel>[];
+      final hashIndex = ref.read(cardHashIndexProvider).asData?.value;
+      if (hashIndex != null) {
+        final hash = hashCameraFrame(image, rotation);
+        if (hash != null) {
+          final byId = ref.read(catalogByIdProvider);
+          visual = [
+            for (final m in hashIndex.match(hash))
+              for (final id in m.entry.cardIds)
+                if (byId[id] != null) byId[id]!,
+          ];
+        }
+      }
+
+      // Signal 2: OCR of the printed name + collector number.
+      var ocr = const <CardModel>[];
+      final input = _toInputImage(image, rotation);
+      if (input != null) {
+        final result = await _recognizer.processImage(input);
+        if (!mounted || _locked) return;
+        ocr = identifyCards(catalog, result.text);
+      }
+
+      final matches = fuseScanCandidates(visual: visual, ocr: ocr);
       if (matches.isEmpty) {
         // Keep scanning; don't clear any prior hint aggressively.
         _pendingKey = null;
@@ -228,26 +255,26 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     }
   }
 
-  /// Builds an ML Kit [InputImage] from a streamed camera frame, computing the
-  /// correct rotation per platform (see the ML Kit Flutter example).
-  InputImage? _toInputImage(CameraImage image) {
+  /// Clockwise rotation (0/90/180/270) that turns a raw sensor frame into the
+  /// upright displayed image, per platform (see the ML Kit Flutter example).
+  /// Shared by OCR, the frame hasher, and the preview layout.
+  int? _rotationDegrees() {
     final controller = _controller;
     if (controller == null) return null;
     final camera = controller.description;
     final sensorOrientation = camera.sensorOrientation;
+    if (Platform.isIOS) return sensorOrientation;
+    final deviceRotation =
+        _orientationDegrees[controller.value.deviceOrientation];
+    if (deviceRotation == null) return null;
+    return camera.lensDirection == CameraLensDirection.front
+        ? (sensorOrientation + deviceRotation) % 360
+        : (sensorOrientation - deviceRotation + 360) % 360;
+  }
 
-    InputImageRotation? rotation;
-    if (Platform.isIOS) {
-      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
-    } else {
-      final deviceRotation =
-          _orientationDegrees[controller.value.deviceOrientation];
-      if (deviceRotation == null) return null;
-      final compensated = camera.lensDirection == CameraLensDirection.front
-          ? (sensorOrientation + deviceRotation) % 360
-          : (sensorOrientation - deviceRotation + 360) % 360;
-      rotation = InputImageRotationValue.fromRawValue(compensated);
-    }
+  /// Builds an ML Kit [InputImage] from a streamed camera frame.
+  InputImage? _toInputImage(CameraImage image, int rotationDegrees) {
+    final rotation = InputImageRotationValue.fromRawValue(rotationDegrees);
     if (rotation == null) return null;
 
     final format = InputImageFormatValue.fromRawValue(image.format.raw);
@@ -388,8 +415,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Keep the widget rebuilding as the catalog finishes loading.
+    // Keep the widget rebuilding as the catalog finishes loading, and warm the
+    // hash index so it's ready by the first frame.
     ref.watch(catalogProvider);
+    ref.watch(cardHashIndexProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.tradeSide != null ? 'Scan a card to add' : 'Scan'),
@@ -474,16 +503,35 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         ),
       );
     }
+    // Render the preview with BoxFit.cover so the visible region (and thus the
+    // guide rectangle) maps deterministically onto the camera frame — the
+    // frame hasher in frame_hasher.dart mirrors this exact geometry.
+    final controller = _controller!;
+    Widget camera = CameraPreview(controller);
+    final previewSize = controller.value.previewSize;
+    if (previewSize != null) {
+      final rotation = _rotationDegrees() ?? 0;
+      final swap = rotation == 90 || rotation == 270;
+      camera = FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: swap ? previewSize.height : previewSize.width,
+          height: swap ? previewSize.width : previewSize.height,
+          child: camera,
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.all(12),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
-          aspectRatio: 3 / 4,
+          aspectRatio: kViewportAspect,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CameraPreview(_controller!),
+              camera,
               _ScanOverlay(scanning: _streaming && !_locked),
             ],
           ),
@@ -535,6 +583,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 }
 
+/// Card-shaped guide rectangle. Its geometry (centered, [kGuideWidthFraction]
+/// of the viewport width, physical card aspect) is shared with the frame
+/// hasher, so a card that fills the guide is exactly the region being matched.
 class _ScanOverlay extends StatelessWidget {
   const _ScanOverlay({required this.scanning});
 
@@ -544,24 +595,28 @@ class _ScanOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: Center(
-        child: Container(
-          margin: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: scanning ? Colors.lightGreenAccent : Colors.white70,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                scanning
-                    ? 'Fill the frame with the card • name + number visible'
-                    : 'Paused',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+        child: FractionallySizedBox(
+          widthFactor: kGuideWidthFraction,
+          child: AspectRatio(
+            aspectRatio: kCardAspect,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: scanning ? Colors.lightGreenAccent : Colors.white70,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    scanning ? 'Fit the card exactly in the frame' : 'Paused',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
               ),
             ),
           ),

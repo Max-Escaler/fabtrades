@@ -244,6 +244,33 @@ const Header = ({ lastUpdatedTimestamp }) => {
                             />
                         </ListItemButton>
                     </ListItem>
+                    <ListItem disablePadding sx={{ mt: 1 }}>
+                        <ListItemButton
+                            component={Link}
+                            to="/privacy"
+                            sx={{
+                                borderRadius: 2,
+                                backgroundColor: location.pathname === '/privacy'
+                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                    : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
+                                },
+                                transition: 'all 0.2s ease-in-out'
+                            }}
+                        >
+                            <ListItemText
+                                primary="Privacy Policy"
+                                sx={{
+                                    fontWeight: location.pathname === '/privacy' ? 700 : 500,
+                                    color: location.pathname === '/privacy'
+                                        ? (isDark ? '#e4c09c' : '#8b4513')
+                                        : (isDark ? '#f5f1ed' : '#2c1810'),
+                                    '& .MuiTypography-root': { fontSize: '0.875rem' }
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
                 </List>
 
                 {recentSets.length > 0 && (

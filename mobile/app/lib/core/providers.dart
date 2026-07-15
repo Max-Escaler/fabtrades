@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,6 +15,7 @@ import 'models/card_model.dart';
 import 'models/collection_entry.dart';
 import 'models/lend_group.dart';
 import 'models/trade.dart';
+import 'scan/card_hash_index.dart';
 
 /// Overridden in main() with the real instance.
 final sharedPreferencesProvider = Provider<SharedPreferences>(
@@ -70,6 +72,21 @@ class CatalogNotifier extends AsyncNotifier<List<CardModel>> {
 final catalogProvider =
     AsyncNotifierProvider<CatalogNotifier, List<CardModel>>(
         CatalogNotifier.new);
+
+/// Perceptual hashes of every catalog image, bundled as an asset for the
+/// visual card scanner (regenerated per set release by
+/// `tool/generate_card_hashes.dart`).
+final cardHashIndexProvider = FutureProvider<CardHashIndex>((ref) async {
+  final jsonText = await rootBundle.loadString('assets/scan/card_hashes.json');
+  return CardHashIndex.fromJson(jsonText);
+});
+
+/// Catalog keyed by printing id, for O(1) lookups (used by the scanner to
+/// resolve hash-match ids to cards on every frame).
+final catalogByIdProvider = Provider<Map<String, CardModel>>((ref) {
+  final cards = ref.watch(catalogProvider).asData?.value ?? const <CardModel>[];
+  return {for (final c in cards) c.id: c};
+});
 
 // ---------------------------------------------------------------------------
 // Settings
