@@ -102,6 +102,16 @@ describe('getUserTrades', () => {
   });
 });
 
+describe('getUserTrades', () => {
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'db down' } }));
+    const { data, error } = await getUserTrades();
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'db down' });
+  });
+});
+
 describe('getTradeById', () => {
   test('fetches a single trade by id and user', async () => {
     asUser('user-3');
@@ -113,6 +123,21 @@ describe('getTradeById', () => {
     expect(data).toEqual({ id: 'xyz' });
     expect(chain.eq).toHaveBeenCalledWith('id', 'xyz');
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-3');
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await getTradeById('xyz');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+  });
+
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'missing' } }));
+    const { data, error } = await getTradeById('xyz');
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'missing' });
   });
 });
 
@@ -129,6 +154,21 @@ describe('updateTrade', () => {
     expect(chain.update).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'New', updated_at: expect.any(String) })
     );
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+  });
+
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'conflict' } }));
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'conflict' });
   });
 });
 
@@ -153,5 +193,12 @@ describe('deleteTrade', () => {
     const { data, error } = await deleteTrade('d1');
     expect(data).toBeNull();
     expect(error).toEqual({ message: 'nope' });
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await deleteTrade('d1');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
   });
 });

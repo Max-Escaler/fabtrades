@@ -44,6 +44,40 @@ describe('decodeTradeFromURL', () => {
     expect(decoded.have[1][2]).toBe(3);
     expect(decoded.want[0][0]).toBe('DeltaVane');
   });
+
+  test('rejects an unsupported (future) version', () => {
+    const param = makeTradeParam({ v: 2, h: [['ZetaNode', 10]], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('rejects a payload missing a version', () => {
+    const param = makeTradeParam({ h: [['ZetaNode', 10]], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('defaults have/want to empty arrays and timestamp to null when absent', () => {
+    const param = makeTradeParam({ v: 1 });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded).not.toBeNull();
+    expect(decoded.have).toEqual([]);
+    expect(decoded.want).toEqual([]);
+    expect(decoded.timestamp).toBeNull();
+    expect(decoded.ageInDays).toBeNull();
+  });
+
+  test('converts the minute-based timestamp back to milliseconds', () => {
+    const minutes = Math.floor(Date.now() / 60000);
+    const param = makeTradeParam({ v: 1, t: minutes, h: [], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded.timestamp).toBe(minutes * 60000);
+    expect(decoded.ageInDays).toBeGreaterThanOrEqual(0);
+  });
 });
 
 describe('hasTradeDataInURL / clearTradeFromURL', () => {
@@ -120,5 +154,24 @@ describe('reconstructCardsFromURLData', () => {
       cardGroups
     );
     expect(card).toMatchObject({ name: 'Gamma Coil', quantity: 4 });
+  });
+
+  test('clamps invalid quantities up to at least 1', () => {
+    const [zero] = reconstructCardsFromURLData([['Zeta Node', 10, 0]], cardGroups);
+    expect(zero.quantity).toBe(1);
+    const [negative] = reconstructCardsFromURLData([['Zeta Node', 10, -5]], cardGroups);
+    expect(negative.quantity).toBe(1);
+  });
+
+  test('skips a matched group that has no editions', () => {
+    const groups = [{ name: 'Empty Group', editions: [] }];
+    const result = reconstructCardsFromURLData([['Empty Group', 10, 1]], groups);
+    expect(result).toEqual([]);
+  });
+
+  test('falls back to the first edition when no price matches', () => {
+    const [card] = reconstructCardsFromURLData([['Zeta Node', 999, 1]], cardGroups);
+    expect(card.uniqueId).toBe('z-normal');
+    expect(card.price).toBe(999);
   });
 });
