@@ -17,7 +17,9 @@ import {
 } from '../content/privacyPolicy.js';
 
 // Renders URLs and the contact email inside policy text as real links.
-const linkify = (text, linkColor) => {
+// Exported for unit testing of the parsing/link-building edge cases.
+// eslint-disable-next-line react-refresh/only-export-components
+export const linkify = (text, linkColor) => {
     const pattern = /(https?:\/\/[^\s.,)]+(?:\.[^\s.,)]+)*|[\w.+-]+@[\w-]+\.[\w.]+)/g;
     const parts = text.split(pattern);
     return parts.map((part, i) => {
