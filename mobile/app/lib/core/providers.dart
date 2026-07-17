@@ -7,6 +7,7 @@ import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
 import 'data/collection_repository.dart';
 import 'data/lend_repository.dart';
+import 'data/set_logos.dart';
 import 'data/settings_repository.dart';
 import 'data/trade_repository.dart';
 import 'logic/pricing.dart';
@@ -80,6 +81,9 @@ final cardHashIndexProvider = FutureProvider<CardHashIndex>((ref) async {
   final jsonText = await rootBundle.loadString('assets/scan/card_hashes.json');
   return CardHashIndex.fromJson(jsonText);
 });
+
+/// Official FAB set logos (TCGplayer group id → CDN URL), bundled as an asset.
+final setLogoMapProvider = FutureProvider<SetLogoMap>((ref) => loadSetLogoMap());
 
 /// Catalog keyed by printing id, for O(1) lookups (used by the scanner to
 /// resolve hash-match ids to cards on every frame).

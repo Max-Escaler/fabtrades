@@ -4,6 +4,71 @@ import 'package:flutter/material.dart';
 import '../core/models/card_model.dart';
 import 'theme.dart';
 
+/// Official FAB set logo for browse lists. Falls back to [setName] when the
+/// logo URL is missing or fails to load (mirrors the web Browse Sets page).
+class SetLogoTitle extends StatelessWidget {
+  const SetLogoTitle({
+    super.key,
+    required this.setName,
+    this.logoUrl,
+    this.height = 28,
+  });
+
+  final String setName;
+  final String? logoUrl;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = logoUrl;
+    if (url == null || url.isEmpty) {
+      return Text(setName, style: const TextStyle(fontWeight: FontWeight.w600));
+    }
+
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final nameFallback = Text(
+      setName,
+      style: const TextStyle(fontWeight: FontWeight.w600),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: height + 4, maxWidth: 240),
+        child: CachedNetworkImage(
+          imageUrl: url,
+          height: height,
+          fit: BoxFit.contain,
+          alignment: Alignment.centerLeft,
+          fadeInDuration: const Duration(milliseconds: 150),
+          placeholder: (_, _) => nameFallback,
+          errorWidget: (_, _, _) => nameFallback,
+          imageBuilder: (_, imageProvider) => Container(
+            height: height + 4,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : scheme.onSurface.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Image(
+              image: imageProvider,
+              height: height,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Rounded card artwork with graceful placeholders.
 class CardThumbnail extends StatelessWidget {
   const CardThumbnail({

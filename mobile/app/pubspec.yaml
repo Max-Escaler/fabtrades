@@ -91,6 +91,9 @@ flutter:
     # Perceptual hashes of every catalog image, for the card scanner.
     # Regenerate with: dart run tool/generate_card_hashes.dart
     - assets/scan/card_hashes.json
+    # Official FAB set logos (groupId → CDN URL). Regenerate with:
+    # node scripts/scrapeSetLogos.cjs (from the repo root).
+    - assets/setLogos.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

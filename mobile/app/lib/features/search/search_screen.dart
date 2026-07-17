@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../app/app.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
+import '../../core/data/set_logos.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../scan/scan_screen.dart';
@@ -112,6 +113,7 @@ class _SetList extends ConsumerWidget {
     // list. Watching the catalog here also preloads it as soon as the app
     // opens, so tapping into a set later is instant.
     final catalog = ref.watch(catalogProvider);
+    final logos = ref.watch(setLogoMapProvider).asData?.value ?? SetLogoMap.empty;
     return catalog.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
       error: (e, _) => _ScrollableCenter(
@@ -122,10 +124,15 @@ class _SetList extends ConsumerWidget {
       ),
       data: (cards) {
         final counts = <String, int>{};
+        // setName → TCGplayer group id (for logo lookup). First seen wins.
+        final setIds = <String, int>{};
         for (final c in cards) {
           if (isNonCardProduct(c)) continue;
           final s = c.setName;
-          if (s != null) counts[s] = (counts[s] ?? 0) + 1;
+          if (s == null) continue;
+          counts[s] = (counts[s] ?? 0) + 1;
+          final id = c.setId;
+          if (id != null) setIds.putIfAbsent(s, () => id);
         }
         final sets = CardRepository.setNamesFrom(cards);
         if (sets.isEmpty) {
@@ -139,9 +146,9 @@ class _SetList extends ConsumerWidget {
           itemBuilder: (context, i) {
             final set = sets[i];
             final count = counts[set];
+            final logoUrl = logos.urlForGroupId(setIds[set]);
             return ListTile(
-              title: Text(set,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              title: SetLogoTitle(setName: set, logoUrl: logoUrl),
               subtitle: count == null ? null : Text('$count cards'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
