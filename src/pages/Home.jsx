@@ -114,7 +114,10 @@ const Home = () => {
                         wantList={tradeState.wantList}
                         haveTotal={tradeState.haveTotal}
                         wantTotal={tradeState.wantTotal}
+                        haveLowTotal={tradeState.haveLowTotal}
+                        wantLowTotal={tradeState.wantLowTotal}
                         diff={tradeState.diff}
+                        lowDiff={tradeState.lowDiff}
                         isLandscape={isLandscape}
                         clearURLTradeData={tradeState.clearURLTradeData}
                         urlTradeData={tradeState.urlTradeData}

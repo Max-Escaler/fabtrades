@@ -1,4 +1,8 @@
-import { calculateTotal, calculateDiff } from '../../src/utils/trade.js';
+import {
+  calculateTotal,
+  calculateLowTotal,
+  calculateDiff,
+} from '../../src/utils/trade.js';
 
 describe('calculateTotal', () => {
   test('returns 0 for an empty list', () => {
@@ -24,6 +28,21 @@ describe('calculateTotal', () => {
       { price: 12, quantity: 0 },
     ];
     expect(calculateTotal(list)).toBe(0);
+  });
+});
+
+describe('calculateLowTotal', () => {
+  test('returns 0 for an empty list', () => {
+    expect(calculateLowTotal([])).toBe(0);
+  });
+
+  test('sums lowPrice * quantity and treats missing lows as 0', () => {
+    const list = [
+      { lowPrice: 2, quantity: 3 }, // 6
+      { lowPrice: null, quantity: 2 }, // 0
+      { price: 10, quantity: 1 }, // 0 (no lowPrice)
+    ];
+    expect(calculateLowTotal(list)).toBe(6);
   });
 });
 

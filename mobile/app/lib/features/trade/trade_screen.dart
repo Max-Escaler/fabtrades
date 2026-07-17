@@ -6,6 +6,7 @@ import '../../app/app.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
+import '../../core/logic/pricing.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
@@ -17,7 +18,7 @@ import 'trade_history_screen.dart';
 
 /// Smallest fraction of the split area either list can be squeezed to.
 const double _minFraction = 0.15;
-const double _dragBarHeight = 108;
+const double _dragBarHeight = 128;
 
 class TradeScreen extends ConsumerStatefulWidget {
   const TradeScreen({super.key});
@@ -34,6 +35,7 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
   Widget build(BuildContext context) {
     final trade = ref.watch(tradeDraftProvider);
     final settings = ref.watch(settingsProvider);
+    final pricing = ref.watch(pricingProvider);
     final notifier = ref.read(tradeDraftProvider.notifier);
     final isEmpty = trade.haveItems.isEmpty && trade.wantItems.isEmpty;
 
@@ -48,12 +50,6 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
               MaterialPageRoute(builder: (_) => const TradeHistoryScreen()),
             ),
           ),
-          if (!isEmpty)
-            IconButton(
-              icon: const Icon(Icons.save_outlined),
-              tooltip: 'Save trade',
-              onPressed: () => _saveTrade(context, ref, trade),
-            ),
           if (!isEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep_outlined),
@@ -88,6 +84,7 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
               _DragBar(
                 trade: trade,
                 settings: settings,
+                pricing: pricing,
                 onFindFiller: () => showTradeFillerSheet(context, ref),
                 onDrag: (dy) {
                   setState(() {
@@ -208,19 +205,28 @@ class _TradeSideList extends ConsumerWidget {
 }
 
 /// The draggable summary bar between the two lists. Drag vertically to give
-/// more room to either side; shows each side's total and the running delta.
+/// more room to either side; shows each side's market + low totals and delta.
 class _DragBar extends StatelessWidget {
   const _DragBar({
     required this.trade,
     required this.settings,
+    required this.pricing,
     required this.onDrag,
     required this.onFindFiller,
   });
 
   final Trade trade;
   final AppSettings settings;
+  final Pricing pricing;
   final ValueChanged<double> onDrag;
   final VoidCallback onFindFiller;
+
+  double _lowTotal(List<TradeItem> items, double cash) =>
+      items.fold<double>(
+            0,
+            (s, i) => s + (pricing.lowValue(i.card) ?? 0) * i.quantity,
+          ) +
+          cash;
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +234,10 @@ class _DragBar extends StatelessWidget {
     final symbol = trade.currencySymbol;
     final theirs = trade.wantTotal;
     final mine = trade.haveTotal;
+    final theirLow = _lowTotal(trade.wantItems, trade.wantCash);
+    final myLow = _lowTotal(trade.haveItems, trade.haveCash);
     final diff = theirs - mine; // + => you gain value
+    final lowDiff = theirLow - myLow;
     final balanced = diff.abs() < 0.01;
     final Color deltaColor = balanced
         ? theme.colorScheme.onSurfaceVariant
@@ -236,6 +245,10 @@ class _DragBar extends StatelessWidget {
     final String deltaText = balanced
         ? 'Even'
         : '${diff >= 0 ? '+' : '-'}$symbol${diff.abs().toStringAsFixed(2)}';
+    final String lowDeltaText = lowDiff.abs() < 0.01
+        ? 'Low Even'
+        : 'Low ${lowDiff >= 0 ? '+' : '-'}$symbol${lowDiff.abs().toStringAsFixed(2)}';
+    final showLow = theirLow > 0 || myLow > 0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -255,7 +268,7 @@ class _DragBar extends StatelessWidget {
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.only(bottom: 6),
               decoration: BoxDecoration(
                 color: theme.colorScheme.outline,
                 borderRadius: BorderRadius.circular(2),
@@ -268,9 +281,10 @@ class _DragBar extends StatelessWidget {
               label: 'Their ${trade.wantCount} '
                   '${trade.wantCount == 1 ? 'card' : 'cards'}',
               value: '$symbol${theirs.toStringAsFixed(2)}',
+              lowValue: showLow ? 'Low $symbol${theirLow.toStringAsFixed(2)}' : null,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
                   Icon(Icons.sell_outlined,
@@ -292,12 +306,31 @@ class _DragBar extends StatelessWidget {
                     _FindFillerButton(onTap: onFindFiller),
                     const Spacer(),
                   ],
-                  Icon(balanced ? Icons.balance : Icons.trending_up,
-                      size: 15, color: deltaColor),
-                  const SizedBox(width: 4),
-                  Text(deltaText,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                          color: deltaColor, fontWeight: FontWeight.w800)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(balanced ? Icons.balance : Icons.trending_up,
+                              size: 15, color: deltaColor),
+                          const SizedBox(width: 4),
+                          Text(deltaText,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                  color: deltaColor,
+                                  fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                      if (showLow)
+                        Text(
+                          lowDeltaText,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -308,6 +341,7 @@ class _DragBar extends StatelessWidget {
               label: 'My ${trade.haveCount} '
                   '${trade.haveCount == 1 ? 'card' : 'cards'}',
               value: '$symbol${mine.toStringAsFixed(2)}',
+              lowValue: showLow ? 'Low $symbol${myLow.toStringAsFixed(2)}' : null,
             ),
           ],
         ),
@@ -321,6 +355,7 @@ class _DragBar extends StatelessWidget {
     required Color accent,
     required String label,
     required String value,
+    String? lowValue,
   }) {
     return Row(
       children: [
@@ -330,9 +365,22 @@ class _DragBar extends StatelessWidget {
             style: theme.textTheme.bodyMedium
                 ?.copyWith(fontWeight: FontWeight.w600)),
         const Spacer(),
-        Text(value,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w800)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(value,
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            if (lowValue != null)
+              Text(
+                lowValue,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -584,44 +632,3 @@ class _QtyStepper extends StatelessWidget {
       );
 }
 
-Future<void> _saveTrade(BuildContext context, WidgetRef ref, Trade trade) async {
-  final notesController = TextEditingController();
-  final confirmed = await showAdaptiveDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog.adaptive(
-      title: const Text('Save trade'),
-      content: TextField(
-        controller: notesController,
-        decoration: const InputDecoration(
-          labelText: 'Notes (optional)',
-          hintText: 'e.g. Traded with Alex at LGS',
-        ),
-      ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel')),
-        FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save trade')),
-      ],
-    ),
-  );
-  if (confirmed != true) return;
-
-  final finalTrade = Trade(
-    id: DateTime.now().millisecondsSinceEpoch.toString(),
-    createdAt: DateTime.now(),
-    notes: notesController.text.trim(),
-    haveItems: trade.haveItems,
-    wantItems: trade.wantItems,
-    currencySymbol: trade.currencySymbol,
-  );
-  ref.read(tradeHistoryProvider.notifier).addTrade(finalTrade);
-  ref.read(tradeDraftProvider.notifier).clear();
-  if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Trade saved to history')),
-    );
-  }
-}

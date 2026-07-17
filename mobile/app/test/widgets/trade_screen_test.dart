@@ -41,20 +41,44 @@ void main() {
     expect(find.text('+\$6.00'), findsOneWidget);
   });
 
-  testWidgets('save and clear actions appear once the trade is non-empty',
+  testWidgets('clear action appears once the trade is non-empty',
       (tester) async {
     final container = await pumpApp(tester, const TradeScreen());
     await tester.pump();
 
+    expect(find.byTooltip('Clear trade'), findsNothing);
     expect(find.byTooltip('Save trade'), findsNothing);
 
     container.read(tradeDraftProvider.notifier).addCard(
           TradeSide.have,
-          buildCard(id: 'h', tcgMarket: 1.0),
+          buildCard(id: 'h', tcgMarket: 1.0, tcgLow: 0.5),
         );
     await tester.pump();
 
-    expect(find.byTooltip('Save trade'), findsOneWidget);
+    expect(find.byTooltip('Save trade'), findsNothing);
     expect(find.byTooltip('Clear trade'), findsOneWidget);
+    expect(find.text('Low \$0.50'), findsOneWidget);
+  });
+
+  testWidgets('totals show market and low for both sides', (tester) async {
+    final container = await pumpApp(tester, const TradeScreen());
+    await tester.pump();
+
+    container.read(tradeDraftProvider.notifier).addCard(
+          TradeSide.want,
+          buildCard(id: 'w', name: 'Their Card', tcgMarket: 10.0, tcgLow: 8.0),
+        );
+    container.read(tradeDraftProvider.notifier).addCard(
+          TradeSide.have,
+          buildCard(id: 'h', name: 'My Card', tcgMarket: 4.0, tcgLow: 3.0),
+        );
+    await tester.pump();
+
+    expect(find.text('\$10.00'), findsOneWidget);
+    expect(find.text('\$4.00'), findsOneWidget);
+    expect(find.text('Low \$8.00'), findsOneWidget);
+    expect(find.text('Low \$3.00'), findsOneWidget);
+    expect(find.text('+\$6.00'), findsOneWidget);
+    expect(find.text('Low +\$5.00'), findsOneWidget);
   });
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { calculateTotal, calculateDiff } from "../utils/trade.js";
+import { calculateTotal, calculateLowTotal, calculateDiff } from "../utils/trade.js";
 import { 
     decodeTradeFromURL, 
     reconstructCardsFromURLData,
@@ -226,7 +226,13 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
 
     const haveTotal = useMemo(() => calculateTotal(haveList), [haveList]);
     const wantTotal = useMemo(() => calculateTotal(wantList), [wantList]);
+    const haveLowTotal = useMemo(() => calculateLowTotal(haveList), [haveList]);
+    const wantLowTotal = useMemo(() => calculateLowTotal(wantList), [wantList]);
     const diff = useMemo(() => calculateDiff(haveTotal, wantTotal), [haveTotal, wantTotal]);
+    const lowDiff = useMemo(
+        () => calculateDiff(haveLowTotal, wantLowTotal),
+        [haveLowTotal, wantLowTotal]
+    );
 
     return {
         haveList,
@@ -243,7 +249,10 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         updateWantCardQuantity: (i, q) => updateQuantity(wantList, setWantList, i, q),
         haveTotal,
         wantTotal,
+        haveLowTotal,
+        wantLowTotal,
         diff,
+        lowDiff,
         // URL trade-loading functionality
         clearURLTradeData,
         urlTradeData,
