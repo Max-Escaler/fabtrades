@@ -18,13 +18,15 @@ import {
 import { 
     Warning as WarningIcon,
     Clear as ClearIcon,
-    Save as SaveIcon
+    Save as SaveIcon,
+    AutoFixHigh as AutoFixHighIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { usePriceType } from "../../contexts/PriceContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
+import FindFillerDialog from "./FindFillerDialog.jsx";
 
 const TradeSummary = ({ 
     haveList, 
@@ -35,16 +37,22 @@ const TradeSummary = ({
     isLandscape = false,
     clearURLTradeData,
     urlTradeData,
-    hasLoadedFromURL
+    hasLoadedFromURL,
+    cards = [],
+    dataReady = false,
+    onAddHave,
+    onAddWant,
 }) => {
     const { priceType, setPriceType } = usePriceType();
     const { isDark } = useThemeMode();
     const { user } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [showFindFiller, setShowFindFiller] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
     const hasCards = haveList.length > 0 || wantList.length > 0;
+    const isUnbalanced = Math.abs(diff) >= 0.01;
 
     // Calculate total card count including quantities
     const getTotalCardCount = (cardList) => {
@@ -253,7 +261,8 @@ const TradeSummary = ({
                     gap: isLandscape ? 1 : 2,
                     flexDirection: isLandscape ? 'column' : 'row',
                     justifyContent: 'center',
-                    flexGrow: !isLandscape ? 1 : 'none'
+                    flexGrow: !isLandscape ? 1 : 'none',
+                    flexWrap: 'wrap'
                 }}>
                     <Typography variant="h6" sx={{ 
                         fontWeight: 'bold', 
@@ -269,6 +278,34 @@ const TradeSummary = ({
                         variant="filled"
                         size={isLandscape ? 'small' : 'medium'}
                     />
+                    {isUnbalanced && (
+                        <Chip
+                            icon={<AutoFixHighIcon sx={{ fontSize: '14px !important' }} />}
+                            label="Find Trade Filler"
+                            onClick={() => setShowFindFiller(true)}
+                            clickable
+                            size="small"
+                            sx={{
+                                fontWeight: 700,
+                                fontSize: isLandscape ? '0.65rem' : '0.7rem',
+                                backgroundColor: isDark
+                                    ? 'rgba(200, 113, 55, 0.25)'
+                                    : 'rgba(139, 69, 19, 0.12)',
+                                color: isDark ? '#e4c09c' : '#8b4513',
+                                border: isDark
+                                    ? '1px solid rgba(200, 113, 55, 0.4)'
+                                    : '1px solid rgba(139, 69, 19, 0.25)',
+                                '& .MuiChip-icon': {
+                                    color: isDark ? '#e4c09c' : '#8b4513',
+                                },
+                                '&:hover': {
+                                    backgroundColor: isDark
+                                        ? 'rgba(200, 113, 55, 0.4)'
+                                        : 'rgba(139, 69, 19, 0.2)',
+                                },
+                            }}
+                        />
+                    )}
                 </Box>
 
                 {/* Clear Button - on the right side for portrait mode */}
@@ -425,6 +462,16 @@ const TradeSummary = ({
                 Trade saved to your history!
             </Alert>
         </Snackbar>
+
+        <FindFillerDialog
+            open={showFindFiller}
+            onClose={() => setShowFindFiller(false)}
+            diff={diff}
+            cards={cards}
+            dataReady={dataReady}
+            onAddHave={onAddHave}
+            onAddWant={onAddWant}
+        />
         </>
     );
 };

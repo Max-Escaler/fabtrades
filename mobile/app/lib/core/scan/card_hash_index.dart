@@ -66,6 +66,10 @@ class CardHashIndex {
     double sigmaThreshold = 5.0,
     int tieMargin = 6,
     int maxCandidates = 8,
+    /// When set, receives `(bestDistance, meanDistance, zScore)` for every
+    /// probe — including rejected ones — so the scanner diagnostic can show
+    /// why a frame failed the outlier gate.
+    void Function(int best, double mean, double z)? onStats,
   }) {
     if (entries.isEmpty) return const [];
 
@@ -83,9 +87,11 @@ class CardHashIndex {
     final mean = sum / n;
     final variance = math.max(0, sumSq / n - mean * mean);
     final sigma = math.sqrt(variance);
+    final z = sigma == 0 ? 0.0 : (mean - best) / sigma;
+    onStats?.call(best, mean, z);
 
     // Reject when the best hit isn't clearly separated from the noise floor.
-    if (sigma == 0 || (mean - best) / sigma < sigmaThreshold) return const [];
+    if (sigma == 0 || z < sigmaThreshold) return const [];
 
     final matches = <CardHashMatch>[];
     for (var i = 0; i < n; i++) {

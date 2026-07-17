@@ -87,6 +87,16 @@ void main() {
       final result = identifyCards(catalog, 'Apathetic');
       expect(result, isEmpty);
     });
+
+    test('prefers the more specific name when several fully match', () {
+      final withShort = [
+        ...catalog,
+        buildCard(id: 'just-ahri', name: 'Ahri', collectorNumber: '001/100'),
+      ];
+      final result =
+          identifyCards(withShort, 'Ahri Inquisitive appears in the text');
+      expect(result.first.id, 'ahri'); // "Ahri - Inquisitive", not bare "Ahri"
+    });
   });
 
   group('parseScanNumbers', () {

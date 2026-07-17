@@ -33,42 +33,54 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
             return; // Invalid input
         }
         
-        // Check if card already exists (by unique ID if we have selected card, otherwise by name)
-        const cardExists = selectedCard 
-            ? list.some(item => item.uniqueId === selectedCard._uniqueId)
-            : list.some(item => item.name === cardName);
-            
-        if (cardName && !cardExists) {
-            const cardGroup = getCardGroup(cardName);
-            if (cardGroup && cardGroup.editions.length > 0) {
-                // If we have a specific card selected, use its edition info
-                let edition, subTypeName;
-                if (selectedCard) {
-                    subTypeName = selectedCard.subTypeName || 'Normal';
-                    // Find the matching edition
-                    edition = cardGroup.editions.find(e => e.subTypeName === subTypeName) || cardGroup.editions[0];
-                } else {
-                    // Default to first edition if no specific card selected
-                    edition = cardGroup.editions[0];
-                    subTypeName = edition.subTypeName || 'Normal';
-                }
-                
-                setList([
-                    ...list,
-                    {
-                        name: cardName,
-                        price: edition.cardPrice,
-                        cardGroup,
-                        availableEditions: cardGroup.editions,
-                        quantity: 1,
-                        subTypeName: subTypeName,  // Store subTypeName for gradient rendering
-                        uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId,
-                        imageUrl: selectedCard?.imageUrl || edition.imageUrl || '',
-                        imageUrlFallback: selectedCard?.imageUrlFallback || edition.imageUrlFallback || ''
-                    }
-                ]);
-                inputSetter("");
+        if (!cardName) return;
+
+        // If this printing is already on the side, bump quantity (matches mobile).
+        const existingIndex = selectedCard
+            ? list.findIndex(item => item.uniqueId === selectedCard._uniqueId)
+            : list.findIndex(item => item.name === cardName);
+
+        if (existingIndex >= 0) {
+            const updated = [...list];
+            const current = updated[existingIndex];
+            updated[existingIndex] = {
+                ...current,
+                quantity: Math.min(6, (current.quantity || 1) + 1),
+            };
+            setList(updated);
+            inputSetter("");
+            return;
+        }
+
+        const cardGroup = getCardGroup(cardName);
+        if (cardGroup && cardGroup.editions.length > 0) {
+            // If we have a specific card selected, use its edition info
+            let edition, subTypeName;
+            if (selectedCard) {
+                subTypeName = selectedCard.subTypeName || 'Normal';
+                // Find the matching edition
+                edition = cardGroup.editions.find(e => e.subTypeName === subTypeName) || cardGroup.editions[0];
+            } else {
+                // Default to first edition if no specific card selected
+                edition = cardGroup.editions[0];
+                subTypeName = edition.subTypeName || 'Normal';
             }
+            
+            setList([
+                ...list,
+                {
+                    name: cardName,
+                    price: edition.cardPrice,
+                    cardGroup,
+                    availableEditions: cardGroup.editions,
+                    quantity: 1,
+                    subTypeName: subTypeName,  // Store subTypeName for gradient rendering
+                    uniqueId: selectedCard ? selectedCard._uniqueId : edition.uniqueId,
+                    imageUrl: selectedCard?.imageUrl || edition.imageUrl || '',
+                    imageUrlFallback: selectedCard?.imageUrlFallback || edition.imageUrlFallback || ''
+                }
+            ]);
+            inputSetter("");
         }
     };
 

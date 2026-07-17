@@ -71,6 +71,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   // Two-frame confirmation to reject transient false positives.
   String? _pendingKey;
   int _pendingHits = 0;
+  /// Consecutive empty frames while a pending read is in flight. OCR on a
+  /// real Pixel flickers empty between good frames; one miss must not wipe
+  /// progress or the gate never reaches 2.
+  int _pendingMisses = 0;
 
   String? _statusMessage;
   List<CardModel> _matches = const [];
@@ -193,7 +197,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     _lastProcessedAt = now;
     try {
       final rotation = _rotationDegrees();
-      if (rotation == null) return;
+      if (rotation == null) {
+        debugPrint(
+            '[DEBUG-scan] rot=null orient=${_controller?.value.deviceOrientation} '
+            'sensor=${_controller?.description.sensorOrientation}');
+        return;
+      }
 
       final catalog = ref.read(catalogProvider).asData?.value ?? const [];
       if (catalog.isEmpty) {
@@ -204,13 +213,24 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       // Signal 1: perceptual hash of the card inside the guide rectangle,
       // matched against the precomputed catalog hashes.
       var visual = const <CardModel>[];
+      var bestDist = -1;
+      var zScore = -1.0;
+      var hashOk = false;
       final hashIndex = ref.read(cardHashIndexProvider).asData?.value;
       if (hashIndex != null) {
         final hash = hashCameraFrame(image, rotation);
+        hashOk = hash != null;
         if (hash != null) {
           final byId = ref.read(catalogByIdProvider);
+          final matches = hashIndex.match(
+            hash,
+            onStats: (best, mean, z) {
+              bestDist = best;
+              zScore = z;
+            },
+          );
           visual = [
-            for (final m in hashIndex.match(hash))
+            for (final m in matches)
               for (final id in m.entry.cardIds)
                 if (byId[id] != null) byId[id]!,
           ];
@@ -218,27 +238,54 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       }
 
       // Signal 2: OCR of the printed name + collector number.
+      // Isolated from visual so an ML Kit / format failure on Android cannot
+      // discard a successful hash match (that used to silently kill scanning).
       var ocr = const <CardModel>[];
       var ocrNumbers = const <ScanNumber>[];
+      var ocrNote = 'skip';
       final input = _toInputImage(image, rotation);
-      if (input != null) {
-        final result = await _recognizer.processImage(input);
-        if (!mounted || _locked) return;
-        ocr = identifyCards(catalog, result.text);
-        ocrNumbers = parseScanNumbers(result.text);
+      if (input == null) {
+        ocrNote = 'input=null fmt=${image.format.group}/'
+            '${image.format.raw} planes=${image.planes.length}';
+      } else {
+        try {
+          final result = await _recognizer.processImage(input);
+          if (!mounted || _locked) return;
+          ocr = identifyCards(catalog, result.text);
+          ocrNumbers = parseScanNumbers(result.text);
+          final snippet = result.text.replaceAll('\n', ' ').trim();
+          ocrNote = snippet.isEmpty
+              ? 'empty'
+              : '"${snippet.length > 40 ? '${snippet.substring(0, 40)}…' : snippet}"';
+        } catch (e) {
+          // Full exception — PlatformException.message is the useful part.
+          ocrNote = 'err=$e';
+        }
       }
 
       final matches =
           fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
+      debugPrint(
+        '[DEBUG-scan] rot=$rotation hash=${hashOk ? 'ok' : 'null'} '
+        'best=$bestDist z=${zScore.toStringAsFixed(1)} '
+        'vis=${visual.length} ocr=${ocr.length} ($ocrNote)',
+      );
       if (matches.isEmpty) {
-        // Keep scanning; don't clear any prior hint aggressively.
+        if (_pendingKey != null) {
+          _pendingMisses++;
+          if (_pendingMisses < 3) return; // tolerate brief OCR flicker
+        }
         _pendingKey = null;
         _pendingHits = 0;
+        _pendingMisses = 0;
         return;
       }
+      _pendingMisses = 0;
 
-      // Require the same top card on two consecutive reads before locking.
-      final key = matches.first.id;
+      // Confirm by card identity, not printing id. OCR often returns every
+      // foil/set/pitch variant of the same name; keying on printing id made
+      // the two-frame gate flip forever and never lock on a Pixel.
+      final key = _scanConfirmKey(matches.first);
       if (key == _pendingKey) {
         _pendingHits++;
       } else {
@@ -246,16 +293,32 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         _pendingHits = 1;
       }
       if (_pendingHits >= 2) {
-        await _lockOn(matches);
+        final locked = [
+          for (final c in matches)
+            if (_scanConfirmKey(c) == key) c
+        ];
+        debugPrint('[DEBUG-scan] LOCK key="$key" n=${locked.length}');
+        await _lockOn(locked.isNotEmpty ? locked : matches);
       } else if (mounted) {
         setState(() => _statusMessage =
             'Reading ${matches.first.name}… hold steady.');
       }
-    } catch (_) {
-      // Ignore per-frame failures; the next frame will retry.
+    } catch (e) {
+      debugPrint('[DEBUG-scan] frame err=$e');
     } finally {
       _processing = false;
     }
+  }
+
+  /// Stable identity for the two-frame confirmation gate. Strips every
+  /// parenthetical (including FAB pitch colors) so OCR returning Red/Yellow/
+  /// Blue or foil variants of the same card still counts as consecutive hits.
+  /// Printing id is too unstable: the fused list's top entry flips between
+  /// variants every frame and the gate never reaches 2.
+  String _scanConfirmKey(CardModel card) {
+    final stripped =
+        card.name.replaceAll(RegExp(r'\s*\([^)]*\)'), ' ').trim();
+    return stripped.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
   }
 
   /// Clockwise rotation (0/90/180/270) that turns a raw sensor frame into the
@@ -276,13 +339,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   /// Builds an ML Kit [InputImage] from a streamed camera frame.
+  ///
+  /// Matches the google_mlkit_commons contract: Android must be a single-plane
+  /// NV21 buffer, iOS a single-plane BGRA8888 buffer. Anything else returns
+  /// null so OCR is skipped rather than throwing and poisoning the frame.
   InputImage? _toInputImage(CameraImage image, int rotationDegrees) {
     final rotation = InputImageRotationValue.fromRawValue(rotationDegrees);
     if (rotation == null) return null;
 
     final format = InputImageFormatValue.fromRawValue(image.format.raw);
     if (format == null) return null;
-    if (image.planes.isEmpty) return null;
+    if (Platform.isAndroid && format != InputImageFormat.nv21) return null;
+    if (Platform.isIOS && format != InputImageFormat.bgra8888) return null;
+    if (image.planes.length != 1) return null;
     final plane = image.planes.first;
 
     return InputImage.fromBytes(
@@ -334,6 +403,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       _matches = const [];
       _pendingKey = null;
       _pendingHits = 0;
+      _pendingMisses = 0;
       _statusMessage = 'Point at a card to identify it.';
     });
     if (_controller == null) {

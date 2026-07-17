@@ -423,21 +423,20 @@ List<CardModel> identifyCards(
     }
   }
 
-  // Fallback: no usable number was read — rank the whole catalog by name and
-  // require every distinctive token to be present (avoids false hits from the
-  // ability/flavour text OCR also picks up).
-  final scored = <MapEntry<CardModel, double>>[];
+  // Fallback: no usable number was read — require every distinctive name token
+  // to be present (avoids false hits from ability/flavour text), and prefer
+  // cards whose names have MORE distinctive tokens so "Harmonized Kodachi"
+  // outranks a shorter name that also fully matched a subset of the OCR words.
+  final scored = <MapEntry<CardModel, int>>[];
   for (final card in catalog) {
-    final overlap = _nameOverlap(card, ocrWords);
-    if (overlap >= 1.0) scored.add(MapEntry(card, overlap));
+    final tokens = nameTokens(card.name);
+    if (tokens.isEmpty) continue;
+    if (_nameOverlap(card, ocrWords) < 1.0) continue;
+    scored.add(MapEntry(card, tokens.length));
   }
   if (scored.isEmpty) return const [];
-  final result = <CardModel>[];
-  for (final e in scored) {
-    result.add(e.key);
-    if (result.length >= limit) break;
-  }
-  return result;
+  scored.sort((a, b) => b.value.compareTo(a.value));
+  return [for (final e in scored.take(limit)) e.key];
 }
 
 /// Fuses the scanner's two candidate lists — visual (perceptual-hash) matches
