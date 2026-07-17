@@ -167,6 +167,7 @@ class _SetListState extends ConsumerState<_SetList> {
             final set = sets[i];
             final logoUrl = logos.urlForGroupId(setIds[set]);
             return _SetTile(
+              key: ValueKey<String>(set),
               setName: set,
               logoUrl: logoUrl,
             );

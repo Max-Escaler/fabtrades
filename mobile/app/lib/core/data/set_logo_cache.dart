@@ -1,13 +1,16 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// Long-lived on-device cache for official FAB set logos.
 ///
 /// Logos change rarely, so they stay on disk for a year. The browse screen
-/// warms this cache as soon as the URL map loads, then precaches into
-/// Flutter's in-memory [ImageCache] so ListView recycling and route pops
-/// (e.g. Settings → back) do not re-hit the CDN or flash placeholders.
+/// warms this cache as soon as the URL map loads, then pins decoded images
+/// in memory so ListView remounts and route pops (Settings, set drill-in)
+/// paint synchronously instead of flashing placeholders.
 class SetLogoCache {
   SetLogoCache._();
 
@@ -21,6 +24,11 @@ class SetLogoCache {
   static const platePadding = 6.0;
 
   static CacheManager? _instance;
+
+  /// Keeps [ImageStreamCompleter]s alive for the process so Flutter's
+  /// [ImageCache] cannot drop decoded logos while Browse is covered by
+  /// another route (set detail, Settings, etc.).
+  static final Map<String, ImageStreamCompleterHandle> _pins = {};
 
   /// Lazily created so unit tests can import this library without initializing
   /// platform bindings (CacheManager touches path_provider on construct).
@@ -52,6 +60,19 @@ class SetLogoCache {
   static int memCacheHeightFor(double height, double devicePixelRatio) =>
       ((height + platePadding) * devicePixelRatio).round();
 
+  /// Whether [url] currently has a live pinned completer.
+  @visibleForTesting
+  static bool debugIsPinned(String url) => _pins.containsKey(url);
+
+  /// Drop pins (tests only).
+  @visibleForTesting
+  static void debugResetPins() {
+    for (final handle in _pins.values) {
+      handle.dispose();
+    }
+    _pins.clear();
+  }
+
   /// Download every logo into the on-device cache. Already-cached URLs are
   /// cheap no-ops via [CacheManager].
   static Future<void> warm(Iterable<String> urls) async {
@@ -67,9 +88,55 @@ class SetLogoCache {
     );
   }
 
-  /// Decode logos into Flutter's in-memory [ImageCache] so recycled browse
-  /// rows and returning from pushed routes paint from memory instead of
-  /// re-decoding from disk.
+  /// Resolve [provider] and keep its completer alive for the rest of the
+  /// process so later [Image] widgets hit memory synchronously.
+  static Future<void> pin(
+    String url,
+    ImageProvider provider,
+    ImageConfiguration configuration,
+  ) async {
+    if (url.isEmpty || _pins.containsKey(url)) return;
+
+    final stream = provider.resolve(configuration);
+    final done = Completer<void>();
+    late ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        final completer = stream.completer;
+        if (completer != null) {
+          _pins.putIfAbsent(url, completer.keepAlive);
+        }
+        stream.removeListener(listener);
+        if (!done.isCompleted) done.complete();
+      },
+      onError: (Object error, StackTrace? stackTrace) {
+        stream.removeListener(listener);
+        if (!done.isCompleted) done.completeError(error, stackTrace);
+      },
+    );
+    stream.addListener(listener);
+    await done.future;
+  }
+
+  /// Fire-and-forget pin used after a logo has already painted on screen.
+  static void ensurePinned(
+    String url,
+    ImageProvider provider,
+    BuildContext context,
+  ) {
+    if (url.isEmpty || _pins.containsKey(url) || !context.mounted) return;
+    unawaited(() async {
+      try {
+        await pin(url, provider, createLocalImageConfiguration(context));
+      } catch (_) {
+        // Paint already succeeded; pinning is best-effort.
+      }
+    }());
+  }
+
+  /// Decode logos into memory and pin their streams so recycled browse rows
+  /// and returning from pushed routes (set drill-in, Settings) paint from
+  /// memory instead of re-decoding from disk.
   ///
   /// Successful URLs are reported to [onCached] so the UI can skip the
   /// set-name placeholder on the next resolve.
@@ -81,13 +148,15 @@ class SetLogoCache {
   }) async {
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final memCacheHeight = memCacheHeightFor(height, dpr);
+    final configuration = createLocalImageConfiguration(context);
     final unique = urls.where((u) => u.isNotEmpty).toSet();
     for (final url in unique) {
       if (!context.mounted) return;
       try {
-        await precacheImage(
+        await pin(
+          url,
           providerFor(url, memCacheHeight: memCacheHeight),
-          context,
+          configuration,
         );
         onCached?.call(url);
       } catch (_) {

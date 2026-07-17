@@ -9,10 +9,11 @@ import 'theme.dart';
 /// logo URL is missing or fails to load (mirrors the web Browse Sets page).
 ///
 /// Uses [Image] + [CachedNetworkImageProvider] with [gaplessPlayback] (not
-/// [CachedNetworkImage]/OctoImage) so returning from a pushed route like
-/// Settings does not flash the set-name placeholder while the decode
-/// reattaches. Disk bytes come from [SetLogoCache].
-class SetLogoTitle extends StatelessWidget {
+/// [CachedNetworkImage]/OctoImage) so returning from a pushed route
+/// (Settings, set drill-in) does not flash the set-name placeholder.
+/// Successful decodes are pinned in [SetLogoCache] so remounted rows resolve
+/// synchronously.
+class SetLogoTitle extends StatefulWidget {
   const SetLogoTitle({
     super.key,
     required this.setName,
@@ -46,27 +47,41 @@ class SetLogoTitle extends StatelessWidget {
   static void debugResetWarmUrls() => _warmUrls.clear();
 
   @override
+  State<SetLogoTitle> createState() => _SetLogoTitleState();
+}
+
+class _SetLogoTitleState extends State<SetLogoTitle> {
+  /// Last successfully painted logo chrome. Kept across rebuilds so a brief
+  /// [frame] == null (common after set drill-in / Settings pop) does not
+  /// blank the row while the provider reattaches.
+  Widget? _stableLogo;
+
+  @override
   Widget build(BuildContext context) {
-    final url = logoUrl;
+    final url = widget.logoUrl;
     if (url == null || url.isEmpty) {
-      return Text(setName, style: const TextStyle(fontWeight: FontWeight.w600));
+      return Text(
+        widget.setName,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      );
     }
 
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final alreadyWarm = _warmUrls.contains(url);
+    final alreadyWarm = SetLogoTitle._warmUrls.contains(url);
     final dpr = MediaQuery.devicePixelRatioOf(context);
+    final height = widget.height;
     final plateHeight = height + SetLogoCache.platePadding;
     final memCacheHeight = SetLogoCache.memCacheHeightFor(height, dpr);
 
     final nameFallback = Text(
-      setName,
+      widget.setName,
       style: const TextStyle(fontWeight: FontWeight.w600),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
 
-    final imageProvider = debugImageProvider ??
+    final imageProvider = widget.debugImageProvider ??
         SetLogoCache.providerFor(url, memCacheHeight: memCacheHeight);
 
     return Align(
@@ -79,18 +94,22 @@ class SetLogoTitle extends StatelessWidget {
           fit: BoxFit.contain,
           alignment: Alignment.centerLeft,
           // Keep the last frame visible while the provider re-resolves after
-          // ImageCache pressure or Navigator pop (Settings → back).
+          // ImageCache pressure or Navigator pop (set detail / Settings).
           gaplessPlayback: true,
           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
             if (frame != null || wasSynchronouslyLoaded) {
-              markWarm(url);
-              return _logoChrome(
+              SetLogoTitle.markWarm(url);
+              SetLogoCache.ensurePinned(url, imageProvider, context);
+              final painted = _logoChrome(
                 plateHeight: plateHeight,
                 isDark: isDark,
                 scheme: scheme,
                 child: child,
               );
+              _stableLogo = painted;
+              return painted;
             }
+            if (_stableLogo != null) return _stableLogo!;
             if (alreadyWarm) {
               // Quiet hold — never swap back to the set name once warm.
               return _logoChrome(

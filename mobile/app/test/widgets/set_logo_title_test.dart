@@ -27,8 +27,59 @@ class _NeverLoadingImageProvider
   }
 }
 
+Future<void> _pushAndPopRoute(
+  WidgetTester tester, {
+  required String routeTitle,
+}) async {
+  await tester.tap(find.byIcon(Icons.chevron_right));
+  await tester.pumpAndSettle();
+  expect(find.text(routeTitle), findsOneWidget);
+
+  await tester.pageBack();
+  // Immediate frame after pop — this is when logos used to unload/reload.
+  await tester.pump();
+}
+
+Widget _browseHarness({
+  required String setName,
+  required String url,
+  required String pushedTitle,
+}) {
+  return MaterialApp(
+    home: Builder(
+      builder: (context) {
+        return Scaffold(
+          body: ListTile(
+            title: SetLogoTitle(
+              setName: setName,
+              logoUrl: url,
+              debugImageProvider: _NeverLoadingImageProvider(),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: Text(pushedTitle)),
+                      body: const SizedBox.shrink(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
 void main() {
-  tearDown(SetLogoTitle.debugResetWarmUrls);
+  tearDown(() {
+    SetLogoTitle.debugResetWarmUrls();
+    SetLogoCache.debugResetPins();
+  });
 
   testWidgets(
     'warm logos do not flash the set name while the image re-resolves',
@@ -48,7 +99,7 @@ void main() {
         ),
       );
 
-      // Symptom of the Settings→back bug: set name placeholder reappears.
+      // Symptom of the Settings→back / set drill-in bug: set name reappears.
       expect(find.text('Crucible of War'), findsNothing);
     },
   );
@@ -119,8 +170,32 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
 
       await tester.pageBack();
-      // Immediate frame after pop — this is when OctoImage used to flash.
       await tester.pump();
+      expect(find.text(setName), findsNothing);
+
+      await tester.pumpAndSettle();
+      expect(find.text(setName), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'warm logos stay quiet across set drill-in push/pop during a cache miss',
+    (tester) async {
+      const url = 'https://example.com/cru.png';
+      const setName = 'Crucible of War';
+      SetLogoTitle.markWarm(url);
+
+      await tester.pumpWidget(
+        _browseHarness(
+          setName: setName,
+          url: url,
+          pushedTitle: setName,
+        ),
+      );
+
+      expect(find.text(setName), findsNothing);
+
+      await _pushAndPopRoute(tester, routeTitle: setName);
       expect(find.text(setName), findsNothing);
 
       await tester.pumpAndSettle();
