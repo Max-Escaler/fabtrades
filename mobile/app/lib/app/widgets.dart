@@ -8,11 +8,9 @@ import 'theme.dart';
 /// Official FAB set logo for browse lists. Falls back to [setName] when the
 /// logo URL is missing or fails to load (mirrors the web Browse Sets page).
 ///
-/// Uses [Image] + [CachedNetworkImageProvider] with [gaplessPlayback] (not
-/// [CachedNetworkImage]/OctoImage) so returning from a pushed route
-/// (Settings, set drill-in) does not flash the set-name placeholder.
-/// Successful decodes are pinned in [SetLogoCache] so remounted rows resolve
-/// synchronously.
+/// Once decoded, frames are retained in [SetLogoCache] and painted with
+/// [RawImage] so rows that remount after a set drill-in (or Settings) do not
+/// unload/reload. First load uses [Image] + [CachedNetworkImageProvider].
 class SetLogoTitle extends StatefulWidget {
   const SetLogoTitle({
     super.key,
@@ -81,6 +79,29 @@ class _SetLogoTitleState extends State<SetLogoTitle> {
       overflow: TextOverflow.ellipsis,
     );
 
+    // Instant paint after set drill-in remounts the browse row.
+    final retained = SetLogoCache.imageFor(url);
+    if (retained != null) {
+      SetLogoTitle.markWarm(url);
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: plateHeight, maxWidth: 280),
+          child: _logoChrome(
+            plateHeight: plateHeight,
+            isDark: isDark,
+            scheme: scheme,
+            child: RawImage(
+              image: retained,
+              height: height,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+            ),
+          ),
+        ),
+      );
+    }
+
     final imageProvider = widget.debugImageProvider ??
         SetLogoCache.providerFor(url, memCacheHeight: memCacheHeight);
 
@@ -99,6 +120,9 @@ class _SetLogoTitleState extends State<SetLogoTitle> {
           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
             if (frame != null || wasSynchronouslyLoaded) {
               SetLogoTitle.markWarm(url);
+              if (child is RawImage && child.image != null) {
+                SetLogoCache.retain(url, child.image!);
+              }
               SetLogoCache.ensurePinned(url, imageProvider, context);
               final painted = _logoChrome(
                 plateHeight: plateHeight,

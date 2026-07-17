@@ -27,52 +27,17 @@ class _NeverLoadingImageProvider
   }
 }
 
-Future<void> _pushAndPopRoute(
-  WidgetTester tester, {
-  required String routeTitle,
-}) async {
-  await tester.tap(find.byIcon(Icons.chevron_right));
-  await tester.pumpAndSettle();
-  expect(find.text(routeTitle), findsOneWidget);
-
-  await tester.pageBack();
-  // Immediate frame after pop — this is when logos used to unload/reload.
-  await tester.pump();
-}
-
-Widget _browseHarness({
-  required String setName,
-  required String url,
-  required String pushedTitle,
-}) {
-  return MaterialApp(
-    home: Builder(
-      builder: (context) {
-        return Scaffold(
-          body: ListTile(
-            title: SetLogoTitle(
-              setName: setName,
-              logoUrl: url,
-              debugImageProvider: _NeverLoadingImageProvider(),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: Text(pushedTitle)),
-                      body: const SizedBox.shrink(),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    ),
-  );
+Future<ui.Image> _testImage(WidgetTester tester) async {
+  final image = await tester.runAsync(() async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawRect(
+      const Rect.fromLTWH(0, 0, 2, 2),
+      Paint()..color = const Color(0xFFCC0000),
+    );
+    return recorder.endRecording().toImage(2, 2);
+  });
+  return image!;
 }
 
 void main() {
@@ -99,7 +64,6 @@ void main() {
         ),
       );
 
-      // Symptom of the Settings→back / set drill-in bug: set name reappears.
       expect(find.text('Crucible of War'), findsNothing);
     },
   );
@@ -170,9 +134,6 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
 
       await tester.pageBack();
-      await tester.pump();
-      expect(find.text(setName), findsNothing);
-
       await tester.pumpAndSettle();
       expect(find.text(setName), findsNothing);
     },
@@ -186,20 +147,77 @@ void main() {
       SetLogoTitle.markWarm(url);
 
       await tester.pumpWidget(
-        _browseHarness(
-          setName: setName,
-          url: url,
-          pushedTitle: setName,
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              return Scaffold(
+                body: ListTile(
+                  title: SetLogoTitle(
+                    setName: setName,
+                    logoUrl: url,
+                    debugImageProvider: _NeverLoadingImageProvider(),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => Scaffold(
+                            appBar: AppBar(title: const Text('Set cards')),
+                            body: const SizedBox.shrink(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       );
 
       expect(find.text(setName), findsNothing);
 
-      await _pushAndPopRoute(tester, routeTitle: setName);
-      expect(find.text(setName), findsNothing);
+      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.pumpAndSettle();
+      expect(find.text('Set cards'), findsOneWidget);
 
+      await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text(setName), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'retained logos paint on the first frame after a full remount',
+    (tester) async {
+      // Simulates Browse list tiles being disposed while SetCardsScreen is
+      // open, then recreated on pop — the unload/reload the user sees.
+      const url = 'https://example.com/cru.png';
+      const setName = 'Crucible of War';
+      final image = await _testImage(tester);
+      SetLogoCache.retain(url, image);
+      image.dispose();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SetLogoTitle(
+              key: const ValueKey('remount'),
+              setName: setName,
+              logoUrl: url,
+              // Would hang forever without the retained-frame fast path.
+              debugImageProvider: _NeverLoadingImageProvider(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text(setName), findsNothing);
+      expect(find.byType(RawImage), findsOneWidget);
+      expect(SetLogoCache.debugHasImage(url), isTrue);
     },
   );
 

@@ -1,16 +1,16 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// Long-lived on-device cache for official FAB set logos.
 ///
-/// Logos change rarely, so they stay on disk for a year. The browse screen
-/// warms this cache as soon as the URL map loads, then pins decoded images
-/// in memory so ListView remounts and route pops (Settings, set drill-in)
-/// paint synchronously instead of flashing placeholders.
+/// Logos change rarely, so they stay on disk for a year. Decoded frames are
+/// retained for the process lifetime so Browse rows that remount after a set
+/// drill-in / Settings pop can paint with [RawImage] on the first frame
+/// instead of unloading and reloading.
 class SetLogoCache {
   SetLogoCache._();
 
@@ -29,6 +29,10 @@ class SetLogoCache {
   /// [ImageCache] cannot drop decoded logos while Browse is covered by
   /// another route (set detail, Settings, etc.).
   static final Map<String, ImageStreamCompleterHandle> _pins = {};
+
+  /// Process-lifetime decoded frames. Survives ListView row dispose/remount
+  /// when pushing into a set and popping back.
+  static final Map<String, ui.Image> _images = {};
 
   /// Lazily created so unit tests can import this library without initializing
   /// platform bindings (CacheManager touches path_provider on construct).
@@ -60,17 +64,38 @@ class SetLogoCache {
   static int memCacheHeightFor(double height, double devicePixelRatio) =>
       ((height + platePadding) * devicePixelRatio).round();
 
+  /// Retained decoded frame for [url], if any.
+  static ui.Image? imageFor(String url) => _images[url];
+
   /// Whether [url] currently has a live pinned completer.
   @visibleForTesting
   static bool debugIsPinned(String url) => _pins.containsKey(url);
 
-  /// Drop pins (tests only).
+  @visibleForTesting
+  static bool debugHasImage(String url) => _images.containsKey(url);
+
+  /// Drop pins and retained images (tests only).
   @visibleForTesting
   static void debugResetPins() {
     for (final handle in _pins.values) {
       handle.dispose();
     }
     _pins.clear();
+    for (final image in _images.values) {
+      image.dispose();
+    }
+    _images.clear();
+  }
+
+  /// Keep a clone of [image] for the rest of the process so remounted browse
+  /// rows can paint immediately via [RawImage].
+  static void retain(String url, ui.Image image) {
+    if (url.isEmpty) return;
+    final existing = _images[url];
+    if (identical(existing, image)) return;
+    final clone = image.clone();
+    existing?.dispose();
+    _images[url] = clone;
   }
 
   /// Download every logo into the on-device cache. Already-cached URLs are
@@ -88,8 +113,9 @@ class SetLogoCache {
     );
   }
 
-  /// Resolve [provider] and keep its completer alive for the rest of the
-  /// process so later [Image] widgets hit memory synchronously.
+  /// Resolve [provider] and keep its completer + decoded frame alive for the
+  /// rest of the process so later [Image] / [RawImage] widgets hit memory
+  /// synchronously.
   static Future<void> pin(
     String url,
     ImageProvider provider,
@@ -102,6 +128,7 @@ class SetLogoCache {
     late ImageStreamListener listener;
     listener = ImageStreamListener(
       (ImageInfo info, bool synchronousCall) {
+        retain(url, info.image);
         final completer = stream.completer;
         if (completer != null) {
           _pins.putIfAbsent(url, completer.keepAlive);
