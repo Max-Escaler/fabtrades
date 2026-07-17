@@ -43,5 +43,12 @@ void main() {
     test('uses a dedicated long-lived cache key', () {
       expect(SetLogoCache.key, 'setLogoCache');
     });
+
+    test('memCacheHeightFor matches the logo plate size', () {
+      expect(
+        SetLogoCache.memCacheHeightFor(40, 3),
+        ((40 + SetLogoCache.platePadding) * 3).round(),
+      );
+    });
   });
 }

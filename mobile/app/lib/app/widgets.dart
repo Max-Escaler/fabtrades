@@ -8,84 +8,141 @@ import 'theme.dart';
 /// Official FAB set logo for browse lists. Falls back to [setName] when the
 /// logo URL is missing or fails to load (mirrors the web Browse Sets page).
 ///
-/// Logos are served from [SetLogoCache] (on-device disk + memory) so scrolling
-/// the browse list does not unload/reload them from the CDN.
-class SetLogoTitle extends StatelessWidget {
+/// Uses [Image] + [CachedNetworkImageProvider] with [gaplessPlayback] (not
+/// [CachedNetworkImage]/OctoImage) so returning from a pushed route
+/// (Settings, set drill-in) does not flash the set-name placeholder.
+/// Successful decodes are pinned in [SetLogoCache] so remounted rows resolve
+/// synchronously.
+class SetLogoTitle extends StatefulWidget {
   const SetLogoTitle({
     super.key,
     required this.setName,
     this.logoUrl,
-    this.height = 28,
+    this.height = SetLogoCache.defaultHeight,
+    @visibleForTesting this.debugImageProvider,
   });
 
   final String setName;
   final String? logoUrl;
   final double height;
 
-  /// URLs that have painted successfully this process. Recycled list rows
-  /// skip the set-name placeholder so logos do not appear to "unload".
+  /// Test seam: inject a local [ImageProvider] instead of hitting the CDN.
+  @visibleForTesting
+  final ImageProvider? debugImageProvider;
+
+  /// URLs that have painted or been memory-precached this process. Once warm,
+  /// we never flash the set-name placeholder on a transient cache miss.
   static final Set<String> _warmUrls = <String>{};
+
+  /// Mark [url] as already shown so placeholders stay quiet across rebuilds
+  /// and route pops (also used by [SetLogoCache.precacheIntoMemory]).
+  static void markWarm(String url) {
+    if (url.isNotEmpty) _warmUrls.add(url);
+  }
+
+  @visibleForTesting
+  static bool debugIsWarm(String url) => _warmUrls.contains(url);
+
+  @visibleForTesting
+  static void debugResetWarmUrls() => _warmUrls.clear();
+
+  @override
+  State<SetLogoTitle> createState() => _SetLogoTitleState();
+}
+
+class _SetLogoTitleState extends State<SetLogoTitle> {
+  /// Last successfully painted logo chrome. Kept across rebuilds so a brief
+  /// [frame] == null (common after set drill-in / Settings pop) does not
+  /// blank the row while the provider reattaches.
+  Widget? _stableLogo;
 
   @override
   Widget build(BuildContext context) {
-    final url = logoUrl;
+    final url = widget.logoUrl;
     if (url == null || url.isEmpty) {
-      return Text(setName, style: const TextStyle(fontWeight: FontWeight.w600));
+      return Text(
+        widget.setName,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      );
     }
 
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final alreadyWarm = _warmUrls.contains(url);
+    final alreadyWarm = SetLogoTitle._warmUrls.contains(url);
     final dpr = MediaQuery.devicePixelRatioOf(context);
+    final height = widget.height;
+    final plateHeight = height + SetLogoCache.platePadding;
+    final memCacheHeight = SetLogoCache.memCacheHeightFor(height, dpr);
 
     final nameFallback = Text(
-      setName,
+      widget.setName,
       style: const TextStyle(fontWeight: FontWeight.w600),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
 
+    final imageProvider = widget.debugImageProvider ??
+        SetLogoCache.providerFor(url, memCacheHeight: memCacheHeight);
+
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: height + 4, maxWidth: 240),
-        child: CachedNetworkImage(
-          imageUrl: url,
-          cacheManager: SetLogoCache.instance,
+        constraints: BoxConstraints(maxHeight: plateHeight, maxWidth: 280),
+        child: Image(
+          image: imageProvider,
           height: height,
           fit: BoxFit.contain,
           alignment: Alignment.centerLeft,
-          fadeInDuration: Duration.zero,
-          fadeOutDuration: Duration.zero,
-          memCacheHeight: ((height + 4) * dpr).round(),
-          // Quiet placeholder once we've shown this logo before — avoids the
-          // set-name flash when ListView recycles rows.
-          placeholder: (_, _) => alreadyWarm
-              ? SizedBox(height: height + 4)
-              : nameFallback,
-          errorWidget: (_, _, _) => nameFallback,
-          imageBuilder: (_, imageProvider) {
-            _warmUrls.add(url);
-            return Container(
-              height: height + 4,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : scheme.onSurface.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Image(
-                image: imageProvider,
-                height: height,
-                fit: BoxFit.contain,
-                alignment: Alignment.centerLeft,
-                gaplessPlayback: true,
-              ),
-            );
+          // Keep the last frame visible while the provider re-resolves after
+          // ImageCache pressure or Navigator pop (set detail / Settings).
+          gaplessPlayback: true,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (frame != null || wasSynchronouslyLoaded) {
+              SetLogoTitle.markWarm(url);
+              SetLogoCache.ensurePinned(url, imageProvider, context);
+              final painted = _logoChrome(
+                plateHeight: plateHeight,
+                isDark: isDark,
+                scheme: scheme,
+                child: child,
+              );
+              _stableLogo = painted;
+              return painted;
+            }
+            if (_stableLogo != null) return _stableLogo!;
+            if (alreadyWarm) {
+              // Quiet hold — never swap back to the set name once warm.
+              return _logoChrome(
+                plateHeight: plateHeight,
+                isDark: isDark,
+                scheme: scheme,
+                child: child,
+              );
+            }
+            return nameFallback;
           },
+          errorBuilder: (_, _, _) => nameFallback,
         ),
       ),
+    );
+  }
+
+  static Widget _logoChrome({
+    required double plateHeight,
+    required bool isDark,
+    required ColorScheme scheme,
+    required Widget child,
+  }) {
+    return Container(
+      height: plateHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : scheme.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: child,
     );
   }
 }
