@@ -15,7 +15,7 @@ class SetLogoTitle extends StatelessWidget {
     super.key,
     required this.setName,
     this.logoUrl,
-    this.height = 28,
+    this.height = 40,
   });
 
   final String setName;
@@ -37,6 +37,7 @@ class SetLogoTitle extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final alreadyWarm = _warmUrls.contains(url);
     final dpr = MediaQuery.devicePixelRatioOf(context);
+    final plateHeight = height + 6;
 
     final nameFallback = Text(
       setName,
@@ -48,7 +49,7 @@ class SetLogoTitle extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: height + 4, maxWidth: 240),
+        constraints: BoxConstraints(maxHeight: plateHeight, maxWidth: 280),
         child: CachedNetworkImage(
           imageUrl: url,
           cacheManager: SetLogoCache.instance,
@@ -57,18 +58,18 @@ class SetLogoTitle extends StatelessWidget {
           alignment: Alignment.centerLeft,
           fadeInDuration: Duration.zero,
           fadeOutDuration: Duration.zero,
-          memCacheHeight: ((height + 4) * dpr).round(),
+          memCacheHeight: (plateHeight * dpr).round(),
           // Quiet placeholder once we've shown this logo before — avoids the
           // set-name flash when ListView recycles rows.
           placeholder: (_, _) => alreadyWarm
-              ? SizedBox(height: height + 4)
+              ? SizedBox(height: plateHeight)
               : nameFallback,
           errorWidget: (_, _, _) => nameFallback,
           imageBuilder: (_, imageProvider) {
             _warmUrls.add(url);
             return Container(
-              height: height + 4,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              height: plateHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.06)

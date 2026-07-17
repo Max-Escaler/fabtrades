@@ -141,14 +141,12 @@ class _SetListState extends ConsumerState<_SetList> {
         ),
       ),
       data: (cards) {
-        final counts = <String, int>{};
         // setName → TCGplayer group id (for logo lookup). First seen wins.
         final setIds = <String, int>{};
         for (final c in cards) {
           if (isNonCardProduct(c)) continue;
           final s = c.setName;
           if (s == null) continue;
-          counts[s] = (counts[s] ?? 0) + 1;
           final id = c.setId;
           if (id != null) setIds.putIfAbsent(s, () => id);
         }
@@ -163,11 +161,9 @@ class _SetListState extends ConsumerState<_SetList> {
           separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
           itemBuilder: (context, i) {
             final set = sets[i];
-            final count = counts[set];
             final logoUrl = logos.urlForGroupId(setIds[set]);
             return _SetTile(
               setName: set,
-              cardCount: count,
               logoUrl: logoUrl,
             );
           },
@@ -181,12 +177,10 @@ class _SetListState extends ConsumerState<_SetList> {
 class _SetTile extends ConsumerStatefulWidget {
   const _SetTile({
     required this.setName,
-    required this.cardCount,
     required this.logoUrl,
   });
 
   final String setName;
-  final int? cardCount;
   final String? logoUrl;
 
   @override
@@ -202,9 +196,8 @@ class _SetTileState extends ConsumerState<_SetTile>
   Widget build(BuildContext context) {
     super.build(context);
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       title: SetLogoTitle(setName: widget.setName, logoUrl: widget.logoUrl),
-      subtitle:
-          widget.cardCount == null ? null : Text('${widget.cardCount} cards'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         ref.read(searchFiltersProvider.notifier).enterSet(widget.setName);
