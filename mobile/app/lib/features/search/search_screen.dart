@@ -119,7 +119,11 @@ class _SetListState extends ConsumerState<_SetList> {
     _memoryPrecacheStarted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      SetLogoCache.precacheIntoMemory(context, logos.urls);
+      SetLogoCache.precacheIntoMemory(
+        context,
+        logos.urls,
+        onCached: SetLogoTitle.markWarm,
+      );
     });
   }
 
