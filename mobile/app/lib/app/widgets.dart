@@ -1,11 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../core/data/set_logo_cache.dart';
 import '../core/models/card_model.dart';
 import 'theme.dart';
 
 /// Official FAB set logo for browse lists. Falls back to [setName] when the
 /// logo URL is missing or fails to load (mirrors the web Browse Sets page).
+///
+/// Logos are served from [SetLogoCache] (on-device disk + memory) so scrolling
+/// the browse list does not unload/reload them from the CDN.
 class SetLogoTitle extends StatelessWidget {
   const SetLogoTitle({
     super.key,
@@ -18,6 +22,10 @@ class SetLogoTitle extends StatelessWidget {
   final String? logoUrl;
   final double height;
 
+  /// URLs that have painted successfully this process. Recycled list rows
+  /// skip the set-name placeholder so logos do not appear to "unload".
+  static final Set<String> _warmUrls = <String>{};
+
   @override
   Widget build(BuildContext context) {
     final url = logoUrl;
@@ -27,6 +35,8 @@ class SetLogoTitle extends StatelessWidget {
 
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final alreadyWarm = _warmUrls.contains(url);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
 
     final nameFallback = Text(
       setName,
@@ -41,28 +51,39 @@ class SetLogoTitle extends StatelessWidget {
         constraints: BoxConstraints(maxHeight: height + 4, maxWidth: 240),
         child: CachedNetworkImage(
           imageUrl: url,
+          cacheManager: SetLogoCache.instance,
           height: height,
           fit: BoxFit.contain,
           alignment: Alignment.centerLeft,
-          fadeInDuration: const Duration(milliseconds: 150),
-          placeholder: (_, _) => nameFallback,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          memCacheHeight: ((height + 4) * dpr).round(),
+          // Quiet placeholder once we've shown this logo before — avoids the
+          // set-name flash when ListView recycles rows.
+          placeholder: (_, _) => alreadyWarm
+              ? SizedBox(height: height + 4)
+              : nameFallback,
           errorWidget: (_, _, _) => nameFallback,
-          imageBuilder: (_, imageProvider) => Container(
-            height: height + 4,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : scheme.onSurface.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Image(
-              image: imageProvider,
-              height: height,
-              fit: BoxFit.contain,
-              alignment: Alignment.centerLeft,
-            ),
-          ),
+          imageBuilder: (_, imageProvider) {
+            _warmUrls.add(url);
+            return Container(
+              height: height + 4,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : scheme.onSurface.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Image(
+                image: imageProvider,
+                height: height,
+                fit: BoxFit.contain,
+                alignment: Alignment.centerLeft,
+                gaplessPlayback: true,
+              ),
+            );
+          },
         ),
       ),
     );
