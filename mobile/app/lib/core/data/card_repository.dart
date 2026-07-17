@@ -327,6 +327,14 @@ class ScanNumber {
 /// name-based matching for those (see [identifyCards]).
 final RegExp collectorNumberRegex = RegExp(r'(\d{1,3})\s*\*?\s*/\s*(\d{1,3})');
 
+/// Every fractional "NNN/TTT" collector number found in a block of (OCR) text,
+/// in reading order. Used both to gather candidates in [identifyCards] and to
+/// boost the fused ranking in [fuseScanCandidates].
+List<ScanNumber> parseScanNumbers(String text) => [
+      for (final m in collectorNumberRegex.allMatches(text))
+        ScanNumber(int.parse(m.group(1)!), int.parse(m.group(2)!)),
+    ];
+
 /// Parses a stored/scanned collector number. Falls back to a bare number when
 /// no denominator is present.
 ScanNumber? parseScanNumber(String? raw) {
@@ -391,10 +399,7 @@ List<CardModel> identifyCards(
 }) {
   if (catalog.isEmpty || recognizedText.trim().isEmpty) return const [];
   final ocrWords = _wordSet(recognizedText);
-  final ocrNumbers = collectorNumberRegex
-      .allMatches(recognizedText)
-      .map((m) => ScanNumber(int.parse(m.group(1)!), int.parse(m.group(2)!)))
-      .toList();
+  final ocrNumbers = parseScanNumbers(recognizedText);
 
   if (ocrNumbers.isNotEmpty) {
     final numeratorMatches = <CardModel>[];
@@ -440,13 +445,20 @@ List<CardModel> identifyCards(
 /// Rank Fusion: score(card) = Σ 1/(k + rank in each list). A card found by
 /// BOTH signals therefore outranks one found by either alone, which is how
 /// production scanners disambiguate near-identical printings.
+///
+/// When [ocrNumbers] holds collector numbers read off the card, any candidate
+/// whose own collector number agrees gets a [numberBonus] — the collector
+/// number is the strongest disambiguator between near-identical printings, so a
+/// visual match confirmed by the printed number should outrank one that isn't
+/// (the "bonus weight for collector-number matches" pattern from qtran1018/TCG).
 List<CardModel> fuseScanCandidates({
   required List<CardModel> visual,
   required List<CardModel> ocr,
+  List<ScanNumber> ocrNumbers = const [],
+  double numberBonus = 0.5,
   int limit = 12,
 }) {
-  if (visual.isEmpty) return ocr.take(limit).toList();
-  if (ocr.isEmpty) return visual.take(limit).toList();
+  if (visual.isEmpty && ocr.isEmpty) return const [];
 
   const k = 3.0;
   final scores = <String, double>{};
@@ -461,6 +473,17 @@ List<CardModel> fuseScanCandidates({
 
   addList(visual);
   addList(ocr);
+
+  if (ocrNumbers.isNotEmpty) {
+    for (final entry in byId.entries) {
+      final parsed = parseScanNumber(entry.value.collectorNumber);
+      if (parsed == null) continue;
+      final agrees = ocrNumbers.any((n) =>
+          n.number == parsed.number &&
+          (n.total == null || parsed.total == null || n.total == parsed.total));
+      if (agrees) scores[entry.key] = (scores[entry.key] ?? 0) + numberBonus;
+    }
+  }
 
   final ranked = scores.entries.toList()
     ..sort((a, b) => b.value.compareTo(a.value));

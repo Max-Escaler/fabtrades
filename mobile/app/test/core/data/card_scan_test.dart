@@ -88,4 +88,58 @@ void main() {
       expect(result, isEmpty);
     });
   });
+
+  group('parseScanNumbers', () {
+    test('extracts every fractional number in reading order', () {
+      final ns = parseScanNumbers('foo 012/219 bar 147/219 baz');
+      expect(ns.map((n) => n.number), [12, 147]);
+      expect(ns.every((n) => n.total == 219), isTrue);
+    });
+
+    test('is empty when no fractional number is present', () {
+      expect(parseScanNumbers('WTR001 no fraction here'), isEmpty);
+    });
+  });
+
+  group('fuseScanCandidates', () {
+    final ahri = buildCard(id: 'ahri', name: 'Ahri', collectorNumber: '147/219');
+    final vex = buildCard(id: 'vex', name: 'Vex', collectorNumber: '020/219');
+    final zed = buildCard(id: 'zed', name: 'Zed', collectorNumber: '055/219');
+
+    test('returns a single list unchanged when the other is empty', () {
+      expect(fuseScanCandidates(visual: [ahri, vex], ocr: const []).map((c) => c.id),
+          ['ahri', 'vex']);
+      expect(fuseScanCandidates(visual: const [], ocr: [vex, ahri]).map((c) => c.id),
+          ['vex', 'ahri']);
+    });
+
+    test('a card found by both signals outranks one found by either alone', () {
+      final fused = fuseScanCandidates(visual: [vex, ahri], ocr: [ahri, zed]);
+      expect(fused.first.id, 'ahri');
+    });
+
+    test('collector-number agreement promotes the matching printing', () {
+      // Visual ranks vex first, but the printed number matches ahri.
+      final fused = fuseScanCandidates(
+        visual: [vex, ahri],
+        ocr: const [],
+        ocrNumbers: [const ScanNumber(147, 219)],
+      );
+      expect(fused.first.id, 'ahri');
+    });
+
+    test('number bonus needs numerator agreement, not just any digits', () {
+      final fused = fuseScanCandidates(
+        visual: [vex, ahri],
+        ocr: const [],
+        ocrNumbers: [const ScanNumber(999, 219)],
+      );
+      // No candidate matches 999, so the visual order is preserved.
+      expect(fused.map((c) => c.id), ['vex', 'ahri']);
+    });
+
+    test('returns empty when both inputs are empty', () {
+      expect(fuseScanCandidates(visual: const [], ocr: const []), isEmpty);
+    });
+  });
 }

@@ -34,6 +34,22 @@ const int kHashBytes = kHashBits ~/ 8;
 /// the catalog scans and in the camera crop.
 const double kCardInsetFraction = 0.05;
 
+// Scanner viewport / guide geometry. Kept in this pure module (rather than the
+// camera-dependent frame_hasher.dart) so the rectifier, the offline evaluation
+// harness, and tests can share it without importing Flutter plugins.
+
+/// Width / height of the camera viewport box in the UI.
+const double kViewportAspect = 3 / 4;
+
+/// Guide width as a fraction of the visible preview width.
+const double kGuideWidthFraction = 0.72;
+
+/// Cap on guide height as a fraction of the visible preview height.
+const double kGuideMaxHeightFraction = 0.92;
+
+/// Physical trading-card aspect ratio (63 mm × 88 mm).
+const double kCardAspect = 63 / 88;
+
 /// Cosine tables for the 64-point DCT, indexed `[u * kGraySide + x]`.
 /// Only the first [kHashSide] frequencies are ever needed.
 final Float64List _dctTable = _buildDctTable();
@@ -144,43 +160,50 @@ Float64List sampleLumaGrid({
   required double height,
 }) {
   final grid = Float64List(kGraySide * kGraySide);
-
-  double sampleRaw(double x, double y) {
-    final x0 = x.floor().clamp(0, rawWidth - 1);
-    final y0 = y.floor().clamp(0, rawHeight - 1);
-    final x1 = (x0 + 1).clamp(0, rawWidth - 1);
-    final y1 = (y0 + 1).clamp(0, rawHeight - 1);
-    final fx = (x - x0).clamp(0.0, 1.0);
-    final fy = (y - y0).clamp(0.0, 1.0);
-    final top = lumaAt(x0, y0) * (1 - fx) + lumaAt(x1, y0) * fx;
-    final bottom = lumaAt(x0, y1) * (1 - fx) + lumaAt(x1, y1) * fx;
-    return top * (1 - fy) + bottom * fy;
-  }
-
   for (var gy = 0; gy < kGraySide; gy++) {
     final yr = top + (gy + 0.5) / kGraySide * height;
     for (var gx = 0; gx < kGraySide; gx++) {
       final xr = left + (gx + 0.5) / kGraySide * width;
-      // Map rotated-space coordinates back to raw sensor coordinates.
-      final double x, y;
-      switch (rotationDegrees) {
-        case 90:
-          x = yr;
-          y = rawHeight - 1 - xr;
-        case 180:
-          x = rawWidth - 1 - xr;
-          y = rawHeight - 1 - yr;
-        case 270:
-          x = rawWidth - 1 - yr;
-          y = xr;
-        default:
-          x = xr;
-          y = yr;
-      }
-      grid[gy * kGraySide + gx] = sampleRaw(x, y);
+      final p = rotatedToRaw(xr, yr, rotationDegrees, rawWidth, rawHeight);
+      grid[gy * kGraySide + gx] =
+          bilinearLuma(p.x, p.y, rawWidth, rawHeight, lumaAt);
     }
   }
   return grid;
+}
+
+/// Maps a point ([xr], [yr]) in rotated display space back to raw sensor
+/// coordinates, inverting a clockwise rotation of [rotationDegrees]
+/// (0/90/180/270). Shared by [sampleLumaGrid] and the card rectifier so both
+/// sample the exact same pixels for a given display-space location.
+({double x, double y}) rotatedToRaw(
+    double xr, double yr, int rotationDegrees, int rawWidth, int rawHeight) {
+  switch (rotationDegrees) {
+    case 90:
+      return (x: yr, y: rawHeight - 1 - xr);
+    case 180:
+      return (x: rawWidth - 1 - xr, y: rawHeight - 1 - yr);
+    case 270:
+      return (x: rawWidth - 1 - yr, y: xr);
+    default:
+      return (x: xr, y: yr);
+  }
+}
+
+/// Bilinearly interpolated luminance at fractional raw coordinates ([x], [y]),
+/// clamped to the image bounds. [lumaAt] returns the luminance of an integer
+/// raw pixel on any consistent scale.
+double bilinearLuma(double x, double y, int rawWidth, int rawHeight,
+    double Function(int x, int y) lumaAt) {
+  final x0 = x.floor().clamp(0, rawWidth - 1);
+  final y0 = y.floor().clamp(0, rawHeight - 1);
+  final x1 = (x0 + 1).clamp(0, rawWidth - 1);
+  final y1 = (y0 + 1).clamp(0, rawHeight - 1);
+  final fx = (x - x0).clamp(0.0, 1.0);
+  final fy = (y - y0).clamp(0.0, 1.0);
+  final top = lumaAt(x0, y0) * (1 - fx) + lumaAt(x1, y0) * fx;
+  final bottom = lumaAt(x0, y1) * (1 - fx) + lumaAt(x1, y1) * fx;
+  return top * (1 - fy) + bottom * fy;
 }
 
 /// Convenience: hash a whole upright image (e.g. a decoded catalog scan),

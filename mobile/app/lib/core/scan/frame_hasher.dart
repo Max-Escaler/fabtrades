@@ -3,6 +3,17 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 
 import 'phash.dart';
+import 'rectify.dart';
+
+// The viewport / guide geometry constants live in the pure phash.dart module;
+// re-export them so existing importers of this file (e.g. the scan screen) are
+// unaffected.
+export 'phash.dart'
+    show
+        kViewportAspect,
+        kGuideWidthFraction,
+        kGuideMaxHeightFraction,
+        kCardAspect;
 
 /// Turns live camera frames into perceptual hashes of the card inside the
 /// on-screen guide rectangle, ready to match against [CardHashIndex].
@@ -14,18 +25,6 @@ import 'phash.dart';
 ///  - The card guide is centered in that viewport, [kGuideWidthFraction] of
 ///    the *visible* preview width wide, with the physical card aspect
 ///    [kCardAspect] (clamped to [kGuideMaxHeightFraction] of the height).
-
-/// Width / height of the camera viewport box in the UI.
-const double kViewportAspect = 3 / 4;
-
-/// Guide width as a fraction of the visible preview width.
-const double kGuideWidthFraction = 0.72;
-
-/// Cap on guide height as a fraction of the visible preview height.
-const double kGuideMaxHeightFraction = 0.92;
-
-/// Physical trading-card aspect ratio (63 mm × 88 mm).
-const double kCardAspect = 63 / 88;
 
 /// Computes the pHash of the guide-rect region of a streamed camera frame, or
 /// null when the frame format isn't usable. [rotationDegrees] is the clockwise
@@ -58,24 +57,50 @@ Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees) {
     guideH = maxH;
     guideW = guideH * kCardAspect;
   }
-  var left = (rotatedW - guideW) / 2;
-  var top = (rotatedH - guideH) / 2;
+  final left = (rotatedW - guideW) / 2;
+  final top = (rotatedH - guideH) / 2;
 
-  // Same edge trim as the catalog hashes (border / background sliver).
-  left += guideW * kCardInsetFraction;
-  top += guideH * kCardInsetFraction;
-  final width = guideW * (1 - 2 * kCardInsetFraction);
-  final height = guideH * (1 - 2 * kCardInsetFraction);
+  // Prefer the card's actual outline: find its four edges inside (and a little
+  // beyond) the guide and sample that quad, recovering offset, scale and modest
+  // tilt so the hash lines up with the flat catalog scans. Fall back to the
+  // fixed guide crop when detection isn't confident, so this never regresses
+  // the previous behaviour.
+  final quad = detectCardQuad(
+    rawWidth: rawW,
+    rawHeight: rawH,
+    lumaAt: lumaAt,
+    rotationDegrees: rotationDegrees,
+    rotatedWidth: rotatedW,
+    rotatedHeight: rotatedH,
+    guideLeft: left,
+    guideTop: top,
+    guideWidth: guideW,
+    guideHeight: guideH,
+  );
+  // Use the detected quad only when the card is meaningfully offset, scaled or
+  // tilted; when it already fills the guide, the fixed crop is just as accurate
+  // and steadier frame-to-frame.
+  if (quad != null &&
+      !quadMatchesGuide(quad, left, top, guideW, guideH)) {
+    return phashFromLuma(sampleLumaQuad(
+      rawWidth: rawW,
+      rawHeight: rawH,
+      lumaAt: lumaAt,
+      rotationDegrees: rotationDegrees,
+      quad: quad,
+    ));
+  }
 
+  // Fallback: fixed guide crop with the same edge trim as the catalog hashes.
   final grid = sampleLumaGrid(
     rawWidth: rawW,
     rawHeight: rawH,
     lumaAt: lumaAt,
     rotationDegrees: rotationDegrees,
-    left: left,
-    top: top,
-    width: width,
-    height: height,
+    left: left + guideW * kCardInsetFraction,
+    top: top + guideH * kCardInsetFraction,
+    width: guideW * (1 - 2 * kCardInsetFraction),
+    height: guideH * (1 - 2 * kCardInsetFraction),
   );
   return phashFromLuma(grid);
 }

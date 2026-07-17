@@ -219,14 +219,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
       // Signal 2: OCR of the printed name + collector number.
       var ocr = const <CardModel>[];
+      var ocrNumbers = const <ScanNumber>[];
       final input = _toInputImage(image, rotation);
       if (input != null) {
         final result = await _recognizer.processImage(input);
         if (!mounted || _locked) return;
         ocr = identifyCards(catalog, result.text);
+        ocrNumbers = parseScanNumbers(result.text);
       }
 
-      final matches = fuseScanCandidates(visual: visual, ocr: ocr);
+      final matches =
+          fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
       if (matches.isEmpty) {
         // Keep scanning; don't clear any prior hint aggressively.
         _pendingKey = null;
