@@ -158,6 +158,8 @@ class _SetListState extends ConsumerState<_SetList> {
         if (sets.isEmpty) {
           return const _ScrollableCenter(child: _EmptyView());
         }
+        // Retained frames in SetLogoCache keep logos painted if a row is
+        // disposed while a set is open and remounted on pop.
         return ListView.separated(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -181,6 +183,7 @@ class _SetListState extends ConsumerState<_SetList> {
 /// One browsable set row. Kept alive so logos stay mounted while scrolling.
 class _SetTile extends ConsumerStatefulWidget {
   const _SetTile({
+    super.key,
     required this.setName,
     required this.logoUrl,
   });
