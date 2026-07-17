@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../app/app.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
+import '../../core/data/set_logo_cache.dart';
 import '../../core/data/set_logos.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
@@ -103,17 +104,34 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
 }
 
 /// The list of sets to drill into (shown when the global search is empty).
-class _SetList extends ConsumerWidget {
+class _SetList extends ConsumerStatefulWidget {
   const _SetList();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SetList> createState() => _SetListState();
+}
+
+class _SetListState extends ConsumerState<_SetList> {
+  var _memoryPrecacheStarted = false;
+
+  void _precacheLogosIfNeeded(SetLogoMap logos) {
+    if (_memoryPrecacheStarted || logos.isEmpty) return;
+    _memoryPrecacheStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SetLogoCache.precacheIntoMemory(context, logos.urls);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Flesh and Blood has ~100 sets that grow over time, so the browsable set
     // list is derived from whatever the pipeline has loaded rather than a fixed
     // list. Watching the catalog here also preloads it as soon as the app
     // opens, so tapping into a set later is instant.
     final catalog = ref.watch(catalogProvider);
     final logos = ref.watch(setLogoMapProvider).asData?.value ?? SetLogoMap.empty;
+    _precacheLogosIfNeeded(logos);
     return catalog.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
       error: (e, _) => _ScrollableCenter(
@@ -147,20 +165,53 @@ class _SetList extends ConsumerWidget {
             final set = sets[i];
             final count = counts[set];
             final logoUrl = logos.urlForGroupId(setIds[set]);
-            return ListTile(
-              title: SetLogoTitle(setName: set, logoUrl: logoUrl),
-              subtitle: count == null ? null : Text('$count cards'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                ref.read(searchFiltersProvider.notifier).enterSet(set);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SetCardsScreen(setName: set),
-                  ),
-                );
-              },
+            return _SetTile(
+              setName: set,
+              cardCount: count,
+              logoUrl: logoUrl,
             );
           },
+        );
+      },
+    );
+  }
+}
+
+/// One browsable set row. Kept alive so logos stay mounted while scrolling.
+class _SetTile extends ConsumerStatefulWidget {
+  const _SetTile({
+    required this.setName,
+    required this.cardCount,
+    required this.logoUrl,
+  });
+
+  final String setName;
+  final int? cardCount;
+  final String? logoUrl;
+
+  @override
+  ConsumerState<_SetTile> createState() => _SetTileState();
+}
+
+class _SetTileState extends ConsumerState<_SetTile>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return ListTile(
+      title: SetLogoTitle(setName: widget.setName, logoUrl: widget.logoUrl),
+      subtitle:
+          widget.cardCount == null ? null : Text('${widget.cardCount} cards'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        ref.read(searchFiltersProvider.notifier).enterSet(widget.setName);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => SetCardsScreen(setName: widget.setName),
+          ),
         );
       },
     );

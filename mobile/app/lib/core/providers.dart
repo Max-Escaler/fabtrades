@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +9,7 @@ import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
 import 'data/collection_repository.dart';
 import 'data/lend_repository.dart';
+import 'data/set_logo_cache.dart';
 import 'data/set_logos.dart';
 import 'data/settings_repository.dart';
 import 'data/trade_repository.dart';
@@ -83,7 +86,13 @@ final cardHashIndexProvider = FutureProvider<CardHashIndex>((ref) async {
 });
 
 /// Official FAB set logos (TCGplayer group id → CDN URL), bundled as an asset.
-final setLogoMapProvider = FutureProvider<SetLogoMap>((ref) => loadSetLogoMap());
+/// After load, logos are downloaded into the on-device [SetLogoCache] so the
+/// browse list can scroll without re-fetching from the CDN.
+final setLogoMapProvider = FutureProvider<SetLogoMap>((ref) async {
+  final map = await loadSetLogoMap();
+  unawaited(SetLogoCache.warm(map.urls));
+  return map;
+});
 
 /// Catalog keyed by printing id, for O(1) lookups (used by the scanner to
 /// resolve hash-match ids to cards on every frame).

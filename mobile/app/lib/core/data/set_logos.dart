@@ -45,6 +45,9 @@ class SetLogoMap {
     return _byGroupId[groupId.toString()];
   }
 
+  /// All distinct logo CDN URLs (for disk/memory cache warming).
+  Iterable<String> get urls => _byGroupId.values;
+
   bool get isEmpty => _byGroupId.isEmpty;
   int get length => _byGroupId.length;
 }
