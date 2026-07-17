@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../logic/set_sort.dart';
 import '../models/card_model.dart';
 
 enum CardSort {
@@ -593,10 +594,12 @@ class CardRepository {
         .toList();
   }
 
-  /// The distinct set names present in [cards], alphabetically sorted. Flesh
-  /// and Blood has ~100 expansions that grow over time, so — unlike a fixed
-  /// list — the browsable set list is derived from whatever the pipeline has
-  /// loaded. Non-card products (sealed boxes, etc.) are excluded.
+  /// The distinct set names present in [cards], ordered for browsing: main
+  /// expansions, then Armory Decks, then Silver Age, then other product lines
+  /// (alphabetical within each tier). Flesh and Blood has ~100 expansions that
+  /// grow over time, so — unlike a fixed list — the browsable set list is
+  /// derived from whatever the pipeline has loaded. Non-card products (sealed
+  /// boxes, etc.) are excluded.
   static List<String> setNamesFrom(Iterable<CardModel> cards) {
     final names = <String>{};
     for (final c in cards) {
@@ -604,8 +607,7 @@ class CardRepository {
       final s = c.setName;
       if (s != null && s.trim().isNotEmpty) names.add(s);
     }
-    final list = names.toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final list = names.toList()..sort(compareSetNamesByBrowseOrder);
     return list;
   }
 }

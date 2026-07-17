@@ -390,6 +390,7 @@ class _GroupTile extends ConsumerWidget {
     return CardRow(
       card: rep,
       priceLabel: pricing.priceLabel(rep),
+      secondaryLabel: pricing.lowPriceLabel(rep),
       priceSource: pricing.sourceLabel,
       showThumbnail: false,
       inlineBadges: true,

@@ -205,6 +205,10 @@ class _ItemRow extends ConsumerWidget {
                   Text(pricing.formatValue(lineValue),
                       style: theme.textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.w800)),
+                  if (pricing.lowPriceLabel(card) != null)
+                    Text(pricing.lowPriceLabel(card)!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 4),
                   _MiniStepper(
                     qty: item.quantity,

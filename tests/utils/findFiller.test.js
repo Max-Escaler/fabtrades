@@ -37,22 +37,17 @@ describe('findFillerMatches', () => {
         { name: 'Missing', marketPrice: null, lowPrice: null },
     ];
 
-    test('ranks by absolute distance to target and caps results', () => {
-        const matches = findFillerMatches(cards, 4.5, 'market', 3);
+    test('ranks by absolute distance to target using market price and caps results', () => {
+        const matches = findFillerMatches(cards, 4.5, 3);
         expect(matches).toHaveLength(3);
         expect(matches.map((m) => m.card.name)).toEqual(['Exact', 'Near', 'Cheap']);
         expect(matches[0].gapDistance).toBe(0);
         expect(matches[1].gapDistance).toBeCloseTo(0.5);
-    });
-
-    test('uses lowPrice when priceType is low', () => {
-        const matches = findFillerMatches(cards, 4, 'low', 2);
-        expect(matches[0].card.name).toBe('Exact');
-        expect(matches[0].price).toBe(4);
+        expect(matches[0].price).toBe(4.5);
     });
 
     test('skips unpriced cards and returns empty for invalid inputs', () => {
-        expect(findFillerMatches(cards, 4.5, 'market').some((m) => m.card.name === 'Free')).toBe(false);
+        expect(findFillerMatches(cards, 4.5).some((m) => m.card.name === 'Free')).toBe(false);
         expect(findFillerMatches([], 4.5)).toEqual([]);
         expect(findFillerMatches(cards, 0)).toEqual([]);
     });

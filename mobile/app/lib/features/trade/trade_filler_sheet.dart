@@ -226,10 +226,12 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
       separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
       itemBuilder: (context, i) {
         final m = top[i];
+        final low = pricing.lowPriceLabel(m.card);
+        final closeness = _closenessLabel(m, target, symbol);
         return CardRow(
           card: m.card,
           priceLabel: pricing.priceLabel(m.card),
-          secondaryLabel: _closenessLabel(m, target, symbol),
+          secondaryLabel: low == null ? closeness : '$low · $closeness',
           onAdd: () => _addFiller(context, m.card, fillSide),
           onTap: () => _addFiller(context, m.card, fillSide),
         );

@@ -640,6 +640,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           return CardRow(
             card: card,
             priceLabel: pricing.priceLabel(card),
+            secondaryLabel: pricing.lowPriceLabel(card),
             trailing: const Icon(Icons.add_circle),
             onTap: () => _addToTrade(card),
           );
@@ -647,6 +648,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         return CardRow(
           card: card,
           priceLabel: pricing.priceLabel(card),
+          secondaryLabel: pricing.lowPriceLabel(card),
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => CardDetailScreen(card: card))),
           onAdd: () => showCardActions(context, ref, card),

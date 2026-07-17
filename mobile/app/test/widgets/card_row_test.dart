@@ -18,6 +18,17 @@ void main() {
       expect(find.text('\$1.50'), findsOneWidget);
     });
 
+    testWidgets('renders secondary low price when provided', (tester) async {
+      await tester.pumpWidget(wrap(CardRow(
+        card: buildCard(name: 'Vex'),
+        priceLabel: '\$2.00',
+        secondaryLabel: 'Low \$1.25',
+      )));
+
+      expect(find.text('\$2.00'), findsOneWidget);
+      expect(find.text('Low \$1.25'), findsOneWidget);
+    });
+
     testWidgets('shows FOIL badge for foil printings', (tester) async {
       await tester.pumpWidget(wrap(CardRow(
         card: buildCard(name: 'Vex', isFoil: true),

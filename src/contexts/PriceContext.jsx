@@ -11,12 +11,9 @@ export const usePriceType = () => {
 };
 
 export const PriceProvider = ({ children }) => {
-    const [priceType, setPriceType] = useState('market'); // 'market' or 'low'
     const [priceSource, setPriceSource] = useState('tcgplayer'); // 'tcgplayer' or 'cardmarket'
 
     const value = {
-        priceType,
-        setPriceType,
         priceSource,
         setPriceSource
     };

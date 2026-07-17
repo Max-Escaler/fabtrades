@@ -107,8 +107,8 @@ class SettingsNotifier extends Notifier<AppSettings> {
     ref.read(settingsRepositoryProvider).save(state);
   }
 
-  void setType(PriceType type) {
-    state = state.copyWith(type: type);
+  void setThemeMode(AppThemeMode themeMode) {
+    state = state.copyWith(themeMode: themeMode);
     ref.read(settingsRepositoryProvider).save(state);
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCardData } from './useCardData.jsx';
 import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
+import { compareSetsByBrowseOrder } from '../utils/setSort.js';
 import { loadSetLogoMap } from '../utils/setLogos.js';
 
 // Module-level cache so the product groups JSON is only fetched once even
@@ -128,11 +129,7 @@ export const useSets = () => {
                 };
             })
             .filter(Boolean)
-            .sort((a, b) => {
-                const da = a.publishedOn ? new Date(a.publishedOn).getTime() : 0;
-                const db = b.publishedOn ? new Date(b.publishedOn).getTime() : 0;
-                return db - da;
-            });
+            .sort(compareSetsByBrowseOrder);
 
         // Attach collision-free slugs derived from the eligible set list.
         const slugMap = buildSetSlugMap(eligible);

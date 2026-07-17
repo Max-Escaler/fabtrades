@@ -9,32 +9,36 @@ enum PriceSource {
   final String symbol;
 }
 
-/// Which price point within a source to use as the canonical value.
-enum PriceType {
-  market('Market'),
-  low('Low');
+/// App appearance preference.
+enum AppThemeMode {
+  light('Light'),
+  dark('Dark');
 
-  const PriceType(this.label);
+  const AppThemeMode(this.label);
   final String label;
 }
 
 class AppSettings {
   final PriceSource source;
-  final PriceType type;
+  final AppThemeMode themeMode;
 
   const AppSettings({
     this.source = PriceSource.tcgplayer,
-    this.type = PriceType.market,
+    this.themeMode = AppThemeMode.light,
   });
 
-  AppSettings copyWith({PriceSource? source, PriceType? type}) => AppSettings(
+  AppSettings copyWith({
+    PriceSource? source,
+    AppThemeMode? themeMode,
+  }) =>
+      AppSettings(
         source: source ?? this.source,
-        type: type ?? this.type,
+        themeMode: themeMode ?? this.themeMode,
       );
 
   Map<String, dynamic> toJson() => {
         'source': source.name,
-        'type': type.name,
+        'themeMode': themeMode.name,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
@@ -42,9 +46,9 @@ class AppSettings {
           (e) => e.name == json['source'],
           orElse: () => PriceSource.tcgplayer,
         ),
-        type: PriceType.values.firstWhere(
-          (e) => e.name == json['type'],
-          orElse: () => PriceType.market,
+        themeMode: AppThemeMode.values.firstWhere(
+          (e) => e.name == json['themeMode'],
+          orElse: () => AppThemeMode.light,
         ),
       );
 }

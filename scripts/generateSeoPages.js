@@ -24,6 +24,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { buildSetSlugMap } from '../src/utils/setSlug.js';
+import { compareSetsByBrowseOrder } from '../src/utils/setSort.js';
 import {
     privacySections,
     PRIVACY_EFFECTIVE_DATE
@@ -151,11 +152,7 @@ const buildSets = ({ groups, rows }) => {
             };
         })
         .filter(Boolean)
-        .sort((a, b) => {
-            const da = a.publishedOn ? new Date(a.publishedOn).getTime() : 0;
-            const db = b.publishedOn ? new Date(b.publishedOn).getTime() : 0;
-            return db - da;
-        });
+        .sort(compareSetsByBrowseOrder);
 
     const slugMap = buildSetSlugMap(eligible);
     for (const s of eligible) s.slug = slugMap.get(String(s.groupId)) || String(s.groupId);

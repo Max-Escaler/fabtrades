@@ -30,19 +30,19 @@ const SearchOption = ({
     const imageUrl = option.card?.imageUrl || '';
     const imageUrlFallback = option.card?.imageUrlFallback || '';
     
-    // Get price from card object
-    const price = option.card?.marketPrice || option.card?.lowPrice || 0;
+    // Market is primary; low is shown as a smaller secondary line.
+    const marketPrice = option.card?.marketPrice || 0;
+    const lowPrice = option.card?.lowPrice;
     
     // Format price based on price source
     const formatPrice = (amount) => {
         if (priceSource === 'cardmarket') {
-            const cmPrice = option.card?.cardmarketTrend || option.card?.cardmarketLow || 0;
             return new Intl.NumberFormat('de-DE', {
                 style: 'currency',
                 currency: 'EUR',
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 2
-            }).format(cmPrice);
+            }).format(amount);
         }
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -51,6 +51,13 @@ const SearchOption = ({
             maximumFractionDigits: 2
         }).format(amount);
     };
+
+    const primaryPrice = priceSource === 'cardmarket'
+        ? (option.card?.cardmarketTrend || option.card?.cardmarketLow || 0)
+        : marketPrice;
+    const secondaryLow = priceSource === 'cardmarket'
+        ? option.card?.cardmarketLow
+        : lowPrice;
 
     const handleMouseEnter = () => {
         setIsHovered(true);
@@ -185,19 +192,41 @@ const SearchOption = ({
                 )}
             </Box>
             
-            {/* Price - right aligned */}
-            <Typography
-                component="span"
-                sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: isDark ? '#c87137' : '#8b4513',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                }}
-            >
-                {formatPrice(price)}
-            </Typography>
+            {/* Price - market primary, low secondary */}
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                flexShrink: 0,
+                gap: 0.1
+            }}>
+                <Typography
+                    component="span"
+                    sx={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: isDark ? '#c87137' : '#8b4513',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1.2
+                    }}
+                >
+                    {formatPrice(primaryPrice)}
+                </Typography>
+                {secondaryLow != null && Number(secondaryLow) > 0 && (
+                    <Typography
+                        component="span"
+                        sx={{
+                            fontSize: '0.6rem',
+                            fontWeight: 400,
+                            color: isDark ? 'rgba(212, 165, 116, 0.65)' : 'rgba(93, 58, 26, 0.5)',
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1.1
+                        }}
+                    >
+                        Low {formatPrice(secondaryLow)}
+                    </Typography>
+                )}
+            </Box>
         </Box>
     );
 };

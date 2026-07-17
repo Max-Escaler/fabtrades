@@ -278,16 +278,36 @@ const CardList = ({
                             flexShrink: 0,
                             minWidth: 'fit-content'
                         }}>
-                            {/* Price Chip */}
-                            <Chip
-                                label={formatPrice(card.price || 0)}
-                                color="primary"
-                                size="small"
-                                sx={{
-                                    fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem', lg: '0.8rem', xl: '0.875rem' },
-                                    minWidth: 'fit-content'
-                                }}
-                            />
+                            <Box sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-end',
+                                gap: 0.15,
+                                minWidth: 'fit-content'
+                            }}>
+                                <Chip
+                                    label={formatPrice(card.price || 0)}
+                                    color="primary"
+                                    size="small"
+                                    sx={{
+                                        fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem', lg: '0.8rem', xl: '0.875rem' },
+                                        minWidth: 'fit-content'
+                                    }}
+                                />
+                                {card.lowPrice != null && Number(card.lowPrice) > 0 && (
+                                    <Typography
+                                        component="span"
+                                        sx={{
+                                            fontSize: { xs: '0.55rem', sm: '0.6rem', md: '0.65rem' },
+                                            color: isDark ? 'rgba(212, 165, 116, 0.7)' : 'rgba(93, 58, 26, 0.55)',
+                                            lineHeight: 1.1,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Low {formatPrice(card.lowPrice)}
+                                    </Typography>
+                                )}
+                            </Box>
 
                             {/* Delete Button */}
                             <IconButton

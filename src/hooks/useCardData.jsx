@@ -1,7 +1,5 @@
 // CardDataContext.js
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { usePriceType } from '../contexts/PriceContext.jsx';
-
 // Create context
 const CardDataContext = createContext();
 
@@ -243,8 +241,9 @@ const enhanceDisplayNames = (cards) => {
     });
 };
 
-// Function to group cards by display name and their editions
-const groupCardsByEdition = (cards, priceType = 'market') => {
+// Function to group cards by display name and their editions.
+// Market is the canonical trade/list price; low is kept for the secondary display.
+const groupCardsByEdition = (cards) => {
     const grouped = {};
 
     cards.forEach(card => {
@@ -266,7 +265,8 @@ const groupCardsByEdition = (cards, priceType = 'market') => {
             grouped[displayName].editions.push({
                 subTypeName: card.subTypeName,
                 productId: card.productId,
-                cardPrice: priceType === 'market' ? card.marketPrice : card.lowPrice,
+                cardPrice: card.marketPrice,
+                lowPrice: card.lowPrice,
                 uniqueId: card._uniqueId,
                 imageUrl: card.imageUrl || '',
                 imageUrlFallback: card.imageUrlFallback || ''
@@ -279,7 +279,6 @@ const groupCardsByEdition = (cards, priceType = 'market') => {
 
 // Main provider component
 export const CardDataProvider = ({ children }) => {
-    const { priceType } = usePriceType();
     const [cards, setCards] = useState([]);
     const [cardIdLookup, setCardIdLookup] = useState({}); // Lookup map for unique IDs
     const [loading, setLoading] = useState(false); // Changed to false for instant page load
@@ -340,11 +339,10 @@ export const CardDataProvider = ({ children }) => {
         loadCardData();
     }, []);
 
-    // Recalculate cardGroups whenever priceType changes
     const cardGroups = useMemo(() => {
         if (cards.length === 0) return [];
-        return groupCardsByEdition(cards, priceType);
-    }, [cards, priceType]);
+        return groupCardsByEdition(cards);
+    }, [cards]);
 
     const value = useMemo(() => ({
         cards,

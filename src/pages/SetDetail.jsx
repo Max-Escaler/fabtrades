@@ -546,8 +546,8 @@ const SetDetail = () => {
                                                 alignItems: 'center',
                                                 flexShrink: 0
                                             }}>
-                                                <PriceCell label="Low" value={card.lowPrice} isDark={isDark} />
                                                 <PriceCell label="Market" value={card.marketPrice} isDark={isDark} accent />
+                                                <PriceCell label="Low" value={card.lowPrice} isDark={isDark} />
                                                 <PriceCell label="High" value={card.highPrice} isDark={isDark} />
                                             </Box>
                                         </ListItem>

@@ -47,7 +47,7 @@ const FindFillerDialog = ({
 }) => {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
-    const { priceType, priceSource } = usePriceType();
+    const { priceSource } = usePriceType();
     const { isDark } = useThemeMode();
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
 
@@ -58,8 +58,8 @@ const FindFillerDialog = ({
 
     const matches = useMemo(() => {
         if (!open || balanced || !dataReady) return [];
-        return findFillerMatches(cards, target, priceType);
-    }, [open, balanced, dataReady, cards, target, priceType]);
+        return findFillerMatches(cards, target);
+    }, [open, balanced, dataReady, cards, target]);
 
     const formatMoney = (amount) => {
         if (priceSource === 'cardmarket') {
@@ -341,18 +341,40 @@ const FindFillerDialog = ({
                                                             : ''}
                                                     </Typography>
                                                 </Box>
-                                                <Typography
+                                                <Box
                                                     sx={{
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 600,
-                                                        color: isDark
-                                                            ? '#c87137'
-                                                            : '#8b4513',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'flex-end',
                                                         flexShrink: 0,
+                                                        gap: 0.1,
                                                     }}
                                                 >
-                                                    {formatMoney(price)}
-                                                </Typography>
+                                                    <Typography
+                                                        sx={{
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 600,
+                                                            color: isDark
+                                                                ? '#c87137'
+                                                                : '#8b4513',
+                                                            lineHeight: 1.2,
+                                                        }}
+                                                    >
+                                                        {formatMoney(price)}
+                                                    </Typography>
+                                                    {card.lowPrice != null &&
+                                                        Number(card.lowPrice) > 0 && (
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: '0.6rem',
+                                                                color: mutedColor,
+                                                                lineHeight: 1.1,
+                                                            }}
+                                                        >
+                                                            Low {formatMoney(card.lowPrice)}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
                                                 <IconButton
                                                     size="small"
                                                     aria-label={`Add ${name}`}

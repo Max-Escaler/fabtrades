@@ -30,17 +30,16 @@ export function getFillerContext(diff) {
 
 /**
  * Rank catalog cards by absolute distance from the target fill amount.
+ * Matching uses market price (same as trade totals).
  *
  * @param {Array} cards - flat catalog from useCardData
  * @param {number} target - absolute value gap to fill
- * @param {'market'|'low'} priceType
  * @param {number} [maxResults]
  * @returns {Array<{ card: object, price: number, gapDistance: number }>}
  */
 export function findFillerMatches(
     cards,
     target,
-    priceType = 'market',
     maxResults = DEFAULT_MAX_RESULTS
 ) {
     if (!Array.isArray(cards) || cards.length === 0 || !(target > 0)) {
@@ -49,7 +48,7 @@ export function findFillerMatches(
 
     const matches = [];
     for (const card of cards) {
-        const price = priceType === 'market' ? card.marketPrice : card.lowPrice;
+        const price = card.marketPrice;
         if (price == null || price <= 0 || Number.isNaN(price)) continue;
         matches.push({
             card,

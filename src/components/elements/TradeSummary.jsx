@@ -11,9 +11,7 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions,
-    ToggleButtonGroup,
-    ToggleButton
+    DialogActions
 } from '@mui/material';
 import { 
     Warning as WarningIcon,
@@ -22,7 +20,6 @@ import {
     AutoFixHigh as AutoFixHighIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
-import { usePriceType } from "../../contexts/PriceContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
@@ -43,7 +40,6 @@ const TradeSummary = ({
     onAddHave,
     onAddWant,
 }) => {
-    const { priceType, setPriceType } = usePriceType();
     const { isDark } = useThemeMode();
     const { user } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -61,12 +57,6 @@ const TradeSummary = ({
 
     const haveCardCount = getTotalCardCount(haveList);
     const wantCardCount = getTotalCardCount(wantList);
-
-    const handlePriceTypeChange = (event, newPriceType) => {
-        if (newPriceType !== null) {
-            setPriceType(newPriceType);
-        }
-    };
 
     const handleClearTradeData = () => {
         clearURLTradeData();
@@ -104,28 +94,6 @@ const TradeSummary = ({
         return `${Math.round(ageInDays / 30)} month${Math.round(ageInDays / 30) !== 1 ? 's' : ''}`;
     };
 
-    // Common toggle button styles - FAB brown theme
-    const toggleButtonSx = {
-        '& .MuiToggleButton-root': {
-            px: { xs: 0.75, sm: 1 },
-            py: { xs: 0.25, sm: 0.5 },
-            fontSize: { xs: '0.65rem', sm: '0.7rem' },
-            textTransform: 'none',
-            border: isDark ? '1px solid rgba(200, 113, 55, 0.4)' : '1px solid rgba(139, 69, 19, 0.3)',
-            color: isDark ? '#c87137' : '#8b4513',
-            '&.Mui-selected': {
-                backgroundColor: isDark ? '#c87137' : '#8b4513',
-                color: isDark ? '#1a0f0a' : '#ffffff',
-                '&:hover': {
-                    backgroundColor: isDark ? '#e09050' : '#5d2f0d'
-                }
-            },
-            '&:hover': {
-                backgroundColor: isDark ? 'rgba(200, 113, 55, 0.15)' : 'rgba(139, 69, 19, 0.08)'
-            }
-        }
-    };
-
     // Theme-aware colors
     const textColor = isDark ? '#f5f1ed' : '#2c1810';
     const bgGradient = isLandscape 
@@ -154,36 +122,6 @@ const TradeSummary = ({
                 ? (isDark ? '0 8px 24px rgba(0, 0, 0, 0.3)' : '0 8px 24px rgba(139, 69, 19, 0.15)')
                 : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(139, 69, 19, 0.08)')
         }}>
-            {/* Price Type Selector - Landscape mode (stacked) */}
-            {isLandscape && (
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 1,
-                    py: 1.5,
-                    borderBottom: `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
-                    width: '100%'
-                }}>
-                    <ToggleButtonGroup
-                        value={priceType}
-                        exclusive
-                        onChange={handlePriceTypeChange}
-                        size="small"
-                        sx={toggleButtonSx}
-                    >
-                        <ToggleButton value="market" aria-label="market price">
-                            Market
-                        </ToggleButton>
-                        <ToggleButton value="low" aria-label="low price">
-                            Low
-                        </ToggleButton>
-                    </ToggleButtonGroup>
-                </Box>
-            )}
-
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -228,32 +166,6 @@ const TradeSummary = ({
                 flexWrap: 'wrap',
                 boxShadow: isLandscape ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(139, 69, 19, 0.08)') : 'none'
             }}>
-                {/* Price Type Selector - Portrait mode */}
-                {!isLandscape && (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        mr: 1
-                    }}>
-                        <ToggleButtonGroup
-                            value={priceType}
-                            exclusive
-                            onChange={handlePriceTypeChange}
-                            size="small"
-                            sx={toggleButtonSx}
-                        >
-                            <ToggleButton value="market" aria-label="market price">
-                                Market
-                            </ToggleButton>
-                            <ToggleButton value="low" aria-label="low price">
-                                Low
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-                    </Box>
-                )}
-
                 {/* Difference section - centered */}
                 <Box sx={{
                     display: 'flex',

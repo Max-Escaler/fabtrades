@@ -339,7 +339,7 @@ class _PriceCard extends StatelessWidget {
                     style: theme.textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(width: 8),
-                Text('${settings.source.label} · ${settings.type.label}',
+                Text(settings.source.label,
                     style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant)),
                 const Spacer(),
@@ -454,8 +454,8 @@ class _HistorySection extends StatelessWidget {
         final points = snap.data ?? const [];
         final values = points
             .map((p) => settings.source == PriceSource.tcgplayer
-                ? (settings.type == PriceType.market ? p.tcgMarket : p.tcgLow)
-                : (settings.type == PriceType.market ? p.cmTrend : p.cmLow))
+                ? p.tcgMarket
+                : p.cmTrend)
             .toList();
         final hasSeries = values.where((v) => v != null).length >= 2;
 

@@ -353,6 +353,7 @@ export function reconstructCardsFromURLData(cardData, cardGroups, cardIdLookup =
       const reconstructedCard = {
         name: cardGroup.name, // Use canonical name from card group
         price: cardPrice,
+        lowPrice: selectedEdition.lowPrice,
         quantity: Math.max(1, parseInt(cardQuantity) || 1), // Ensure valid quantity
         cardGroup,
         availableEditions: cardGroup.editions,

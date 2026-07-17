@@ -171,6 +171,7 @@ class _TradeSideList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(tradeDraftProvider.notifier);
     final catalog = ref.watch(catalogProvider).asData?.value ?? const [];
+    final pricing = ref.watch(pricingProvider);
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border(left: BorderSide(color: accent, width: 3)),
@@ -182,6 +183,7 @@ class _TradeSideList extends ConsumerWidget {
             _TradeItemRow(
               item: item,
               symbol: symbol,
+              lowEach: pricing.lowValue(item.card),
               onInc: () =>
                   notifier.setQuantity(side, item.card.id, item.quantity + 1),
               onDec: () =>
@@ -276,7 +278,7 @@ class _DragBar extends StatelessWidget {
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
-                      '${settings.source.label} · ${settings.type.label}',
+                      settings.source.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -379,6 +381,7 @@ class _TradeItemRow extends StatelessWidget {
   const _TradeItemRow({
     required this.item,
     required this.symbol,
+    required this.lowEach,
     required this.onInc,
     required this.onDec,
     required this.onRemove,
@@ -386,6 +389,7 @@ class _TradeItemRow extends StatelessWidget {
   });
   final TradeItem item;
   final String symbol;
+  final double? lowEach;
   final VoidCallback onInc;
   final VoidCallback onDec;
   final VoidCallback onRemove;
@@ -433,6 +437,14 @@ class _TradeItemRow extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant),
                   ),
+                  if (lowEach != null)
+                    Text(
+                      'Low $symbol${lowEach!.toStringAsFixed(2)} ea',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
                 ],
               ),
             ),

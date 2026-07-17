@@ -39,29 +39,33 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             settings.source == PriceSource.tcgplayer
-                ? 'US market prices in USD from TCGplayer.'
-                : 'EU market prices in EUR from CardMarket (where matched).',
+                ? 'Shows market as the main price and low as a smaller sub-price (USD).'
+                : 'Shows trend as the main price and low as a smaller sub-price (EUR).',
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 28),
-          _SectionLabel('Price type'),
+          _SectionLabel('Appearance'),
           const SizedBox(height: 8),
-          SegmentedButton<PriceType>(
-            segments: const [
-              ButtonSegment(value: PriceType.market, label: Text('Market')),
-              ButtonSegment(value: PriceType.low, label: Text('Low')),
-            ],
-            selected: {settings.type},
-            onSelectionChanged: (s) => notifier.setType(s.first),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            settings.type == PriceType.market
-                ? 'Uses the market/trend price for trade values.'
-                : 'Uses the lowest listed price for trade values.',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: Icon(
+              settings.themeMode == AppThemeMode.dark
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+            ),
+            title: const Text('Dark mode'),
+            subtitle: Text(
+              settings.themeMode == AppThemeMode.dark
+                  ? 'Using the dark theme.'
+                  : 'Using the light theme.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            value: settings.themeMode == AppThemeMode.dark,
+            onChanged: (on) => notifier.setThemeMode(
+              on ? AppThemeMode.dark : AppThemeMode.light,
+            ),
           ),
           const SizedBox(height: 32),
           Card(
@@ -74,7 +78,7 @@ class SettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       'Prices refresh daily from the shared FAB Trades database. '
-                      'Trade values use the source & type selected here.',
+                      'Trade values use the market/trend price from the source selected here.',
                       style: theme.textTheme.bodySmall,
                     ),
                   ),

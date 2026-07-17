@@ -104,6 +104,7 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
                     return CardRow(
                       card: card,
                       priceLabel: pricing.priceLabel(card),
+                      secondaryLabel: pricing.lowPriceLabel(card),
                       trailing: const Icon(Icons.add_circle),
                       onTap: () => Navigator.of(context).pop(card),
                     );

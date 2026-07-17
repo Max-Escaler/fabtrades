@@ -71,6 +71,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                 {
                     name: cardName,
                     price: edition.cardPrice,
+                    lowPrice: edition.lowPrice,
                     cardGroup,
                     availableEditions: cardGroup.editions,
                     quantity: 1,
@@ -94,7 +95,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         setList(updatedList);
     };
 
-    // Update prices when cardGroups change (e.g., when price type changes)
+    // Refresh prices when catalog groups change (e.g. after data load).
     useEffect(() => {
         if (cardGroups.length === 0) return;
 
@@ -110,6 +111,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                     return {
                         ...card,
                         price: edition.cardPrice,
+                        lowPrice: edition.lowPrice,
                         availableEditions: cardGroup.editions,
                         cardGroup,
                         imageUrl: card.imageUrl || edition.imageUrl || '',
@@ -198,6 +200,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                 return {
                     name: cardGroup.name,
                     price: selectedEdition.cardPrice,
+                    lowPrice: selectedEdition.lowPrice,
                     quantity: savedCard.quantity || 1,
                     cardGroup,
                     availableEditions: cardGroup.editions,
