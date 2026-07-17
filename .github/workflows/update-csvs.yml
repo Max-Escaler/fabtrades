@@ -39,7 +39,9 @@ jobs:
 
           git checkout -b "$branch_name"
 
-          git add public/price-guide/ public/productgroups.json
+          # Include last-updated.txt so the site's "Prices last updated" header
+          # stays in sync with tcgcsv.com even when price CSVs are unchanged.
+          git add public/price-guide/ public/productgroups.json public/last-updated.txt
 
           # Only create a commit if something actually changed.
           if git diff --cached --quiet; then
