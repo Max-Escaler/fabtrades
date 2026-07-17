@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCardData } from './useCardData.jsx';
 import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
+import { loadSetLogoMap } from '../utils/setLogos.js';
 
 // Module-level cache so the product groups JSON is only fetched once even
 // when multiple components mount `useSets` on the same page.
@@ -49,22 +50,24 @@ const isActualCard = (card) => {
 export const useSets = () => {
     const { cards, dataReady } = useCardData();
     const [groups, setGroups] = useState(groupsCache || []);
+    const [logoByGroupId, setLogoByGroupId] = useState({});
     const [loading, setLoading] = useState(!groupsCache);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (groupsCache) {
-            setGroups(groupsCache);
-            setLoading(false);
-            return;
-        }
         let cancelled = false;
         (async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const results = await loadGroupsCached();
-                if (!cancelled) setGroups(results);
+                const [results, logos] = await Promise.all([
+                    loadGroupsCached(),
+                    loadSetLogoMap()
+                ]);
+                if (!cancelled) {
+                    setGroups(results);
+                    setLogoByGroupId(logos);
+                }
             } catch (err) {
                 if (!cancelled) {
                     console.error('Error loading product groups:', err);
@@ -120,7 +123,8 @@ export const useSets = () => {
                     modifiedOn: group.modifiedOn || null,
                     isSupplemental: !!group.isSupplemental,
                     cardCount: groupCards.length,
-                    topMarketPrice
+                    topMarketPrice,
+                    logoUrl: logoByGroupId[key] || null
                 };
             })
             .filter(Boolean)
@@ -133,7 +137,7 @@ export const useSets = () => {
         // Attach collision-free slugs derived from the eligible set list.
         const slugMap = buildSetSlugMap(eligible);
         return eligible.map((s) => ({ ...s, slug: slugMap.get(String(s.groupId)) || '' }));
-    }, [groups, cardsByGroupId]);
+    }, [groups, cardsByGroupId, logoByGroupId]);
 
     // Reverse lookup so routes can resolve a slug back to its groupId.
     const slugToGroupId = useMemo(() => {
@@ -164,10 +168,11 @@ export const useSets = () => {
             publishedOn: meta?.publishedOn || null,
             modifiedOn: meta?.modifiedOn || null,
             isSupplemental: !!meta?.isSupplemental,
+            logoUrl: logoByGroupId[resolvedKey] || null,
             slug: slugToGroupId.size ? [...slugToGroupId.entries()].find(([, id]) => id === resolvedKey)?.[0] || '' : '',
             cards: groupCards
         };
-    }, [groups, cardsByGroupId, slugToGroupId]);
+    }, [groups, cardsByGroupId, slugToGroupId, logoByGroupId]);
 
     return {
         sets,

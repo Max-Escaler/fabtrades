@@ -39,6 +39,84 @@ const formatMoney = (value) => {
     return `$${num.toFixed(2)}`;
 };
 
+/**
+ * Renders the official FAB set logo when available; falls back to the set name.
+ * Logos replace the text title on each browse-sets row.
+ */
+const SetTitle = ({ set, textColor, mutedColor, isDark }) => {
+    const [logoFailed, setLogoFailed] = useState(false);
+    const showLogo = Boolean(set.logoUrl) && !logoFailed;
+
+    if (showLogo) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    minWidth: 0
+                }}
+            >
+                <Box
+                    component="img"
+                    src={set.logoUrl}
+                    alt={set.name}
+                    loading="lazy"
+                    onError={() => setLogoFailed(true)}
+                    sx={{
+                        display: 'block',
+                        height: { xs: 28, sm: 34 },
+                        maxWidth: { xs: '70%', sm: 280 },
+                        width: 'auto',
+                        objectFit: 'contain',
+                        objectPosition: 'left center',
+                        // Many official logos are light/gold; a few are dark ink.
+                        // Soft plate keeps both readable on either theme.
+                        p: 0.5,
+                        borderRadius: 1,
+                        backgroundColor: isDark
+                            ? 'rgba(255, 255, 255, 0.06)'
+                            : 'rgba(44, 24, 16, 0.04)'
+                    }}
+                />
+                {set.abbreviation ? (
+                    <Box
+                        component="span"
+                        sx={{
+                            color: mutedColor,
+                            fontWeight: 500,
+                            fontSize: '0.85rem',
+                            flexShrink: 0
+                        }}
+                    >
+                        {set.abbreviation}
+                    </Box>
+                ) : null}
+            </Box>
+        );
+    }
+
+    return (
+        <Typography
+            variant="subtitle1"
+            sx={{
+                color: textColor,
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+            }}
+        >
+            {set.name}
+            {set.abbreviation ? (
+                <Box component="span" sx={{ ml: 1, color: mutedColor, fontWeight: 500, fontSize: '0.85em' }}>
+                    {set.abbreviation}
+                </Box>
+            ) : null}
+        </Typography>
+    );
+};
+
 const SetList = () => {
     const { sets, loading, error } = useSets();
     const { isDark } = useThemeMode();
@@ -181,23 +259,12 @@ const SetList = () => {
                                         }}
                                     >
                                         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                                            <Typography
-                                                variant="subtitle1"
-                                                sx={{
-                                                    color: textColor,
-                                                    fontWeight: 600,
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {set.name}
-                                                {set.abbreviation ? (
-                                                    <Box component="span" sx={{ ml: 1, color: mutedColor, fontWeight: 500, fontSize: '0.85em' }}>
-                                                        {set.abbreviation}
-                                                    </Box>
-                                                ) : null}
-                                            </Typography>
+                                            <SetTitle
+                                                set={set}
+                                                textColor={textColor}
+                                                mutedColor={mutedColor}
+                                                isDark={isDark}
+                                            />
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.5, flexWrap: 'wrap' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                                     <CalendarIcon sx={{ fontSize: 14, color: mutedColor }} />

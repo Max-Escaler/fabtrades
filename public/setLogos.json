@@ -1,0 +1,241 @@
+{
+  "source": "https://fabtcg.com/resources/marketing-assets/",
+  "scrapedAt": "2026-07-17T15:35:21.619Z",
+  "logos": {
+    "2724": {
+      "name": "Crucible of War",
+      "abbreviation": "CRU",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/cru_logo_stacked.png"
+    },
+    "2725": {
+      "name": "Arcane Rising",
+      "abbreviation": "ARC",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/ARC-1.png"
+    },
+    "2726": {
+      "name": "Welcome to Rathe",
+      "abbreviation": "WTR",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/wtr_logo-1.png"
+    },
+    "2775": {
+      "name": "Monarch",
+      "abbreviation": "MON",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/0zIUv0bFVWaD-1.png"
+    },
+    "2885": {
+      "name": "Tales of Aria",
+      "abbreviation": "ELE",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/toa_logo-1.png"
+    },
+    "2947": {
+      "name": "Everfest",
+      "abbreviation": "EVR",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/1ubILjMFFi7Junh-1.png"
+    },
+    "3053": {
+      "name": "History Pack Vol.1",
+      "abbreviation": "1HP",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/1hp_blitz_logo.png"
+    },
+    "3056": {
+      "name": "Uprising",
+      "abbreviation": "UPR",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/KS40Q76S1e5DuPQ-1.png"
+    },
+    "3057": {
+      "name": "Classic Battles: Rhinar vs Dorinthea",
+      "abbreviation": "RVD/DVR",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/cb_logo_2.png"
+    },
+    "17678": {
+      "name": "Dynasty",
+      "abbreviation": "DYN",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/dynasty_logo_re.png"
+    },
+    "22893": {
+      "name": "Outsiders",
+      "abbreviation": "OUT",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/11/outsiders23012-1.png"
+    },
+    "23173": {
+      "name": "Dusk till Dawn",
+      "abbreviation": "DTD",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/dusk_till_dawn_logo.png"
+    },
+    "23277": {
+      "name": "Bright Lights",
+      "abbreviation": "EVO",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/bright_lights_logo_3TRCirLnKQgbe.png"
+    },
+    "23295": {
+      "name": "Round the Table: TCCxLSS",
+      "abbreviation": "TCC",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/round_the_table.png"
+    },
+    "23354": {
+      "name": "Heavy Hitters",
+      "abbreviation": "HVY",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/heavy_hitters_logo.png"
+    },
+    "23476": {
+      "name": "Part the Mistveil",
+      "abbreviation": "MST",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/logo_mst.png"
+    },
+    "23506": {
+      "name": "Armory Deck: Kayo",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/armory_deck_kayo_logo.png"
+    },
+    "23534": {
+      "name": "Armory Deck: Boltyn",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/ad_boltyn_logo.png"
+    },
+    "23540": {
+      "name": "Rosetta",
+      "abbreviation": "ROS",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/logo_rosetta_full.png"
+    },
+    "23548": {
+      "name": "1st Strike",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/1st_strike_logo.png"
+    },
+    "23558": {
+      "name": "Armory Deck: Azalea",
+      "abbreviation": "ADA",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/en_ad_azalea_logo.png"
+    },
+    "23738": {
+      "name": "Armory Deck: Dash",
+      "abbreviation": "ADD",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/armory_deck_dash_logo-720x501.png"
+    },
+    "23771": {
+      "name": "Armory Deck: Jarl Vetreidi",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/jarl_logo.png"
+    },
+    "23815": {
+      "name": "The Hunted",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/06/the_hunted_logo-scaled.png"
+    },
+    "24162": {
+      "name": "Armory Deck: Aurora",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/1stk_aurora_logo.png"
+    },
+    "24253": {
+      "name": "Armory Deck: Maxx Nitro",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/ad_maxx_logo.png"
+    },
+    "24266": {
+      "name": "High Seas",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/high_seas_logo_noglow.png"
+    },
+    "24268": {
+      "name": "Armory Deck: Gravy Bones",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/gravybones_logo-720x450.png"
+    },
+    "24315": {
+      "name": "Armory Deck: Ira",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/AD_Ira_Logo_Glow.png"
+    },
+    "24330": {
+      "name": "Mastery Pack Guardian",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/mastery_pack_guardian_logo_1.png"
+    },
+    "24371": {
+      "name": "Super Slam",
+      "abbreviation": "SUP",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/07/super_slam_logo.png"
+    },
+    "24375": {
+      "name": "Armory Deck: Pleiades",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/armory_deck.original.png"
+    },
+    "24415": {
+      "name": "Smash Palace",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/Smash_Palace_Logo_Vector_Final_Grey.png"
+    },
+    "24474": {
+      "name": "Armory Deck: Rhinar",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/rhinar_name.png"
+    },
+    "24524": {
+      "name": "Silver Age Chapter 1",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/silver_age_logo.png"
+    },
+    "24525": {
+      "name": "Silver Age Chapter 2",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/silver_age_logo.png"
+    },
+    "24526": {
+      "name": "Armory Deck: Arakni",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/arakni_name.png"
+    },
+    "24532": {
+      "name": "Compendium of Rathe",
+      "abbreviation": "PEN",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/compendium_of_rathe.png"
+    },
+    "24610": {
+      "name": "Armory Deck Origins: Hala",
+      "abbreviation": "AHA",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/03/hala_name-scaled.png"
+    },
+    "24639": {
+      "name": "Armory Deck: Zyggy",
+      "abbreviation": "AZS",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/03/zyggy_name.png"
+    },
+    "24640": {
+      "name": "Omens of the Third Age",
+      "abbreviation": "OMN",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/03/omens_of_the_third_age_logo.png"
+    },
+    "24671": {
+      "name": "Mastery Pack Warrior",
+      "abbreviation": "MPW",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/04/mastery_pack_warrior.png"
+    },
+    "24672": {
+      "name": "Armory Deck: Olympia",
+      "abbreviation": "AOL",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/04/armory_deck_olympia.png"
+    },
+    "24706": {
+      "name": "Silver Age Chapter 3",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/silver_age_logo.png"
+    },
+    "24762": {
+      "name": "Usurp the Shadow Throne",
+      "abbreviation": "IAR",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/07/usurp_the_shadow_throne_logo.png"
+    },
+    "24763": {
+      "name": "Armory Deck: Malice",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2026/07/armory_deck_malice.png"
+    },
+    "24764": {
+      "name": "Silver Age: Usurp the Shadow Throne",
+      "abbreviation": "",
+      "logoUrl": "https://cdn.fabtcg.com/uploads/2025/12/silver_age_logo.png"
+    }
+  }
+}

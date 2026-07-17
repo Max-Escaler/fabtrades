@@ -101,3 +101,6 @@ jspm_packages/
 public/price-guide/diff-cache.json
 public/price-guide/last-update.json
 public/price-guide/manifest.json
+
+# Scraper debug output
+scripts/_set-logos-scrape.json
