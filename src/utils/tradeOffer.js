@@ -1,6 +1,6 @@
 /**
- * Discord trade-post composer for the purple FaB trading Discord.
- * Produces plain text that matches community WTT conventions.
+ * Discord trade-offer composer for replies/DMs on the purple FaB Discord.
+ * Someone sees a WTT post, builds the trade here, then pastes this to the poster.
  */
 
 const ART_VARIANT_RULES = [
@@ -76,7 +76,7 @@ export const parseDiscordCardName = (rawName = '') => {
  * @param {{ name?: string, subTypeName?: string, price?: number, quantity?: number }} card
  * @returns {string}
  */
-export const formatTradePostCardLine = (card) => {
+export const formatTradeOfferCardLine = (card) => {
     const qty = card.quantity || 1;
     const { baseName, artAbbrev } = parseDiscordCardName(card.name);
     const foil = foilAbbrev(card.subTypeName);
@@ -93,7 +93,7 @@ export const formatTradePostCardLine = (card) => {
 };
 
 /**
- * Format a whole-dollar cash amount for Discord posts.
+ * Format a whole-dollar cash amount for Discord messages.
  * @param {number} amount
  * @returns {string}
  */
@@ -103,11 +103,14 @@ export const formatCashAmount = (amount) => {
 };
 
 /**
- * Build a pastable WTT Discord post from Have / Want lists.
+ * Build a pastable trade-offer message to send to a Discord poster.
+ *
+ * Have = cards you're offering them
+ * Want = cards you'd take from their post
  *
  * @param {object} options
- * @param {Array} options.haveList - Cards I have (offering)
- * @param {Array} options.wantList - Cards I want
+ * @param {Array} options.haveList - Cards you can offer
+ * @param {Array} options.wantList - Cards you want from them
  * @param {number} [options.haveTotal]
  * @param {number} [options.wantTotal]
  * @param {number} [options.diff] - haveTotal - wantTotal
@@ -115,7 +118,7 @@ export const formatCashAmount = (amount) => {
  * @param {string} [options.siteUrl='https://fabtrades.net']
  * @returns {string}
  */
-export const generateTradePost = ({
+export const generateTradeOffer = ({
     haveList = [],
     wantList = [],
     haveTotal,
@@ -138,34 +141,30 @@ export const generateTradePost = ({
     const resolvedDiff =
         diff != null ? Number(diff) : resolvedHaveTotal - resolvedWantTotal;
 
-    const lines = [];
+    const lines = ['Hey — I can do this trade:', ''];
 
     if (have.length > 0) {
-        lines.push('**WTT My**');
+        lines.push('**I can offer**');
         for (const card of have) {
-            lines.push(formatTradePostCardLine(card));
+            lines.push(formatTradeOfferCardLine(card));
         }
-        // My side is light → I'm adding cash
         if (resolvedDiff < -0.5) {
-            lines.push(`+ ${formatCashAmount(resolvedDiff)} cash`);
+            lines.push(`+ ${formatCashAmount(resolvedDiff)} cash from me`);
         }
         lines.push('');
-    } else {
-        lines.push('**Looking for**');
     }
 
     if (want.length > 0) {
-        lines.push(have.length > 0 ? '**For your**' : '**Want**');
+        lines.push('**For your**');
         for (const card of want) {
-            lines.push(formatTradePostCardLine(card));
+            lines.push(formatTradeOfferCardLine(card));
         }
-        // Their side is light → asking for cash from them
         if (resolvedDiff > 0.5) {
-            lines.push(`+ ${formatCashAmount(resolvedDiff)} cash`);
+            lines.push(`+ ${formatCashAmount(resolvedDiff)} cash from you`);
         }
     } else if (have.length > 0) {
-        lines.push('**For your**');
-        lines.push('offers / $$$');
+        lines.push('**For**');
+        lines.push('whatever you want to send back / cash');
     }
 
     const date = pricedAsOf instanceof Date ? pricedAsOf : new Date(pricedAsOf);
@@ -179,7 +178,7 @@ export const generateTradePost = ({
     } else {
         lines.push('Priced via TCGPlayer');
     }
-    lines.push(`Built with ${siteUrl.replace(/^https?:\/\//, '')}`);
+    lines.push(`Balanced on ${siteUrl.replace(/^https?:\/\//, '')}`);
 
     return lines.join('\n').trim() + '\n';
 };

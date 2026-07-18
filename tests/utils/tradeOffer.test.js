@@ -1,10 +1,10 @@
 import {
   foilAbbrev,
   parseDiscordCardName,
-  formatTradePostCardLine,
+  formatTradeOfferCardLine,
   formatCashAmount,
-  generateTradePost,
-} from '../../src/utils/tradePost.js';
+  generateTradeOffer,
+} from '../../src/utils/tradeOffer.js';
 
 describe('foilAbbrev', () => {
   test('maps common foil types to Discord shorthand', () => {
@@ -51,10 +51,10 @@ describe('parseDiscordCardName', () => {
   });
 });
 
-describe('formatTradePostCardLine', () => {
+describe('formatTradeOfferCardLine', () => {
   test('formats a typical CF EA line with price', () => {
     expect(
-      formatTradePostCardLine({
+      formatTradeOfferCardLine({
         name: 'Fleeing Starbreeze (Extended Art) (MST040)',
         subTypeName: 'Cold Foil',
         price: 40.2,
@@ -65,7 +65,7 @@ describe('formatTradePostCardLine', () => {
 
   test('prefixes quantity when greater than 1', () => {
     expect(
-      formatTradePostCardLine({
+      formatTradeOfferCardLine({
         name: 'Nourishing Glow (MST012)',
         subTypeName: 'Cold Foil',
         price: 12,
@@ -76,7 +76,7 @@ describe('formatTradePostCardLine', () => {
 
   test('formats NF cards', () => {
     expect(
-      formatTradePostCardLine({
+      formatTradeOfferCardLine({
         name: 'Voltaris (DYN001)',
         subTypeName: 'Normal',
         price: 300,
@@ -93,7 +93,7 @@ describe('formatCashAmount', () => {
   });
 });
 
-describe('generateTradePost', () => {
+describe('generateTradeOffer', () => {
   const haveList = [
     {
       name: 'Voltaris (DYN001)',
@@ -118,11 +118,11 @@ describe('generateTradePost', () => {
   ];
 
   test('returns empty string when both lists are empty', () => {
-    expect(generateTradePost({ haveList: [], wantList: [] })).toBe('');
+    expect(generateTradeOffer({ haveList: [], wantList: [] })).toBe('');
   });
 
-  test('builds a WTT My / For your post with prices and branding', () => {
-    const post = generateTradePost({
+  test('builds a reply-style offer with prices and branding', () => {
+    const offer = generateTradeOffer({
       haveList,
       wantList,
       haveTotal: 340,
@@ -131,38 +131,39 @@ describe('generateTradePost', () => {
       pricedAsOf: new Date('2026-07-18T12:00:00Z'),
     });
 
-    expect(post).toContain('**WTT My**');
-    expect(post).toContain('CF Voltaris 300');
-    expect(post).toContain('CF EA Fleeing Starbreeze 40');
-    expect(post).toContain('+ $110 cash');
-    expect(post).toContain('**For your**');
-    expect(post).toContain('RF EA Dead Threads 450');
-    expect(post).toContain('Priced via TCGPlayer');
-    expect(post).toContain('Built with fabtrades.net');
-    expect(post.endsWith('\n')).toBe(true);
+    expect(offer).toContain('Hey — I can do this trade:');
+    expect(offer).toContain('**I can offer**');
+    expect(offer).toContain('CF Voltaris 300');
+    expect(offer).toContain('CF EA Fleeing Starbreeze 40');
+    expect(offer).toContain('+ $110 cash from me');
+    expect(offer).toContain('**For your**');
+    expect(offer).toContain('RF EA Dead Threads 450');
+    expect(offer).toContain('Priced via TCGPlayer');
+    expect(offer).toContain('Balanced on fabtrades.net');
+    expect(offer.endsWith('\n')).toBe(true);
   });
 
-  test('asks for cash on the want side when have is worth more', () => {
-    const post = generateTradePost({
+  test('asks for cash from them when your offer is worth more', () => {
+    const offer = generateTradeOffer({
       haveList: [{ name: 'A', subTypeName: 'Cold Foil', price: 200, quantity: 1 }],
       wantList: [{ name: 'B', subTypeName: 'Normal', price: 50, quantity: 1 }],
       diff: 150,
       pricedAsOf: new Date('2026-07-18T12:00:00Z'),
     });
 
-    const forYourIdx = post.indexOf('**For your**');
-    const cashIdx = post.indexOf('+ $150 cash');
+    const forYourIdx = offer.indexOf('**For your**');
+    const cashIdx = offer.indexOf('+ $150 cash from you');
     expect(cashIdx).toBeGreaterThan(forYourIdx);
   });
 
-  test('have-only posts ask for offers', () => {
-    const post = generateTradePost({
+  test('offer-only messages ask for something back', () => {
+    const offer = generateTradeOffer({
       haveList: [{ name: 'Voltaris', subTypeName: 'Cold Foil', price: 300, quantity: 1 }],
       wantList: [],
       pricedAsOf: new Date('2026-07-18T12:00:00Z'),
     });
 
-    expect(post).toContain('**For your**');
-    expect(post).toContain('offers / $$$');
+    expect(offer).toContain('**For**');
+    expect(offer).toContain('whatever you want to send back / cash');
   });
 });

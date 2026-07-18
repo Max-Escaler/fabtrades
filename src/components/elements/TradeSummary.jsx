@@ -21,7 +21,7 @@ import {
     Forum as ForumIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
-import { generateTradePost } from "../../utils/tradePost.js";
+import { generateTradeOffer } from "../../utils/tradeOffer.js";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 
 const TotalStack = ({ market, low, color, size, isDark, isLandscape }) => {
@@ -73,8 +73,8 @@ const TradeSummary = ({
 }) => {
     const { isDark } = useThemeMode();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
-    const [showTradePost, setShowTradePost] = useState(false);
-    const [tradePostText, setTradePostText] = useState('');
+    const [showTradeOffer, setShowTradeOffer] = useState(false);
+    const [tradeOfferText, setTradeOfferText] = useState('');
     const [copyFeedback, setCopyFeedback] = useState(false);
 
     // Calculate total card count including quantities
@@ -84,15 +84,15 @@ const TradeSummary = ({
 
     const haveCardCount = getTotalCardCount(haveList);
     const wantCardCount = getTotalCardCount(wantList);
-    const canGenerateTradePost = haveList.length > 0 || wantList.length > 0;
+    const canGenerateTradeOffer = haveList.length > 0 || wantList.length > 0;
 
     const handleClearTradeData = () => {
         clearURLTradeData();
         setShowClearConfirm(false);
     };
 
-    const handleGenerateTradePost = () => {
-        const text = generateTradePost({
+    const handleGenerateTradeOffer = () => {
+        const text = generateTradeOffer({
             haveList,
             wantList,
             haveTotal,
@@ -100,17 +100,17 @@ const TradeSummary = ({
             diff,
             pricedAsOf: new Date(),
         });
-        setTradePostText(text);
-        setShowTradePost(true);
+        setTradeOfferText(text);
+        setShowTradeOffer(true);
     };
 
-    const handleCopyTradePost = async () => {
+    const handleCopyTradeOffer = async () => {
         try {
             if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(tradePostText);
+                await navigator.clipboard.writeText(tradeOfferText);
             } else {
                 const textarea = document.createElement('textarea');
-                textarea.value = tradePostText;
+                textarea.value = tradeOfferText;
                 textarea.setAttribute('readonly', '');
                 textarea.style.position = 'absolute';
                 textarea.style.left = '-9999px';
@@ -121,7 +121,7 @@ const TradeSummary = ({
             }
             setCopyFeedback(true);
         } catch (err) {
-            console.error('Failed to copy trade post:', err);
+            console.error('Failed to copy trade offer:', err);
         }
     };
 
@@ -350,7 +350,7 @@ const TradeSummary = ({
                 </Box>
             )}
 
-            {/* Purple Discord trade post */}
+            {/* Purple Discord trade offer */}
             <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -371,14 +371,14 @@ const TradeSummary = ({
                         lineHeight: 1.3
                     }}
                 >
-                    Trading on Purple Discord?
+                    Replying to a Purple Discord trade?
                 </Typography>
                 <Button
                     variant="contained"
                     size={isLandscape ? 'small' : 'medium'}
                     startIcon={<ForumIcon />}
-                    onClick={handleGenerateTradePost}
-                    disabled={!canGenerateTradePost}
+                    onClick={handleGenerateTradeOffer}
+                    disabled={!canGenerateTradeOffer}
                     sx={{
                         textTransform: 'none',
                         fontWeight: 600,
@@ -396,7 +396,7 @@ const TradeSummary = ({
                         }
                     }}
                 >
-                    Generate Trade Post
+                    Generate Trade Offer
                 </Button>
             </Box>
         </Box>
@@ -418,20 +418,20 @@ const TradeSummary = ({
             </DialogActions>
         </Dialog>
 
-        {/* Generated Trade Post Dialog */}
+        {/* Generated Trade Offer Dialog */}
         <Dialog
-            open={showTradePost}
-            onClose={() => setShowTradePost(false)}
+            open={showTradeOffer}
+            onClose={() => setShowTradeOffer(false)}
             fullWidth
             maxWidth="sm"
         >
-            <DialogTitle sx={{ pb: 1 }}>Discord Trade Post</DialogTitle>
+            <DialogTitle sx={{ pb: 1 }}>Trade Offer</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    Copy and paste this into the Purple Discord trading channel.
+                    Copy this and send it to the trade poster on Purple Discord.
                 </Typography>
                 <TextField
-                    value={tradePostText}
+                    value={tradeOfferText}
                     multiline
                     fullWidth
                     minRows={8}
@@ -448,11 +448,11 @@ const TradeSummary = ({
                 />
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-                <Button onClick={() => setShowTradePost(false)}>Close</Button>
+                <Button onClick={() => setShowTradeOffer(false)}>Close</Button>
                 <Button
                     variant="contained"
                     startIcon={<ContentCopyIcon />}
-                    onClick={handleCopyTradePost}
+                    onClick={handleCopyTradeOffer}
                     sx={{
                         textTransform: 'none',
                         background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
@@ -478,7 +478,7 @@ const TradeSummary = ({
                 variant="filled"
                 sx={{ width: '100%' }}
             >
-                Copied — paste it into Discord
+                Copied — send it to the trade poster
             </Alert>
         </Snackbar>
         </>
