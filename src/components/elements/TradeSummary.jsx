@@ -13,12 +13,10 @@ import {
 } from '@mui/material';
 import { 
     Warning as WarningIcon,
-    Clear as ClearIcon,
-    AutoFixHigh as AutoFixHighIcon
+    Clear as ClearIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
-import FindFillerDialog from "./FindFillerDialog.jsx";
 
 const TotalStack = ({ market, low, color, size, isDark, isLandscape }) => {
     const muted = isDark ? 'rgba(212, 165, 116, 0.7)' : 'rgba(93, 58, 26, 0.55)';
@@ -66,16 +64,9 @@ const TradeSummary = ({
     clearURLTradeData,
     urlTradeData,
     hasLoadedFromURL,
-    cards = [],
-    dataReady = false,
-    onAddHave,
-    onAddWant,
 }) => {
     const { isDark } = useThemeMode();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
-    const [showFindFiller, setShowFindFiller] = useState(false);
-
-    const isUnbalanced = Math.abs(diff) >= 0.01;
 
     // Calculate total card count including quantities
     const getTotalCardCount = (cardList) => {
@@ -225,34 +216,6 @@ const TradeSummary = ({
                             </Typography>
                         )}
                     </Box>
-                    {isUnbalanced && (
-                        <Chip
-                            icon={<AutoFixHighIcon sx={{ fontSize: '14px !important' }} />}
-                            label="Find Trade Filler"
-                            onClick={() => setShowFindFiller(true)}
-                            clickable
-                            size="small"
-                            sx={{
-                                fontWeight: 700,
-                                fontSize: isLandscape ? '0.65rem' : '0.7rem',
-                                backgroundColor: isDark
-                                    ? 'rgba(200, 113, 55, 0.25)'
-                                    : 'rgba(139, 69, 19, 0.12)',
-                                color: isDark ? '#e4c09c' : '#8b4513',
-                                border: isDark
-                                    ? '1px solid rgba(200, 113, 55, 0.4)'
-                                    : '1px solid rgba(139, 69, 19, 0.25)',
-                                '& .MuiChip-icon': {
-                                    color: isDark ? '#e4c09c' : '#8b4513',
-                                },
-                                '&:hover': {
-                                    backgroundColor: isDark
-                                        ? 'rgba(200, 113, 55, 0.4)'
-                                        : 'rgba(139, 69, 19, 0.2)',
-                                },
-                            }}
-                        />
-                    )}
                 </Box>
 
                 {/* Clear Button - on the right side for portrait mode */}
@@ -360,16 +323,6 @@ const TradeSummary = ({
                 </Button>
             </DialogActions>
         </Dialog>
-
-        <FindFillerDialog
-            open={showFindFiller}
-            onClose={() => setShowFindFiller(false)}
-            diff={diff}
-            cards={cards}
-            dataReady={dataReady}
-            onAddHave={onAddHave}
-            onAddWant={onAddWant}
-        />
         </>
     );
 };

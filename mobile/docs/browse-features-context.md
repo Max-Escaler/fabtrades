@@ -1,15 +1,25 @@
 # Context: Browse grouping, search & price-trust features
 
-Handoff notes for an agent picking up work on the FAB Trades Flutter app (`app/`).
-Covers the changes made on branch **`feat/browse-grouping-search-trust`** and the
-surrounding architecture you need to be productive.
+> **Status (2026-07-17):** Grouped browse / search / provenance landed earlier and
+> is on `main`. The git-branch handoff notes below are **stale** (they still
+> mention `feat/browse-grouping-search-trust` and a RiftTrades remote). Prefer
+> root `CHANGELOG.md`, `mobile/docs/card-scanning-learnings.md`, and MyBrain
+> `FABTrades Current Design` for current product state.
+>
+> **Also on `main` since that handoff:** official set logos + `SetLogoCache`,
+> Find Trade Filler (mobile; removed from web), dark mode, market+low dual
+> prices, set browse tiers, Pixel scanner reliability fixes. Paths below say
+> `app/` — in this repo the Flutter app lives under **`mobile/app/`**.
+
+Handoff notes originally written for the browse-grouping wave. Still useful for
+*how* grouping / `baseCardName` / providers work; do not trust the branch state.
 
 ---
 
 ## 1. TL;DR of what was built
 
-Four product features plus two refinements, all on branch
-`feat/browse-grouping-search-trust` (base branch: **`main`**, remote: **`rifttrades`**):
+Four product features plus two refinements (historical branch
+`feat/browse-grouping-search-trust`; now merged to **`main`**):
 
 1. **Grouped browse** — the Browse list shows one row per card *name*; the row
    uses the **base-rarity printing's** price/art. Tapping opens the card detail

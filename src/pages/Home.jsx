@@ -122,10 +122,6 @@ const Home = () => {
                         clearURLTradeData={tradeState.clearURLTradeData}
                         urlTradeData={tradeState.urlTradeData}
                         hasLoadedFromURL={tradeState.hasLoadedFromURL}
-                        cards={cards}
-                        dataReady={dataReady}
-                        onAddHave={tradeState.addHaveCard}
-                        onAddWant={tradeState.addWantCard}
                     />
                 )}
 
