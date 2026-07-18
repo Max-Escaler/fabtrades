@@ -1,15 +1,35 @@
 // Shared browse-order helpers for Flesh and Blood product groups.
 // Used by the React set browser (useSets) and the SEO page generator so both
 // surfaces stay in sync. Dependency-free — safe for Node scripts.
+// Keep in sync with `mobile/app/lib/core/logic/set_sort.dart`.
 
 /**
- * Product-line prefixes that are not "main" expansions. Matched case-
- * insensitively against the start of the set name (or as a whole-name
- * pattern for promo cards).
+ * Browse-list tiers (lower sorts first). Categories are inferred from the set
+ * name; TCGCSV does not expose a product-line enum for these buckets.
+ */
+export const BROWSE_TIER = {
+    MAIN: 0,
+    BLITZ: 1,
+    ARMORY: 2,
+    SILVER_AGE: 3,
+    HERO: 4,
+    OTHER: 5
+};
+
+const BROWSE_TIER_LABELS = {
+    [BROWSE_TIER.MAIN]: 'Main Sets',
+    [BROWSE_TIER.BLITZ]: 'Blitz Decks',
+    [BROWSE_TIER.ARMORY]: 'Armory Decks',
+    [BROWSE_TIER.SILVER_AGE]: 'Silver Age',
+    [BROWSE_TIER.HERO]: 'Hero Decks',
+    [BROWSE_TIER.OTHER]: 'Other'
+};
+
+/**
+ * Product-line prefixes that fall into the catch-all "Other" section.
+ * Matched case-insensitively against the set name.
  */
 const OTHER_PRODUCT_LINE_PATTERNS = [
-    /^blitz deck\b/i,
-    /^hero deck\b/i,
     /^welcome deck\b/i,
     /^gem pack\b/i,
     /^mastery pack\b/i,
@@ -23,27 +43,39 @@ const OTHER_PRODUCT_LINE_PATTERNS = [
 
 /**
  * Browse-list tier for a set name. Lower sorts first:
- *   0 — main expansions
- *   1 — Armory Decks
- *   2 — Silver Age
- *   3 — other product lines (Blitz / Hero / packs / promos / etc.)
- *
- * Categories are inferred from the set name; TCGCSV does not expose a
- * product-line enum for these buckets.
+ *   0 — Main Sets
+ *   1 — Blitz Decks
+ *   2 — Armory Decks
+ *   3 — Silver Age
+ *   4 — Hero Decks
+ *   5 — Other
  *
  * @param {string} name
  * @returns {number}
  */
 export const setBrowseTier = (name = '') => {
     const n = String(name).trim();
-    if (!n) return 3;
+    if (!n) return BROWSE_TIER.OTHER;
 
     const lower = n.toLowerCase();
-    if (lower.startsWith('armory deck')) return 1;
-    if (lower.startsWith('silver age')) return 2;
-    if (OTHER_PRODUCT_LINE_PATTERNS.some((re) => re.test(n))) return 3;
-    return 0;
+    if (lower.startsWith('blitz deck')) return BROWSE_TIER.BLITZ;
+    if (lower.startsWith('armory deck')) return BROWSE_TIER.ARMORY;
+    if (lower.startsWith('silver age')) return BROWSE_TIER.SILVER_AGE;
+    if (lower.startsWith('hero deck')) return BROWSE_TIER.HERO;
+    if (OTHER_PRODUCT_LINE_PATTERNS.some((re) => re.test(n))) {
+        return BROWSE_TIER.OTHER;
+    }
+    return BROWSE_TIER.MAIN;
 };
+
+/**
+ * Human-readable section title for a browse tier.
+ *
+ * @param {number} tier
+ * @returns {string}
+ */
+export const browseTierLabel = (tier) =>
+    BROWSE_TIER_LABELS[tier] || BROWSE_TIER_LABELS[BROWSE_TIER.OTHER];
 
 /**
  * Compare two sets for the browse list: tier first, then newest
@@ -67,8 +99,8 @@ export const compareSetsByBrowseOrder = (a, b) => {
 };
 
 /**
- * Compare set names only (mobile has no publishedOn on the client). Same
- * tier order as {@link compareSetsByBrowseOrder}, alphabetical within a tier.
+ * Compare set names only. Same tier order as {@link compareSetsByBrowseOrder},
+ * alphabetical within a tier when no dates are available.
  *
  * @param {string} a
  * @param {string} b

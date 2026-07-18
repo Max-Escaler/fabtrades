@@ -10,7 +10,42 @@ import {checkCSVStatus, clearDiffCache, downloadAllCSVs} from "../src/services/c
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PRODUCT_GROUPS_OUTPUT = path.join(__dirname, '..', 'public', 'productgroups.json');
+const SET_PUBLISHED_ON_OUTPUT = path.join(__dirname, '..', 'public', 'setPublishedOn.json');
+const MOBILE_SET_PUBLISHED_ON_OUTPUT = path.join(
+    __dirname,
+    '..',
+    'mobile',
+    'app',
+    'assets',
+    'setPublishedOn.json'
+);
 const LAST_UPDATED_OUTPUT = path.join(__dirname, '..', 'public', 'last-updated.txt');
+
+/** Write groupId → publishedOn map for the mobile browse list (newest-first). */
+function writeSetPublishedOn(results) {
+    const publishedOn = {};
+    for (const group of results) {
+        if (group?.groupId != null && group.publishedOn) {
+            publishedOn[String(group.groupId)] = group.publishedOn;
+        }
+    }
+    const payload = `${JSON.stringify(
+        {
+            source: 'tcgcsv.com product groups',
+            generatedAt: new Date().toISOString(),
+            publishedOn
+        },
+        null,
+        2
+    )}\n`;
+    fs.writeFileSync(SET_PUBLISHED_ON_OUTPUT, payload);
+    fs.mkdirSync(path.dirname(MOBILE_SET_PUBLISHED_ON_OUTPUT), { recursive: true });
+    fs.writeFileSync(MOBILE_SET_PUBLISHED_ON_OUTPUT, payload);
+    console.log(
+        `💾 Saved set publishedOn map (${Object.keys(publishedOn).length} sets) to ` +
+            `${path.relative(process.cwd(), SET_PUBLISHED_ON_OUTPUT)}`
+    );
+}
 
 // User-Agent used for all tcgcsv.com requests (they reject blank UAs).
 const REQUEST_HEADERS = {
@@ -83,6 +118,7 @@ async function fetchProductGroupUrls() {
                     try {
                         fs.writeFileSync(PRODUCT_GROUPS_OUTPUT, JSON.stringify(json, null, 4));
                         console.log(`💾 Saved product groups metadata to ${path.relative(process.cwd(), PRODUCT_GROUPS_OUTPUT)}`);
+                        writeSetPublishedOn(json.results);
                     } catch (writeErr) {
                         console.warn(`⚠️  Could not write productgroups.json: ${writeErr.message}`);
                     }

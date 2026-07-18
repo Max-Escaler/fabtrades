@@ -1,55 +1,52 @@
 # Discord Authentication Setup Guide
 
-This guide will help you set up Discord OAuth authentication with Supabase for the FAB Trades application.
+FAB Trades web Discord auth uses the shared Supabase project **RiftTrades**
+(`tenrvaghaspwdvnwvgrh`) — the same project as mobile/pipeline card data.
+
+> **Migration note (2026-07):** The old `FABTrades` project (`fjepuubksgrwxjwkiewx`)
+> is inactive. Auth + the `trades` table now live on RiftTrades. Local `.env` should
+> point at `https://tenrvaghaspwdvnwvgrh.supabase.co`.
 
 ## Prerequisites
 
-- A Discord account
-- Access to create a Supabase account (free tier is sufficient)
+- A Discord account / existing Discord OAuth application for FAB Trades
+- Access to the RiftTrades Supabase project
 
-## Step 1: Create Discord OAuth Application
+## Step 1: Discord OAuth Application
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application"
-3. Give it a name (e.g., "FAB Trades")
-4. Click "Create"
-5. Navigate to the "OAuth2" section in the left sidebar
-6. Copy the **Client ID** and **Client Secret** (you'll need these for Supabase)
-7. Under "Redirects", you'll add the Supabase callback URL later (Step 3)
+2. Open the existing FAB Trades app (or create one)
+3. Navigate to **OAuth2**
+4. Copy the **Client ID** and **Client Secret**
+5. Under **Redirects**, add exactly:
+   ```
+   https://tenrvaghaspwdvnwvgrh.supabase.co/auth/v1/callback
+   ```
+6. Remove the old `fjepuubksgrwxjwkiewx` callback if it is still listed
+7. Save changes
 
-## Step 2: Create Supabase Project
+## Step 2: Enable Discord on RiftTrades
 
-1. Go to [supabase.com](https://supabase.com) and sign up/sign in
-2. Click "New Project"
-3. Fill in the project details:
-   - **Name**: FAB Trades (or your preferred name)
-   - **Database Password**: Choose a strong password (save this securely)
-   - **Region**: Choose the closest to your users
-4. Click "Create new project"
-5. Wait for the project to finish setting up (1-2 minutes)
+1. Open [RiftTrades Auth Providers](https://supabase.com/dashboard/project/tenrvaghaspwdvnwvgrh/auth/providers)
+2. Enable **Discord**
+3. Paste the Discord **Client ID** and **Client Secret**
+4. Save
 
-## Step 3: Configure Discord OAuth in Supabase
+Also set URL config under **Authentication → URL Configuration**:
 
-1. In your Supabase project dashboard, go to **Authentication** > **Providers**
-2. Find "Discord" in the list and enable it
-3. Enter your Discord OAuth credentials:
-   - **Client ID**: From Discord Developer Portal (Step 1)
-   - **Client Secret**: From Discord Developer Portal (Step 1)
-4. Copy the **Callback URL** shown (it will look like: `https://[your-project-ref].supabase.co/auth/v1/callback`)
-5. Go back to the Discord Developer Portal > OAuth2 section
-6. Add the Supabase callback URL to the "Redirects" list
-7. Click "Save Changes" in Discord Developer Portal
-8. Click "Save" in Supabase
+| Setting | Value |
+|--------|--------|
+| Site URL | `https://fabtrades.net` |
+| Additional Redirect URLs | `https://fabtrades.net/**`, `http://localhost:5173/**`, `http://localhost:5173` |
 
-## Step 4: Set Up Database Schema
+## Step 3: Database schema (`trades`)
 
-1. In Supabase, go to the **SQL Editor**
-2. Click "New Query"
-3. Copy and paste the following SQL:
+The `trades` table + RLS policies are already applied on RiftTrades. If you need
+to recreate them:
 
 ```sql
 -- Create trades table
-CREATE TABLE trades (
+CREATE TABLE IF NOT EXISTS public.trades (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users NOT NULL,
   name TEXT NOT NULL,
@@ -62,52 +59,39 @@ CREATE TABLE trades (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security
-ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trades ENABLE ROW LEVEL SECURITY;
 
--- Policy: Users can only see their own trades
-CREATE POLICY "Users can view own trades" ON trades
+CREATE POLICY "Users can view own trades" ON public.trades
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own trades" ON trades
+CREATE POLICY "Users can insert own trades" ON public.trades
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own trades" ON trades
+CREATE POLICY "Users can update own trades" ON public.trades
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete own trades" ON trades
+CREATE POLICY "Users can delete own trades" ON public.trades
   FOR DELETE USING (auth.uid() = user_id);
 
--- Index for faster queries
-CREATE INDEX trades_user_id_created_at_idx ON trades(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS trades_user_id_created_at_idx
+  ON public.trades(user_id, created_at DESC);
 ```
 
-4. Click "Run" to execute the SQL
-5. Verify success in the output panel
+## Step 4: Environment variables
 
-## Step 5: Get Supabase API Credentials
-
-1. In Supabase, go to **Project Settings** (gear icon) > **API**
-2. Copy the following values:
-   - **Project URL** (under "Project URL")
-   - **anon/public key** (under "Project API keys")
-
-## Step 6: Configure Environment Variables
-
-1. In your project root, create a `.env` file (or `.env.local` if using Vite)
-2. Add the following variables:
+Copy `.env.example` → `.env` (already done for local if migrated):
 
 ```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SUPABASE_URL=https://tenrvaghaspwdvnwvgrh.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon or publishable key from Project Settings → API>
 ```
 
-3. Replace the values with your actual Supabase Project URL and anon key from Step 5
-4. Save the file
+**Production (Netlify):** update the same two site env vars, then **Clear cache and
+deploy**. Vite bakes these in at build time.
 
-**Important:** Make sure `.env` is in your `.gitignore` file to avoid committing secrets!
+**Important:** Keep `.env` out of git (it is gitignored).
 
-## Step 7: Test the Integration
+## Step 5: Test the Integration
 
 1. Start your development server:
    ```bash
@@ -124,11 +108,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
 6. You should see your Discord username and avatar in the header
 
-7. Try saving a trade:
-   - Add some cards to the trade
-   - Click "Save Trade"
-   - Give it a name and save
-   - Click "Load History" to verify the trade was saved
+7. Open **Trade History** from the avatar menu to confirm authenticated API access works
 
 ## Troubleshooting
 

@@ -25,6 +25,7 @@ import { useSets } from '../hooks/useSets.js';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { fetchLastUpdatedTimestamp } from '../services/api.js';
 import { useDocumentHead } from '../utils/seo.js';
+import { browseTierLabel, setBrowseTier } from '../utils/setSort.js';
 
 const formatDate = (iso) => {
     if (!iso) return 'Unknown';
@@ -234,69 +235,105 @@ const SetList = () => {
                                     </Typography>
                                 </ListItem>
                             )}
-                            {filteredSets.map((set, idx) => (
-                                <ListItem
-                                    key={set.groupId}
-                                    disablePadding
-                                    sx={{
-                                        borderBottom: idx === filteredSets.length - 1
-                                            ? 'none'
-                                            : `1px solid ${isDark ? 'rgba(212, 165, 116, 0.12)' : 'rgba(139, 69, 19, 0.08)'}`
-                                    }}
-                                >
-                                    <ListItemButton
-                                        component={Link}
-                                        to={`/sets/${set.slug || set.groupId}`}
-                                        sx={{
-                                            px: 2,
-                                            py: 1.5,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                            '&:hover': {
-                                                backgroundColor: isDark ? 'rgba(200, 113, 55, 0.1)' : 'rgba(139, 69, 19, 0.06)'
-                                            }
-                                        }}
-                                    >
-                                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                                            <SetTitle
-                                                set={set}
-                                                textColor={textColor}
-                                                mutedColor={mutedColor}
-                                                isDark={isDark}
-                                            />
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.5, flexWrap: 'wrap' }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <CalendarIcon sx={{ fontSize: 14, color: mutedColor }} />
-                                                    <Typography variant="caption" sx={{ color: mutedColor }}>
-                                                        {formatDate(set.publishedOn)}
-                                                    </Typography>
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <StyleIcon sx={{ fontSize: 14, color: mutedColor }} />
-                                                    <Typography variant="caption" sx={{ color: mutedColor }}>
-                                                        {set.cardCount} cards
-                                                    </Typography>
-                                                </Box>
-                                                {set.topMarketPrice > 0 && (
-                                                    <Chip
-                                                        size="small"
-                                                        label={`Top ${formatMoney(set.topMarketPrice)}`}
-                                                        sx={{
-                                                            height: 20,
-                                                            fontSize: '0.7rem',
-                                                            backgroundColor: isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)',
-                                                            color: isDark ? '#e4c09c' : '#8b4513',
-                                                            border: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : 'rgba(139, 69, 19, 0.2)'}`
-                                                        }}
+                            {filteredSets.map((set, idx) => {
+                                const tier = setBrowseTier(set.name);
+                                const prevTier = idx > 0
+                                    ? setBrowseTier(filteredSets[idx - 1].name)
+                                    : null;
+                                const showSectionHeader = tier !== prevTier;
+                                const isLast = idx === filteredSets.length - 1;
+
+                                return (
+                                    <Box key={set.groupId}>
+                                        {showSectionHeader && (
+                                            <ListItem
+                                                disablePadding
+                                                sx={{
+                                                    px: 2,
+                                                    pt: idx === 0 ? 1.25 : 2,
+                                                    pb: 0.75,
+                                                    backgroundColor: isDark
+                                                        ? 'rgba(212, 165, 116, 0.08)'
+                                                        : 'rgba(139, 69, 19, 0.06)',
+                                                    borderBottom: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.16)' : 'rgba(139, 69, 19, 0.1)'}`
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="overline"
+                                                    sx={{
+                                                        color: mutedColor,
+                                                        fontWeight: 700,
+                                                        letterSpacing: '0.08em',
+                                                        lineHeight: 1.4
+                                                    }}
+                                                >
+                                                    {browseTierLabel(tier)}
+                                                </Typography>
+                                            </ListItem>
+                                        )}
+                                        <ListItem
+                                            disablePadding
+                                            sx={{
+                                                borderBottom: isLast
+                                                    ? 'none'
+                                                    : `1px solid ${isDark ? 'rgba(212, 165, 116, 0.12)' : 'rgba(139, 69, 19, 0.08)'}`
+                                            }}
+                                        >
+                                            <ListItemButton
+                                                component={Link}
+                                                to={`/sets/${set.slug || set.groupId}`}
+                                                sx={{
+                                                    px: 2,
+                                                    py: 1.5,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 2,
+                                                    '&:hover': {
+                                                        backgroundColor: isDark ? 'rgba(200, 113, 55, 0.1)' : 'rgba(139, 69, 19, 0.06)'
+                                                    }
+                                                }}
+                                            >
+                                                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                                    <SetTitle
+                                                        set={set}
+                                                        textColor={textColor}
+                                                        mutedColor={mutedColor}
+                                                        isDark={isDark}
                                                     />
-                                                )}
-                                            </Box>
-                                        </Box>
-                                        <ChevronRightIcon sx={{ color: mutedColor, flexShrink: 0 }} />
-                                    </ListItemButton>
-                                </ListItem>
-                            ))}
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.5, flexWrap: 'wrap' }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <CalendarIcon sx={{ fontSize: 14, color: mutedColor }} />
+                                                            <Typography variant="caption" sx={{ color: mutedColor }}>
+                                                                {formatDate(set.publishedOn)}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                            <StyleIcon sx={{ fontSize: 14, color: mutedColor }} />
+                                                            <Typography variant="caption" sx={{ color: mutedColor }}>
+                                                                {set.cardCount} cards
+                                                            </Typography>
+                                                        </Box>
+                                                        {set.topMarketPrice > 0 && (
+                                                            <Chip
+                                                                size="small"
+                                                                label={`Top ${formatMoney(set.topMarketPrice)}`}
+                                                                sx={{
+                                                                    height: 20,
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)',
+                                                                    color: isDark ? '#e4c09c' : '#8b4513',
+                                                                    border: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : 'rgba(139, 69, 19, 0.2)'}`
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Box>
+                                                </Box>
+                                                <ChevronRightIcon sx={{ color: mutedColor, flexShrink: 0 }} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    </Box>
+                                );
+                            })}
                         </List>
                     </Paper>
                 )}

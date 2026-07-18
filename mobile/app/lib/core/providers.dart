@@ -11,6 +11,7 @@ import 'data/collection_repository.dart';
 import 'data/lend_repository.dart';
 import 'data/set_logo_cache.dart';
 import 'data/set_logos.dart';
+import 'data/set_published_on.dart';
 import 'data/settings_repository.dart';
 import 'data/trade_repository.dart';
 import 'logic/pricing.dart';
@@ -93,6 +94,11 @@ final setLogoMapProvider = FutureProvider<SetLogoMap>((ref) async {
   unawaited(SetLogoCache.warm(map.urls));
   return map;
 });
+
+/// Set release dates (TCGplayer group id → publishedOn), bundled as an asset
+/// so the browse list can sort newest-first within each section offline.
+final setPublishedOnMapProvider =
+    FutureProvider<SetPublishedOnMap>((ref) => loadSetPublishedOnMap());
 
 /// Catalog keyed by printing id, for O(1) lookups (used by the scanner to
 /// resolve hash-match ids to cards on every frame).

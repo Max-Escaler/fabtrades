@@ -1,52 +1,79 @@
 import {
+  BROWSE_TIER,
   setBrowseTier,
+  browseTierLabel,
   compareSetsByBrowseOrder,
   compareSetNamesByBrowseOrder
 } from '../../src/utils/setSort.js';
 
 describe('setBrowseTier', () => {
-  test('classifies main expansions as tier 0', () => {
-    expect(setBrowseTier('Omens of the Third Age')).toBe(0);
-    expect(setBrowseTier('Welcome to Rathe')).toBe(0);
-    expect(setBrowseTier('Usurp the Shadow Throne')).toBe(0);
-    expect(setBrowseTier('History Pack Vol.1')).toBe(0);
+  test('classifies main expansions as Main Sets', () => {
+    expect(setBrowseTier('Omens of the Third Age')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('Welcome to Rathe')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('Usurp the Shadow Throne')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('History Pack Vol.1')).toBe(BROWSE_TIER.MAIN);
   });
 
-  test('classifies Armory Decks as tier 1', () => {
-    expect(setBrowseTier('Armory Deck: Malice')).toBe(1);
-    expect(setBrowseTier('Armory Deck Origins: Hala')).toBe(1);
+  test('classifies Blitz Decks', () => {
+    expect(setBrowseTier('Blitz Deck: Rosetta - Aurora')).toBe(BROWSE_TIER.BLITZ);
+    expect(setBrowseTier('Blitz Deck: Monarch - Prism')).toBe(BROWSE_TIER.BLITZ);
   });
 
-  test('classifies Silver Age as tier 2 (not the matching main set)', () => {
-    expect(setBrowseTier('Silver Age Chapter 1')).toBe(2);
-    expect(setBrowseTier('Silver Age: Usurp the Shadow Throne')).toBe(2);
-    expect(setBrowseTier('Usurp the Shadow Throne')).toBe(0);
+  test('classifies Armory Decks', () => {
+    expect(setBrowseTier('Armory Deck: Malice')).toBe(BROWSE_TIER.ARMORY);
+    expect(setBrowseTier('Armory Deck Origins: Hala')).toBe(BROWSE_TIER.ARMORY);
   });
 
-  test('classifies other product lines as tier 3', () => {
-    expect(setBrowseTier('Blitz Deck: Rosetta - Aurora')).toBe(3);
-    expect(setBrowseTier('Hero Deck: Bravo')).toBe(3);
-    expect(setBrowseTier('Welcome Deck: Ira')).toBe(3);
-    expect(setBrowseTier('GEM Pack 1')).toBe(3);
-    expect(setBrowseTier('Gem Pack 5')).toBe(3);
-    expect(setBrowseTier('Mastery Pack Guardian')).toBe(3);
-    expect(setBrowseTier('Historic Pack 1 Blitz Deck: Bravo')).toBe(3);
-    expect(setBrowseTier('Classic Battles: Rhinar vs Dorinthea')).toBe(3);
-    expect(setBrowseTier('1st Strike')).toBe(3);
-    expect(setBrowseTier('Flesh and Blood: Promo Cards')).toBe(3);
-    expect(setBrowseTier('Compendium of Rathe')).toBe(3);
-    expect(setBrowseTier('Round the Table: TCCxLSS')).toBe(3);
+  test('classifies Silver Age (not the matching main set)', () => {
+    expect(setBrowseTier('Silver Age Chapter 1')).toBe(BROWSE_TIER.SILVER_AGE);
+    expect(setBrowseTier('Silver Age: Usurp the Shadow Throne')).toBe(
+      BROWSE_TIER.SILVER_AGE
+    );
+    expect(setBrowseTier('Usurp the Shadow Throne')).toBe(BROWSE_TIER.MAIN);
+  });
+
+  test('classifies Hero Decks', () => {
+    expect(setBrowseTier('Hero Deck: Bravo')).toBe(BROWSE_TIER.HERO);
+  });
+
+  test('classifies other product lines as Other', () => {
+    expect(setBrowseTier('Welcome Deck: Ira')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('GEM Pack 1')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Gem Pack 5')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Mastery Pack Guardian')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Historic Pack 1 Blitz Deck: Bravo')).toBe(
+      BROWSE_TIER.OTHER
+    );
+    expect(setBrowseTier('Classic Battles: Rhinar vs Dorinthea')).toBe(
+      BROWSE_TIER.OTHER
+    );
+    expect(setBrowseTier('1st Strike')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Flesh and Blood: Promo Cards')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Compendium of Rathe')).toBe(BROWSE_TIER.OTHER);
+    expect(setBrowseTier('Round the Table: TCCxLSS')).toBe(BROWSE_TIER.OTHER);
+  });
+});
+
+describe('browseTierLabel', () => {
+  test('returns section titles for each tier', () => {
+    expect(browseTierLabel(BROWSE_TIER.MAIN)).toBe('Main Sets');
+    expect(browseTierLabel(BROWSE_TIER.BLITZ)).toBe('Blitz Decks');
+    expect(browseTierLabel(BROWSE_TIER.ARMORY)).toBe('Armory Decks');
+    expect(browseTierLabel(BROWSE_TIER.SILVER_AGE)).toBe('Silver Age');
+    expect(browseTierLabel(BROWSE_TIER.HERO)).toBe('Hero Decks');
+    expect(browseTierLabel(BROWSE_TIER.OTHER)).toBe('Other');
   });
 });
 
 describe('compareSetsByBrowseOrder', () => {
-  test('orders main, then armory, then silver age, then other', () => {
+  test('orders main, blitz, armory, silver age, hero, then other', () => {
     const names = [
-      'Blitz Deck: Monarch - Prism',
+      'GEM Pack 2',
       'Silver Age Chapter 1',
       'Armory Deck: Ira',
-      'Monarch',
-      'GEM Pack 2'
+      'Hero Deck: Bravo',
+      'Blitz Deck: Monarch - Prism',
+      'Monarch'
     ];
     const sorted = [...names]
       .map((name) => ({ name, publishedOn: null }))
@@ -54,9 +81,10 @@ describe('compareSetsByBrowseOrder', () => {
       .map((s) => s.name);
     expect(sorted).toEqual([
       'Monarch',
+      'Blitz Deck: Monarch - Prism',
       'Armory Deck: Ira',
       'Silver Age Chapter 1',
-      'Blitz Deck: Monarch - Prism',
+      'Hero Deck: Bravo',
       'GEM Pack 2'
     ]);
   });
@@ -83,15 +111,17 @@ describe('compareSetNamesByBrowseOrder', () => {
       'Armory Deck: Aurora',
       'Bright Lights',
       'Arcane Rising',
-      'Blitz Deck: Uprising - Fai'
+      'Blitz Deck: Uprising - Fai',
+      'Hero Deck: Bravo'
     ].sort(compareSetNamesByBrowseOrder);
     expect(sorted).toEqual([
       'Arcane Rising',
       'Bright Lights',
+      'Blitz Deck: Uprising - Fai',
       'Armory Deck: Aurora',
       'Armory Deck: Zyggy',
       'Silver Age Chapter 2',
-      'Blitz Deck: Uprising - Fai'
+      'Hero Deck: Bravo'
     ]);
   });
 });

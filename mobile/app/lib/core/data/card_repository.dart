@@ -594,20 +594,39 @@ class CardRepository {
         .toList();
   }
 
-  /// The distinct set names present in [cards], ordered for browsing: main
-  /// expansions, then Armory Decks, then Silver Age, then other product lines
-  /// (alphabetical within each tier). Flesh and Blood has ~100 expansions that
-  /// grow over time, so — unlike a fixed list — the browsable set list is
-  /// derived from whatever the pipeline has loaded. Non-card products (sealed
-  /// boxes, etc.) are excluded.
-  static List<String> setNamesFrom(Iterable<CardModel> cards) {
+  /// The distinct set names present in [cards], ordered for browsing: Main
+  /// Sets, Blitz Decks, Armory Decks, Silver Age, Hero Decks, then Other —
+  /// newest release first within each section when [publishedOnForGroupId]
+  /// can resolve a date. Flesh and Blood has ~100 expansions that grow over
+  /// time, so the browsable set list is derived from whatever the pipeline
+  /// has loaded. Non-card products (sealed boxes, etc.) are excluded.
+  static List<String> setNamesFrom(
+    Iterable<CardModel> cards, {
+    DateTime? Function(int groupId)? publishedOnForGroupId,
+  }) {
     final names = <String>{};
+    final idByName = <String, int>{};
     for (final c in cards) {
       if (isNonCardProduct(c)) continue;
       final s = c.setName;
-      if (s != null && s.trim().isNotEmpty) names.add(s);
+      if (s == null || s.trim().isEmpty) continue;
+      names.add(s);
+      final id = c.setId;
+      if (id != null) idByName.putIfAbsent(s, () => id);
     }
-    final list = names.toList()..sort(compareSetNamesByBrowseOrder);
+    final list = names.toList()
+      ..sort((a, b) {
+        final idA = idByName[a];
+        final idB = idByName[b];
+        return compareSetsByBrowseOrder(
+          a,
+          b,
+          publishedOnA:
+              idA == null ? null : publishedOnForGroupId?.call(idA),
+          publishedOnB:
+              idB == null ? null : publishedOnForGroupId?.call(idB),
+        );
+      });
     return list;
   }
 }

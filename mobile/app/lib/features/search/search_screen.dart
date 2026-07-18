@@ -9,6 +9,8 @@ import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/data/set_logo_cache.dart';
 import '../../core/data/set_logos.dart';
+import '../../core/data/set_published_on.dart';
+import '../../core/logic/set_sort.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../scan/scan_screen.dart';
@@ -135,6 +137,9 @@ class _SetListState extends ConsumerState<_SetList> {
     // opens, so tapping into a set later is instant.
     final catalog = ref.watch(catalogProvider);
     final logos = ref.watch(setLogoMapProvider).asData?.value ?? SetLogoMap.empty;
+    final publishedOn =
+        ref.watch(setPublishedOnMapProvider).asData?.value ??
+            SetPublishedOnMap.empty;
     _precacheLogosIfNeeded(logos);
     return catalog.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
@@ -154,28 +159,99 @@ class _SetListState extends ConsumerState<_SetList> {
           final id = c.setId;
           if (id != null) setIds.putIfAbsent(s, () => id);
         }
-        final sets = CardRepository.setNamesFrom(cards);
+        final sets = CardRepository.setNamesFrom(
+          cards,
+          publishedOnForGroupId: publishedOn.forGroupId,
+        );
         if (sets.isEmpty) {
           return const _ScrollableCenter(child: _EmptyView());
         }
+
+        // Flatten section headers + set rows so one ListView can render both.
+        final entries = <_BrowseEntry>[];
+        int? lastTier;
+        for (final set in sets) {
+          final tier = setBrowseTier(set);
+          if (tier != lastTier) {
+            entries.add(_BrowseSectionHeader(browseTierLabel(tier)));
+            lastTier = tier;
+          }
+          entries.add(
+            _BrowseSetRow(
+              setName: set,
+              logoUrl: logos.urlForGroupId(setIds[set]),
+            ),
+          );
+        }
+
         // Retained frames in SetLogoCache keep logos painted if a row is
         // disposed while a set is open and remounted on pop.
-        return ListView.separated(
+        return ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: sets.length,
-          separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
+          itemCount: entries.length,
           itemBuilder: (context, i) {
-            final set = sets[i];
-            final logoUrl = logos.urlForGroupId(setIds[set]);
-            return _SetTile(
-              key: ValueKey<String>(set),
-              setName: set,
-              logoUrl: logoUrl,
-            );
+            final entry = entries[i];
+            return switch (entry) {
+              _BrowseSectionHeader(:final label) => _SetSectionHeader(
+                  label: label,
+                  isFirst: i == 0,
+                ),
+              _BrowseSetRow(:final setName, :final logoUrl) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _SetTile(
+                      key: ValueKey<String>(setName),
+                      setName: setName,
+                      logoUrl: logoUrl,
+                    ),
+                    if (i < entries.length - 1 && entries[i + 1] is _BrowseSetRow)
+                      const Divider(height: 1, indent: 16),
+                  ],
+                ),
+            };
           },
         );
       },
+    );
+  }
+}
+
+sealed class _BrowseEntry {
+  const _BrowseEntry();
+}
+
+class _BrowseSectionHeader extends _BrowseEntry {
+  const _BrowseSectionHeader(this.label);
+  final String label;
+}
+
+class _BrowseSetRow extends _BrowseEntry {
+  const _BrowseSetRow({required this.setName, required this.logoUrl});
+  final String setName;
+  final String? logoUrl;
+}
+
+class _SetSectionHeader extends StatelessWidget {
+  const _SetSectionHeader({required this.label, required this.isFirst});
+
+  final String label;
+  final bool isFirst;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, isFirst ? 4 : 16, 16, 6),
+      child: Text(
+        label.toUpperCase(),
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
     );
   }
 }
