@@ -9,13 +9,19 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    TextField,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import { 
     Warning as WarningIcon,
-    Clear as ClearIcon
+    Clear as ClearIcon,
+    ContentCopy as ContentCopyIcon,
+    Forum as ForumIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
+import { generateTradePost } from "../../utils/tradePost.js";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 
 const TotalStack = ({ market, low, color, size, isDark, isLandscape }) => {
@@ -67,6 +73,9 @@ const TradeSummary = ({
 }) => {
     const { isDark } = useThemeMode();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [showTradePost, setShowTradePost] = useState(false);
+    const [tradePostText, setTradePostText] = useState('');
+    const [copyFeedback, setCopyFeedback] = useState(false);
 
     // Calculate total card count including quantities
     const getTotalCardCount = (cardList) => {
@@ -75,10 +84,45 @@ const TradeSummary = ({
 
     const haveCardCount = getTotalCardCount(haveList);
     const wantCardCount = getTotalCardCount(wantList);
+    const canGenerateTradePost = haveList.length > 0 || wantList.length > 0;
 
     const handleClearTradeData = () => {
         clearURLTradeData();
         setShowClearConfirm(false);
+    };
+
+    const handleGenerateTradePost = () => {
+        const text = generateTradePost({
+            haveList,
+            wantList,
+            haveTotal,
+            wantTotal,
+            diff,
+            pricedAsOf: new Date(),
+        });
+        setTradePostText(text);
+        setShowTradePost(true);
+    };
+
+    const handleCopyTradePost = async () => {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(tradePostText);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = tradePostText;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            setCopyFeedback(true);
+        } catch (err) {
+            console.error('Failed to copy trade post:', err);
+        }
     };
 
     const formatAge = (ageInDays) => {
@@ -305,6 +349,56 @@ const TradeSummary = ({
                     </Typography>
                 </Box>
             )}
+
+            {/* Purple Discord trade post */}
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.5,
+                px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
+                py: isLandscape ? 1.5 : { xs: 1, sm: 1.25 },
+                width: '100%',
+                boxSizing: 'border-box',
+                borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
+            }}>
+                <Typography
+                    variant="caption"
+                    sx={{
+                        color: mutedColor,
+                        fontSize: isLandscape ? '0.7rem' : { xs: '0.7rem', sm: '0.75rem' },
+                        textAlign: 'center',
+                        lineHeight: 1.3
+                    }}
+                >
+                    Trading on Purple Discord?
+                </Typography>
+                <Button
+                    variant="contained"
+                    size={isLandscape ? 'small' : 'medium'}
+                    startIcon={<ForumIcon />}
+                    onClick={handleGenerateTradePost}
+                    disabled={!canGenerateTradePost}
+                    sx={{
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        px: isLandscape ? 1.5 : 2,
+                        background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+                        boxShadow: isDark
+                            ? '0 2px 8px rgba(0, 0, 0, 0.35)'
+                            : '0 2px 8px rgba(139, 69, 19, 0.25)',
+                        '&:hover': {
+                            background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
+                        },
+                        '&.Mui-disabled': {
+                            background: isDark ? 'rgba(212, 165, 116, 0.15)' : 'rgba(139, 69, 19, 0.12)',
+                            color: mutedColor
+                        }
+                    }}
+                >
+                    Generate Trade Post
+                </Button>
+            </Box>
         </Box>
 
         {/* Clear Confirmation Dialog */}
@@ -323,6 +417,70 @@ const TradeSummary = ({
                 </Button>
             </DialogActions>
         </Dialog>
+
+        {/* Generated Trade Post Dialog */}
+        <Dialog
+            open={showTradePost}
+            onClose={() => setShowTradePost(false)}
+            fullWidth
+            maxWidth="sm"
+        >
+            <DialogTitle sx={{ pb: 1 }}>Discord Trade Post</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    Copy and paste this into the Purple Discord trading channel.
+                </Typography>
+                <TextField
+                    value={tradePostText}
+                    multiline
+                    fullWidth
+                    minRows={8}
+                    maxRows={18}
+                    InputProps={{
+                        readOnly: true,
+                        sx: {
+                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                            fontSize: '0.85rem',
+                            lineHeight: 1.45
+                        }
+                    }}
+                    onFocus={(e) => e.target.select()}
+                />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+                <Button onClick={() => setShowTradePost(false)}>Close</Button>
+                <Button
+                    variant="contained"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={handleCopyTradePost}
+                    sx={{
+                        textTransform: 'none',
+                        background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+                        '&:hover': {
+                            background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
+                        }
+                    }}
+                >
+                    Copy to Clipboard
+                </Button>
+            </DialogActions>
+        </Dialog>
+
+        <Snackbar
+            open={copyFeedback}
+            autoHideDuration={2500}
+            onClose={() => setCopyFeedback(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+            <Alert
+                onClose={() => setCopyFeedback(false)}
+                severity="success"
+                variant="filled"
+                sx={{ width: '100%' }}
+            >
+                Copied — paste it into Discord
+            </Alert>
+        </Snackbar>
         </>
     );
 };
