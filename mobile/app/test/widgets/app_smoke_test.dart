@@ -29,6 +29,8 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         cardRepositoryProvider.overrideWithValue(mockRepo),
+        // Skip the remote update check in headless smoke tests.
+        appUpdatePromptProvider.overrideWith((ref) async => null),
       ],
     );
     addTearDown(container.dispose);

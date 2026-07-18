@@ -86,6 +86,23 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          _SectionLabel('About'),
+          const SizedBox(height: 8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.phone_android_outlined),
+            title: const Text('App version'),
+            subtitle: Text(
+              ref.watch(packageVersionLabelProvider).when(
+                    data: (label) => label,
+                    loading: () => '…',
+                    error: (_, _) => 'Unknown',
+                  ),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
         ],
       ),
     );

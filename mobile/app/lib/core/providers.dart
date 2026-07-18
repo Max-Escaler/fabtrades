@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'data/app_update_repository.dart';
 import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
 import 'data/collection_repository.dart';
@@ -32,6 +33,30 @@ final supabaseClientProvider =
 
 final cardRepositoryProvider = Provider<CardRepository>(
     (ref) => CardRepository(ref.watch(supabaseClientProvider)));
+
+final appUpdateRepositoryProvider = Provider<AppUpdateRepository>(
+  (ref) => AppUpdateRepository(
+    ref.watch(supabaseClientProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
+);
+
+/// Soft update prompt when the installed build is behind `fab_app_config`.
+/// Resolves to null when up to date, dismissed, or the check fails
+/// (including tests where Supabase / PackageInfo are unavailable).
+final appUpdatePromptProvider = FutureProvider<AppUpdatePrompt?>((ref) async {
+  try {
+    return await ref.read(appUpdateRepositoryProvider).checkForUpdatePrompt();
+  } catch (_) {
+    return null;
+  }
+});
+
+/// Installed app version label for Settings (e.g. `1.0.1 (4)`).
+final packageVersionLabelProvider = FutureProvider<String>((ref) async {
+  final info = await ref.watch(appUpdateRepositoryProvider).packageInfo();
+  return '${info.version} (${info.buildNumber})';
+});
 
 // ---------------------------------------------------------------------------
 // Card catalog (preloaded + cached locally for instant, offline browsing)

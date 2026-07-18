@@ -48,6 +48,17 @@ for FAB, so all `cm_*` price fields stay null.
 | `fab_price_history` | one snapshot per card per day for charts |
 | `fab_pipeline_runs` | ingest log (not client-readable) |
 | `fab_cards_with_prices` | view: cards + `set_name` + current prices (easiest to query) |
+| `fab_app_config` | single-row soft-update config (`latest_version`, store URLs, message); public read |
+
+When you ship a new mobile build, bump `fab_app_config.latest_version` (and
+store URLs if needed) so older installs show the in-app update reminder:
+
+```sql
+UPDATE fab_app_config
+SET latest_version = '1.0.2',
+    updated_at = now()
+WHERE id = 1;
+```
 
 ### Key `cards` columns
 - `id` — stable per-printing PK, `"<product_id>-<subtype>"` (Normal and Foil are
