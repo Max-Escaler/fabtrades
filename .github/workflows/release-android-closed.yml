@@ -24,7 +24,9 @@ on:
         required: false
         type: string
       build_number:
-        description: Optional versionCode override (must be higher than the last Play upload). Leave blank to use pubspec.yaml.
+        description: >
+          Optional versionCode override. Leave blank to auto-increment from the
+          highest versionCode already uploaded to Play (recommended).
         required: false
         type: string
 
@@ -99,18 +101,83 @@ jobs:
           sed -i 's/org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=1G -XX:+HeapDumpOnOutOfMemoryError/' \
             mobile/app/android/gradle.properties
 
+      # Play rejects reuse of any previously uploaded versionCode. Query Play for the
+      # max across bundles/APKs and use max+1 unless a manual override is provided.
+      - name: Resolve version code
+        id: version
+        working-directory: ${{ github.workspace }}
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          PACKAGE_NAME: fabtrades.myapp
+          BUILD_NUMBER_OVERRIDE: ${{ inputs.build_number }}
+        run: |
+          if [ -n "$BUILD_NUMBER_OVERRIDE" ]; then
+            echo "version_code=$BUILD_NUMBER_OVERRIDE" >> "$GITHUB_OUTPUT"
+            echo "Using manual versionCode override: $BUILD_NUMBER_OVERRIDE"
+            exit 0
+          fi
+
+          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "Missing secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+            exit 1
+          fi
+
+          python3 -m pip install --quiet google-api-python-client google-auth
+          python3 <<'PY'
+          import json
+          import os
+
+          from google.oauth2 import service_account
+          from googleapiclient.discovery import build
+
+          package = os.environ["PACKAGE_NAME"]
+          info = json.loads(os.environ["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"])
+          creds = service_account.Credentials.from_service_account_info(
+              info,
+              scopes=["https://www.googleapis.com/auth/androidpublisher"],
+          )
+          service = build(
+              "androidpublisher", "v3", credentials=creds, cache_discovery=False
+          )
+          edit_id = service.edits().insert(packageName=package, body={}).execute()["id"]
+          try:
+              bundles = (
+                  service.edits()
+                  .bundles()
+                  .list(packageName=package, editId=edit_id)
+                  .execute()
+              )
+              apks = (
+                  service.edits()
+                  .apks()
+                  .list(packageName=package, editId=edit_id)
+                  .execute()
+              )
+              codes = [b["versionCode"] for b in bundles.get("bundles", [])]
+              codes += [a["versionCode"] for a in apks.get("apks", [])]
+              next_code = (max(codes) if codes else 0) + 1
+          finally:
+              service.edits().delete(packageName=package, editId=edit_id).execute()
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"version_code={next_code}\n")
+          print(f"Auto-incremented versionCode from Play: {next_code}")
+          PY
+
       - name: Build app bundle
         env:
           BUILD_NAME: ${{ inputs.build_name }}
-          BUILD_NUMBER: ${{ inputs.build_number }}
+          BUILD_NUMBER: ${{ steps.version.outputs.version_code }}
         run: |
-          args=(build appbundle --release)
+          if [ -z "$BUILD_NUMBER" ]; then
+            echo "Resolved versionCode is empty"
+            exit 1
+          fi
+          args=(build appbundle --release --build-number="$BUILD_NUMBER")
           if [ -n "$BUILD_NAME" ]; then
             args+=(--build-name="$BUILD_NAME")
           fi
-          if [ -n "$BUILD_NUMBER" ]; then
-            args+=(--build-number="$BUILD_NUMBER")
-          fi
+          echo "Building with versionCode=$BUILD_NUMBER${BUILD_NAME:+ versionName=$BUILD_NAME}"
           flutter "${args[@]}"
 
       - name: Upload to Google Play
