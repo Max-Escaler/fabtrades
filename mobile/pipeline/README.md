@@ -53,5 +53,7 @@ project as the Riftbound dataset without clobbering it.
 All read tables are public read-only via RLS; only the pipeline (service role) writes.
 
 ## Daily automation
-See `.github/workflows/update-prices.yml`. Add repo secrets `SUPABASE_URL` and
-`SUPABASE_SERVICE_ROLE_KEY` (Settings → Secrets and variables → Actions).
+See [`../../.github/workflows/update-prices.yml`](../../.github/workflows/update-prices.yml)
+(must live at the **repo root** `.github/workflows/` — GitHub ignores nested workflow folders).
+Repo secrets required: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+(Settings → Secrets and variables → Actions).

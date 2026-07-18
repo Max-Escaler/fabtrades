@@ -112,7 +112,7 @@ GET https://tenrvaghaspwdvnwvgrh.supabase.co/rest/v1/cards_with_prices?name=ilik
 ```
 
 ## Refresh cadence
-The GitHub Action ([`../.github/workflows/update-prices.yml`](../.github/workflows/update-prices.yml))
+The GitHub Action ([`../../.github/workflows/update-prices.yml`](../../.github/workflows/update-prices.yml))
 runs the pipeline daily at 06:00 UTC, upserting current prices and appending a
 `price_history` row per card. See [`../pipeline/README.md`](../pipeline/README.md) to run it manually.
 
