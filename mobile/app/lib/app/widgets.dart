@@ -11,17 +11,24 @@ import 'theme.dart';
 /// Once decoded, frames are retained in [SetLogoCache] and painted with
 /// [RawImage] so rows that remount after a set drill-in (or Settings) do not
 /// unload/reload. First load uses [Image] + [CachedNetworkImageProvider].
+///
+/// When [alwaysShowName] is true (Silver Age chapters share one logo), the set
+/// name stays visible beside the logo. [abbreviation] is shown when non-empty.
 class SetLogoTitle extends StatefulWidget {
   const SetLogoTitle({
     super.key,
     required this.setName,
     this.logoUrl,
+    this.abbreviation,
+    this.alwaysShowName = false,
     this.height = SetLogoCache.defaultHeight,
     @visibleForTesting this.debugImageProvider,
   });
 
   final String setName;
   final String? logoUrl;
+  final String? abbreviation;
+  final bool alwaysShowName;
   final double height;
 
   /// Test seam: inject a local [ImageProvider] instead of hitting the CDN.
@@ -54,39 +61,139 @@ class _SetLogoTitleState extends State<SetLogoTitle> {
   /// blank the row while the provider reattaches.
   Widget? _stableLogo;
 
-  @override
-  Widget build(BuildContext context) {
-    final url = widget.logoUrl;
-    if (url == null || url.isEmpty) {
+  /// True once this row has painted a logo frame (triggers rebuild so set-code
+  /// / Silver Age name meta can sit beside the logo).
+  bool _logoReady = false;
+
+  String get _abbreviation => (widget.abbreviation ?? '').trim();
+
+  void _markLogoReady() {
+    if (_logoReady || !mounted) return;
+    setState(() => _logoReady = true);
+  }
+
+  Widget _nameFallback(ColorScheme scheme) {
+    final abbr = _abbreviation;
+    if (abbr.isEmpty) {
       return Text(
         widget.setName,
         style: const TextStyle(fontWeight: FontWeight.w600),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       );
     }
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            widget.setName,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          abbr,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
 
+  Widget _withMeta({
+    required Widget logo,
+    required ColorScheme scheme,
+  }) {
+    final abbr = _abbreviation;
+    final showName = widget.alwaysShowName;
+    if (!showName && abbr.isEmpty) return logo;
+
+    return Row(
+      children: [
+        Flexible(child: logo),
+        const SizedBox(width: 10),
+        if (showName)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.setName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (abbr.isNotEmpty)
+                  Text(
+                    abbr,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          )
+        else
+          Text(
+            abbr,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _constrainedLogo({
+    required double plateHeight,
+    required Widget child,
+  }) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: plateHeight,
+          maxWidth: widget.alwaysShowName ? 160 : 280,
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = widget.logoUrl;
     final scheme = Theme.of(context).colorScheme;
+    if (url == null || url.isEmpty) {
+      return _nameFallback(scheme);
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final alreadyWarm = SetLogoTitle._warmUrls.contains(url);
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final height = widget.height;
     final plateHeight = height + SetLogoCache.platePadding;
     final memCacheHeight = SetLogoCache.memCacheHeightFor(height, dpr);
-
-    final nameFallback = Text(
-      widget.setName,
-      style: const TextStyle(fontWeight: FontWeight.w600),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
+    final nameFallback = _nameFallback(scheme);
 
     // Instant paint after set drill-in remounts the browse row.
     final retained = SetLogoCache.imageFor(url);
     if (retained != null) {
       SetLogoTitle.markWarm(url);
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: plateHeight, maxWidth: 280),
+      return _withMeta(
+        scheme: scheme,
+        logo: _constrainedLogo(
+          plateHeight: plateHeight,
           child: _logoChrome(
             plateHeight: plateHeight,
             isDark: isDark,
@@ -105,50 +212,67 @@ class _SetLogoTitleState extends State<SetLogoTitle> {
     final imageProvider = widget.debugImageProvider ??
         SetLogoCache.providerFor(url, memCacheHeight: memCacheHeight);
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: plateHeight, maxWidth: 280),
-        child: Image(
-          image: imageProvider,
-          height: height,
-          fit: BoxFit.contain,
-          alignment: Alignment.centerLeft,
-          // Keep the last frame visible while the provider re-resolves after
-          // ImageCache pressure or Navigator pop (set detail / Settings).
-          gaplessPlayback: true,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (frame != null || wasSynchronouslyLoaded) {
-              SetLogoTitle.markWarm(url);
-              if (child is RawImage && child.image != null) {
-                SetLogoCache.retain(url, child.image!);
-              }
-              SetLogoCache.ensurePinned(url, imageProvider, context);
-              final painted = _logoChrome(
-                plateHeight: plateHeight,
-                isDark: isDark,
-                scheme: scheme,
-                child: child,
-              );
-              _stableLogo = painted;
-              return painted;
+    final logoImage = _constrainedLogo(
+      plateHeight: plateHeight,
+      child: Image(
+        image: imageProvider,
+        height: height,
+        fit: BoxFit.contain,
+        alignment: Alignment.centerLeft,
+        // Keep the last frame visible while the provider re-resolves after
+        // ImageCache pressure or Navigator pop (set detail / Settings).
+        gaplessPlayback: true,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (frame != null || wasSynchronouslyLoaded) {
+            SetLogoTitle.markWarm(url);
+            if (child is RawImage && child.image != null) {
+              SetLogoCache.retain(url, child.image!);
             }
-            if (_stableLogo != null) return _stableLogo!;
-            if (alreadyWarm) {
-              // Quiet hold — never swap back to the set name once warm.
-              return _logoChrome(
-                plateHeight: plateHeight,
-                isDark: isDark,
-                scheme: scheme,
-                child: child,
-              );
+            SetLogoCache.ensurePinned(url, imageProvider, context);
+            final painted = _logoChrome(
+              plateHeight: plateHeight,
+              isDark: isDark,
+              scheme: scheme,
+              child: child,
+            );
+            _stableLogo = painted;
+            if (!_logoReady) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _markLogoReady();
+              });
             }
-            return nameFallback;
-          },
-          errorBuilder: (_, _, _) => nameFallback,
-        ),
+            return painted;
+          }
+          if (_stableLogo != null) return _stableLogo!;
+          if (alreadyWarm) {
+            // Quiet hold — never swap back to the set name once warm.
+            return _logoChrome(
+              plateHeight: plateHeight,
+              isDark: isDark,
+              scheme: scheme,
+              child: child,
+            );
+          }
+          return const SizedBox.shrink();
+        },
+        errorBuilder: (_, _, _) => nameFallback,
       ),
     );
+
+    final showLogo = _logoReady || alreadyWarm;
+    if (!showLogo) {
+      // Keep the Image mounted (offstage) so the first frame can arrive, while
+      // the visible row shows the set name — same cold-load behavior as before.
+      return Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          Offstage(child: logoImage),
+          nameFallback,
+        ],
+      );
+    }
+
+    return _withMeta(scheme: scheme, logo: logoImage);
   }
 
   static Widget _logoChrome({

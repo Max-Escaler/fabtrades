@@ -24,6 +24,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { buildSetSlugMap } from '../src/utils/setSlug.js';
+import { resolveSetAbbreviation } from '../src/utils/setAbbreviation.js';
 import { compareSetsByBrowseOrder } from '../src/utils/setSort.js';
 import {
     privacySections,
@@ -143,7 +144,10 @@ const buildSets = ({ groups, rows }) => {
             return {
                 groupId: g.groupId,
                 name: g.name || `Set ${g.groupId}`,
-                abbreviation: g.abbreviation || '',
+                abbreviation: resolveSetAbbreviation(
+                    g.abbreviation,
+                    cards.map((c) => c.extNumber)
+                ),
                 publishedOn: g.publishedOn || null,
                 isSupplemental: !!g.isSupplemental,
                 cards,

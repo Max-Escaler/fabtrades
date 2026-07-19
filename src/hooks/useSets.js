@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCardData } from './useCardData.jsx';
 import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
 import { compareSetsByBrowseOrder } from '../utils/setSort.js';
+import { resolveSetAbbreviation } from '../utils/setAbbreviation.js';
 import { loadSetLogoMap } from '../utils/setLogos.js';
 
 // Module-level cache so the product groups JSON is only fetched once even
@@ -119,7 +120,10 @@ export const useSets = () => {
                 return {
                     groupId: group.groupId,
                     name: group.name || `Set ${group.groupId}`,
-                    abbreviation: group.abbreviation || '',
+                    abbreviation: resolveSetAbbreviation(
+                        group.abbreviation,
+                        groupCards.map((c) => c.extNumber)
+                    ),
                     publishedOn: group.publishedOn || null,
                     modifiedOn: group.modifiedOn || null,
                     isSupplemental: !!group.isSupplemental,
@@ -161,7 +165,10 @@ export const useSets = () => {
         return {
             groupId: meta?.groupId ?? resolvedKey,
             name: meta?.name || `Set ${resolvedKey}`,
-            abbreviation: meta?.abbreviation || '',
+            abbreviation: resolveSetAbbreviation(
+                meta?.abbreviation,
+                groupCards.map((c) => c.extNumber)
+            ),
             publishedOn: meta?.publishedOn || null,
             modifiedOn: meta?.modifiedOn || null,
             isSupplemental: !!meta?.isSupplemental,

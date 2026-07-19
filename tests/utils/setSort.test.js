@@ -12,6 +12,12 @@ describe('setBrowseTier', () => {
     expect(setBrowseTier('Welcome to Rathe')).toBe(BROWSE_TIER.MAIN);
     expect(setBrowseTier('Usurp the Shadow Throne')).toBe(BROWSE_TIER.MAIN);
     expect(setBrowseTier('History Pack Vol.1')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('Compendium of Rathe')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('Compendium of Rathe - Antiquity Pack')).toBe(
+      BROWSE_TIER.MAIN
+    );
+    expect(setBrowseTier('Mastery Pack Guardian')).toBe(BROWSE_TIER.MAIN);
+    expect(setBrowseTier('Mastery Pack Warrior')).toBe(BROWSE_TIER.MAIN);
   });
 
   test('classifies Blitz Decks', () => {
@@ -40,7 +46,6 @@ describe('setBrowseTier', () => {
     expect(setBrowseTier('Welcome Deck: Ira')).toBe(BROWSE_TIER.OTHER);
     expect(setBrowseTier('GEM Pack 1')).toBe(BROWSE_TIER.OTHER);
     expect(setBrowseTier('Gem Pack 5')).toBe(BROWSE_TIER.OTHER);
-    expect(setBrowseTier('Mastery Pack Guardian')).toBe(BROWSE_TIER.OTHER);
     expect(setBrowseTier('Historic Pack 1 Blitz Deck: Bravo')).toBe(
       BROWSE_TIER.OTHER
     );
@@ -49,7 +54,6 @@ describe('setBrowseTier', () => {
     );
     expect(setBrowseTier('1st Strike')).toBe(BROWSE_TIER.OTHER);
     expect(setBrowseTier('Flesh and Blood: Promo Cards')).toBe(BROWSE_TIER.OTHER);
-    expect(setBrowseTier('Compendium of Rathe')).toBe(BROWSE_TIER.OTHER);
     expect(setBrowseTier('Round the Table: TCCxLSS')).toBe(BROWSE_TIER.OTHER);
   });
 });

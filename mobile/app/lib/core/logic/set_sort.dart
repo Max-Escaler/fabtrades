@@ -32,11 +32,9 @@ const _browseTierLabels = <int, String>{
 final _otherProductLinePatterns = <RegExp>[
   RegExp(r'^welcome deck\b', caseSensitive: false),
   RegExp(r'^gem pack\b', caseSensitive: false),
-  RegExp(r'^mastery pack\b', caseSensitive: false),
   RegExp(r'^historic pack\b', caseSensitive: false),
   RegExp(r'^classic battles\b', caseSensitive: false),
   RegExp(r'^1st strike\b', caseSensitive: false),
-  RegExp(r'^compendium\b', caseSensitive: false),
   RegExp(r'^round the table\b', caseSensitive: false),
   RegExp(r'\bpromo cards\b', caseSensitive: false),
 ];

@@ -8,7 +8,7 @@ void main() {
       const json = '''
       {
         "logos": {
-          "2724": { "name": "Crucible of War", "logoUrl": "https://example.com/cru.png" },
+          "2724": { "name": "Crucible of War", "abbreviation": "CRU", "logoUrl": "https://example.com/cru.png" },
           "2725": { "name": "Arcane Rising", "logoUrl": "https://example.com/arc.png" }
         }
       }
@@ -16,6 +16,8 @@ void main() {
       final map = SetLogoMap.fromJson(json);
       expect(map.length, 2);
       expect(map.urlForGroupId(2724), 'https://example.com/cru.png');
+      expect(map.abbreviationForGroupId(2724), 'CRU');
+      expect(map.abbreviationForGroupId(2725), isNull);
       expect(map.urls.toSet(), {
         'https://example.com/cru.png',
         'https://example.com/arc.png',

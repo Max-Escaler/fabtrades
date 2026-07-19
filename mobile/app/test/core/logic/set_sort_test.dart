@@ -8,6 +8,13 @@ void main() {
       expect(setBrowseTier('Welcome to Rathe'), BrowseTier.main);
       expect(setBrowseTier('Usurp the Shadow Throne'), BrowseTier.main);
       expect(setBrowseTier('History Pack Vol.1'), BrowseTier.main);
+      expect(setBrowseTier('Compendium of Rathe'), BrowseTier.main);
+      expect(
+        setBrowseTier('Compendium of Rathe - Antiquity Pack'),
+        BrowseTier.main,
+      );
+      expect(setBrowseTier('Mastery Pack Guardian'), BrowseTier.main);
+      expect(setBrowseTier('Mastery Pack Warrior'), BrowseTier.main);
     });
 
     test('classifies Blitz Decks', () {

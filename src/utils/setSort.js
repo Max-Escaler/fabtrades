@@ -32,11 +32,9 @@ const BROWSE_TIER_LABELS = {
 const OTHER_PRODUCT_LINE_PATTERNS = [
     /^welcome deck\b/i,
     /^gem pack\b/i,
-    /^mastery pack\b/i,
     /^historic pack\b/i,
     /^classic battles\b/i,
     /^1st strike\b/i,
-    /^compendium\b/i,
     /^round the table\b/i,
     /\bpromo cards\b/i
 ];

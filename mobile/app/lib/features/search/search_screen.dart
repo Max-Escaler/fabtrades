@@ -10,6 +10,7 @@ import '../../core/data/card_repository.dart';
 import '../../core/data/set_logo_cache.dart';
 import '../../core/data/set_logos.dart';
 import '../../core/data/set_published_on.dart';
+import '../../core/logic/set_abbreviation.dart';
 import '../../core/logic/set_sort.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
@@ -152,12 +153,16 @@ class _SetListState extends ConsumerState<_SetList> {
       data: (cards) {
         // setName → TCGplayer group id (for logo lookup). First seen wins.
         final setIds = <String, int>{};
+        final collectorNumbersBySet = <String, List<String?>>{};
         for (final c in cards) {
           if (isNonCardProduct(c)) continue;
           final s = c.setName;
           if (s == null) continue;
           final id = c.setId;
           if (id != null) setIds.putIfAbsent(s, () => id);
+          collectorNumbersBySet.putIfAbsent(s, () => <String?>[]).add(
+                c.collectorNumber,
+              );
         }
         final sets = CardRepository.setNamesFrom(
           cards,
@@ -176,10 +181,17 @@ class _SetListState extends ConsumerState<_SetList> {
             entries.add(_BrowseSectionHeader(browseTierLabel(tier)));
             lastTier = tier;
           }
+          final groupId = setIds[set];
+          final abbreviation = resolveSetAbbreviation(
+            logos.abbreviationForGroupId(groupId),
+            collectorNumbersBySet[set] ?? const <String?>[],
+          );
           entries.add(
             _BrowseSetRow(
               setName: set,
-              logoUrl: logos.urlForGroupId(setIds[set]),
+              logoUrl: logos.urlForGroupId(groupId),
+              abbreviation: abbreviation,
+              alwaysShowName: tier == BrowseTier.silverAge,
             ),
           );
         }
@@ -197,13 +209,21 @@ class _SetListState extends ConsumerState<_SetList> {
                   label: label,
                   isFirst: i == 0,
                 ),
-              _BrowseSetRow(:final setName, :final logoUrl) => Column(
+              _BrowseSetRow(
+                :final setName,
+                :final logoUrl,
+                :final abbreviation,
+                :final alwaysShowName,
+              ) =>
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _SetTile(
                       key: ValueKey<String>(setName),
                       setName: setName,
                       logoUrl: logoUrl,
+                      abbreviation: abbreviation,
+                      alwaysShowName: alwaysShowName,
                     ),
                     if (i < entries.length - 1 && entries[i + 1] is _BrowseSetRow)
                       const Divider(height: 1, indent: 16),
@@ -227,9 +247,16 @@ class _BrowseSectionHeader extends _BrowseEntry {
 }
 
 class _BrowseSetRow extends _BrowseEntry {
-  const _BrowseSetRow({required this.setName, required this.logoUrl});
+  const _BrowseSetRow({
+    required this.setName,
+    required this.logoUrl,
+    required this.abbreviation,
+    required this.alwaysShowName,
+  });
   final String setName;
   final String? logoUrl;
+  final String abbreviation;
+  final bool alwaysShowName;
 }
 
 class _SetSectionHeader extends StatelessWidget {
@@ -262,10 +289,14 @@ class _SetTile extends ConsumerStatefulWidget {
     super.key,
     required this.setName,
     required this.logoUrl,
+    required this.abbreviation,
+    required this.alwaysShowName,
   });
 
   final String setName;
   final String? logoUrl;
+  final String abbreviation;
+  final bool alwaysShowName;
 
   @override
   ConsumerState<_SetTile> createState() => _SetTileState();
@@ -281,7 +312,12 @@ class _SetTileState extends ConsumerState<_SetTile>
     super.build(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      title: SetLogoTitle(setName: widget.setName, logoUrl: widget.logoUrl),
+      title: SetLogoTitle(
+        setName: widget.setName,
+        logoUrl: widget.logoUrl,
+        abbreviation: widget.abbreviation,
+        alwaysShowName: widget.alwaysShowName,
+      ),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         ref.read(searchFiltersProvider.notifier).enterSet(widget.setName);

@@ -25,7 +25,7 @@ import { useSets } from '../hooks/useSets.js';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { fetchLastUpdatedTimestamp } from '../services/api.js';
 import { useDocumentHead } from '../utils/seo.js';
-import { browseTierLabel, setBrowseTier } from '../utils/setSort.js';
+import { BROWSE_TIER, browseTierLabel, setBrowseTier } from '../utils/setSort.js';
 
 const formatDate = (iso) => {
     if (!iso) return 'Unknown';
@@ -42,11 +42,26 @@ const formatMoney = (value) => {
 
 /**
  * Renders the official FAB set logo when available; falls back to the set name.
- * Logos replace the text title on each browse-sets row.
+ * Silver Age rows keep the set name visible because chapters share one logo.
  */
 const SetTitle = ({ set, textColor, mutedColor, isDark }) => {
     const [logoFailed, setLogoFailed] = useState(false);
     const showLogo = Boolean(set.logoUrl) && !logoFailed;
+    const showNameWithLogo = setBrowseTier(set.name) === BROWSE_TIER.SILVER_AGE;
+
+    const abbreviationLabel = set.abbreviation ? (
+        <Box
+            component="span"
+            sx={{
+                color: mutedColor,
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                flexShrink: 0
+            }}
+        >
+            {set.abbreviation}
+        </Box>
+    ) : null;
 
     if (showLogo) {
         return (
@@ -67,7 +82,7 @@ const SetTitle = ({ set, textColor, mutedColor, isDark }) => {
                     sx={{
                         display: 'block',
                         height: { xs: 28, sm: 34 },
-                        maxWidth: { xs: '70%', sm: 280 },
+                        maxWidth: { xs: showNameWithLogo ? '45%' : '70%', sm: 280 },
                         width: 'auto',
                         objectFit: 'contain',
                         objectPosition: 'left center',
@@ -80,19 +95,26 @@ const SetTitle = ({ set, textColor, mutedColor, isDark }) => {
                             : 'rgba(44, 24, 16, 0.04)'
                     }}
                 />
-                {set.abbreviation ? (
-                    <Box
-                        component="span"
-                        sx={{
-                            color: mutedColor,
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            flexShrink: 0
-                        }}
-                    >
-                        {set.abbreviation}
+                {showNameWithLogo ? (
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{
+                                color: textColor,
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                lineHeight: 1.25
+                            }}
+                        >
+                            {set.name}
+                        </Typography>
+                        {abbreviationLabel}
                     </Box>
-                ) : null}
+                ) : (
+                    abbreviationLabel
+                )}
             </Box>
         );
     }
