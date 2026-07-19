@@ -187,7 +187,7 @@ class _TradeSideList extends ConsumerWidget {
                   notifier.setQuantity(side, item.card.id, item.quantity - 1),
               onRemove: () => notifier.removeCard(side, item.card.id),
               onTap: () => _editFinish(
-                  context, ref, side, item, oppositeFinish(catalog, item.card)),
+                  context, ref, side, item, finishesForCard(catalog, item.card)),
             ),
           AddListRow(
             label: addLabel,
@@ -471,12 +471,9 @@ class _TradeItemRow extends StatelessWidget {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 14)),
                       ),
-                      if (item.card.isFoil) ...[
+                      if (item.card.finishBadgeShort != null) ...[
                         const SizedBox(width: 6),
-                        const PillBadge(
-                            label: 'FOIL',
-                            color: Color(0xFF9B5DE5),
-                            icon: Icons.auto_awesome),
+                        FinishBadge(card: item.card, compact: true),
                       ],
                     ],
                   ),
@@ -509,19 +506,17 @@ class _TradeItemRow extends StatelessWidget {
   }
 }
 
-/// Bottom sheet to switch a trade line between its Normal and Foil printing.
-/// The Foil switch is disabled when the card has no alternate finish.
+/// Bottom sheet to pick among available finishes for a trade line
+/// (Normal / Rainbow Foil / Cold Foil / …).
 void _editFinish(
   BuildContext context,
   WidgetRef ref,
   TradeSide side,
   TradeItem item,
-  CardModel? counterpart,
+  List<CardModel> finishes,
 ) {
   final pricing = ref.read(pricingProvider);
   final card = item.card;
-  final normal = card.isFoil ? counterpart : card;
-  final foil = card.isFoil ? card : counterpart;
 
   showModalBottomSheet<void>(
     context: context,
@@ -558,30 +553,42 @@ void _editFinish(
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: Icon(Icons.auto_awesome,
-                    color: card.isFoil
-                        ? const Color(0xFF9B5DE5)
-                        : theme.colorScheme.onSurfaceVariant),
-                title: const Text('Foil'),
-                subtitle: Text(
-                  counterpart == null
-                      ? 'No foil version of this card'
-                      : 'Foil ${pricing.priceLabel(foil!)}  ·  Normal ${pricing.priceLabel(normal!)}',
-                  style: theme.textTheme.bodySmall,
-                ),
-                value: card.isFoil,
-                onChanged: counterpart == null
-                    ? null
-                    : (_) {
-                        ref
-                            .read(tradeDraftProvider.notifier)
-                            .replaceCard(side, card.id, counterpart);
-                        Navigator.pop(ctx);
-                      },
-              ),
+              const SizedBox(height: 4),
+              Text('Finish', style: theme.textTheme.titleSmall),
+              if (finishes.length < 2)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No alternate finish for this card',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                )
+              else
+                for (final finish in finishes)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: finish.finishBadgeLabel == null
+                        ? Icon(Icons.style_outlined,
+                            color: theme.colorScheme.onSurfaceVariant)
+                        : Icon(Icons.auto_awesome,
+                            color: FinishBadge.colorFor(finish)),
+                    title: Text(finish.finishLabel),
+                    subtitle: Text(pricing.priceLabel(finish),
+                        style: theme.textTheme.bodySmall),
+                    trailing: finish.id == card.id
+                        ? Icon(Icons.check_circle,
+                            color: theme.colorScheme.primary)
+                        : null,
+                    onTap: finish.id == card.id
+                        ? null
+                        : () {
+                            ref
+                                .read(tradeDraftProvider.notifier)
+                                .replaceCard(side, card.id, finish);
+                            Navigator.pop(ctx);
+                          },
+                  ),
             ],
           ),
         ),

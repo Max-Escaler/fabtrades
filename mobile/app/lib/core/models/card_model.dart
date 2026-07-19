@@ -202,6 +202,29 @@ class CardModel {
     return isFoil ? 'Foil' : 'Normal';
   }
 
+  /// User-facing foil badge text that distinguishes Cold / Rainbow / Gold foil.
+  /// Returns null for Normal (and other non-foil) printings that should not
+  /// show a badge.
+  String? get finishBadgeLabel {
+    final sub = (subTypeName ?? '').toLowerCase();
+    if (sub.contains('cold foil')) return 'Cold Foil';
+    if (sub.contains('rainbow foil')) return 'Rainbow Foil';
+    if (sub.contains('gold foil')) return 'Gold Foil';
+    if (isFoil || sub.contains('foil') || sub.contains('holo')) return 'Foil';
+    return null;
+  }
+
+  /// Compact foil badge (CF / RF / GF / FOIL) for tight list rows. Null for
+  /// Normal printings.
+  String? get finishBadgeShort {
+    final sub = (subTypeName ?? '').toLowerCase();
+    if (sub.contains('cold foil')) return 'CF';
+    if (sub.contains('rainbow foil')) return 'RF';
+    if (sub.contains('gold foil')) return 'GF';
+    if (isFoil || sub.contains('foil') || sub.contains('holo')) return 'FOIL';
+    return null;
+  }
+
   // PostgREST can return numeric columns as num or String; handle both.
   static double? _toDouble(dynamic v) {
     if (v == null) return null;

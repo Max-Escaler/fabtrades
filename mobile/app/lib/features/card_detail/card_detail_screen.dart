@@ -101,11 +101,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                       runSpacing: 6,
                       children: [
                         RarityBadge(rarity: _selected.rarity),
-                        if (_selected.isFoil)
-                          const PillBadge(
-                              label: 'FOIL',
-                              color: Color(0xFF9B5DE5),
-                              icon: Icons.auto_awesome),
+                        FinishBadge(card: _selected),
                         if (owned > 0)
                           PillBadge(
                               label: 'Owned ×$owned',

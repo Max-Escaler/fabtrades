@@ -515,16 +515,40 @@ List<CardModel> _rankByName(
 /// [catalog], or null if this card has no alternate finish. Finishes of the
 /// same physical card share a `product_id` and differ only by `is_foil`.
 CardModel? oppositeFinish(List<CardModel> catalog, CardModel card) {
-  for (final c in catalog) {
-    if (c.isFoil == card.isFoil) continue;
-    if (card.productId != null && c.productId == card.productId) return c;
-    if (card.productId == null &&
-        c.name == card.name &&
-        c.collectorNumber == card.collectorNumber) {
-      return c;
-    }
+  final finishes = finishesForCard(catalog, card);
+  for (final c in finishes) {
+    if (c.id != card.id && c.isFoil != card.isFoil) return c;
   }
   return null;
+}
+
+/// All finish variants of the same TCGplayer product as [card]
+/// (Normal, Rainbow Foil, Cold Foil, …), ordered Normal-first then by label.
+/// Always includes [card] even when it is missing from [catalog].
+List<CardModel> finishesForCard(List<CardModel> catalog, CardModel card) {
+  final matches = <CardModel>[];
+  final seen = <String>{};
+  void add(CardModel c) {
+    if (seen.add(c.id)) matches.add(c);
+  }
+
+  if (card.productId != null) {
+    for (final c in catalog) {
+      if (c.productId == card.productId) add(c);
+    }
+  } else {
+    for (final c in catalog) {
+      if (c.name == card.name && c.collectorNumber == card.collectorNumber) {
+        add(c);
+      }
+    }
+  }
+  add(card);
+  matches.sort((a, b) {
+    if (a.isFoil != b.isFoil) return a.isFoil ? 1 : -1;
+    return a.finishLabel.compareTo(b.finishLabel);
+  });
+  return matches;
 }
 
 /// Reads card + price data from the shared Supabase database.

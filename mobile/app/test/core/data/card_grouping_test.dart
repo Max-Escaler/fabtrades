@@ -172,4 +172,25 @@ void main() {
       expect(oppositeFinish([normal], normal), isNull);
     });
   });
+
+  group('finishesForCard', () {
+    test('lists every finish for a productId, Normal first', () {
+      final normal = buildCard(
+          id: 'n', productId: 100, isFoil: false, subTypeName: 'Normal');
+      final rainbow = buildCard(
+          id: 'rf',
+          productId: 100,
+          isFoil: true,
+          subTypeName: 'Rainbow Foil');
+      final cold = buildCard(
+          id: 'cf', productId: 100, isFoil: true, subTypeName: 'Cold Foil');
+      final finishes = finishesForCard([cold, rainbow, normal], rainbow);
+      expect(finishes.map((c) => c.id), ['n', 'cf', 'rf']);
+    });
+
+    test('always includes the requested card', () {
+      final card = buildCard(id: 'lonely', productId: 9, isFoil: true);
+      expect(finishesForCard(const [], card).single.id, 'lonely');
+    });
+  });
 }

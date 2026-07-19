@@ -169,22 +169,106 @@ void main() {
   });
 
   group('finishLabel', () {
-    test('is Foil for a foil printing regardless of subType', () {
+    test('falls back to Foil when foil and no subType', () {
       expect(
         const CardModel(id: 'a', name: 'A', isFoil: true).finishLabel,
         'Foil',
       );
     });
 
-    test('uses subTypeName when not foil', () {
+    test('prefers subTypeName including Cold/Rainbow foil', () {
       expect(
-        const CardModel(id: 'a', name: 'A', subTypeName: 'Normal').finishLabel,
+        const CardModel(
+                id: 'a', name: 'A', subTypeName: 'Normal', isFoil: false)
+            .finishLabel,
         'Normal',
+      );
+      expect(
+        const CardModel(
+                id: 'b',
+                name: 'B',
+                subTypeName: 'Rainbow Foil',
+                isFoil: true)
+            .finishLabel,
+        'Rainbow Foil',
+      );
+      expect(
+        const CardModel(
+                id: 'c', name: 'C', subTypeName: 'Cold Foil', isFoil: true)
+            .finishLabel,
+        'Cold Foil',
       );
     });
 
     test('falls back to Normal when no subType and not foil', () {
       expect(const CardModel(id: 'a', name: 'A').finishLabel, 'Normal');
+    });
+  });
+
+  group('finish badges', () {
+    test('distinguishes cold, rainbow, and gold foil labels', () {
+      expect(
+        const CardModel(
+                id: 'cf', name: 'A', subTypeName: 'Cold Foil', isFoil: true)
+            .finishBadgeLabel,
+        'Cold Foil',
+      );
+      expect(
+        const CardModel(
+                id: 'rf',
+                name: 'A',
+                subTypeName: 'Rainbow Foil',
+                isFoil: true)
+            .finishBadgeLabel,
+        'Rainbow Foil',
+      );
+      expect(
+        const CardModel(
+                id: 'gf', name: 'A', subTypeName: 'Gold Foil', isFoil: true)
+            .finishBadgeLabel,
+        'Gold Foil',
+      );
+      expect(
+        const CardModel(id: 'f', name: 'A', isFoil: true).finishBadgeLabel,
+        'Foil',
+      );
+      expect(
+        const CardModel(id: 'n', name: 'A', subTypeName: 'Normal')
+            .finishBadgeLabel,
+        isNull,
+      );
+    });
+
+    test('compact badges use CF / RF / GF / FOIL', () {
+      expect(
+        const CardModel(
+                id: 'cf', name: 'A', subTypeName: 'Cold Foil', isFoil: true)
+            .finishBadgeShort,
+        'CF',
+      );
+      expect(
+        const CardModel(
+                id: 'rf',
+                name: 'A',
+                subTypeName: 'Rainbow Foil',
+                isFoil: true)
+            .finishBadgeShort,
+        'RF',
+      );
+      expect(
+        const CardModel(
+                id: 'gf', name: 'A', subTypeName: 'Gold Foil', isFoil: true)
+            .finishBadgeShort,
+        'GF',
+      );
+      expect(
+        const CardModel(id: 'f', name: 'A', isFoil: true).finishBadgeShort,
+        'FOIL',
+      );
+      expect(
+        const CardModel(id: 'n', name: 'A').finishBadgeShort,
+        isNull,
+      );
     });
   });
 

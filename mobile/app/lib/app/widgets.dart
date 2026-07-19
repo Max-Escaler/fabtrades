@@ -427,6 +427,37 @@ class RarityBadge extends StatelessWidget {
   }
 }
 
+/// Foil finish badge that distinguishes Cold / Rainbow / Gold foil (instead of
+/// a generic "FOIL" label). Hidden for Normal printings.
+class FinishBadge extends StatelessWidget {
+  const FinishBadge({super.key, required this.card, this.compact = false});
+
+  final CardModel card;
+
+  /// When true, use short labels (CF / RF / GF / FOIL) for tight rows.
+  final bool compact;
+
+  /// Cold foil — blue/silver; Rainbow — purple; Gold — amber; other foil — purple.
+  static Color colorFor(CardModel card) {
+    final sub = (card.subTypeName ?? '').toLowerCase();
+    if (sub.contains('cold foil')) return const Color(0xFF3B82C4);
+    if (sub.contains('gold foil')) return const Color(0xFFC9A227);
+    // Rainbow foil and generic foil share the established purple accent.
+    return const Color(0xFF9B5DE5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = compact ? card.finishBadgeShort : card.finishBadgeLabel;
+    if (label == null) return const SizedBox.shrink();
+    return PillBadge(
+      label: compact ? label : label.toUpperCase(),
+      color: colorFor(card),
+      icon: Icons.auto_awesome,
+    );
+  }
+}
+
 /// Reusable list row for a card printing (used in search, picker, results).
 class CardRow extends StatelessWidget {
   const CardRow({
@@ -493,11 +524,7 @@ class CardRow extends StatelessWidget {
                       children: [
                         CardMetaLine(card: card),
                         RarityBadge(rarity: card.rarity),
-                        if (card.isFoil)
-                          const PillBadge(
-                              label: 'FOIL',
-                              color: Color(0xFF9B5DE5),
-                              icon: Icons.auto_awesome),
+                        FinishBadge(card: card),
                       ],
                     )
                   else ...[
@@ -506,12 +533,9 @@ class CardRow extends StatelessWidget {
                     Row(
                       children: [
                         RarityBadge(rarity: card.rarity),
-                        if (card.isFoil) ...[
+                        if (card.finishBadgeLabel != null) ...[
                           const SizedBox(width: 5),
-                          const PillBadge(
-                              label: 'FOIL',
-                              color: Color(0xFF9B5DE5),
-                              icon: Icons.auto_awesome),
+                          FinishBadge(card: card),
                         ],
                       ],
                     ),

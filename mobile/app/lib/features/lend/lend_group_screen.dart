@@ -187,12 +187,9 @@ class _ItemRow extends ConsumerWidget {
                     Row(
                       children: [
                         RarityBadge(rarity: card.rarity),
-                        if (card.isFoil) ...[
+                        if (card.finishBadgeLabel != null) ...[
                           const SizedBox(width: 5),
-                          const PillBadge(
-                              label: 'FOIL',
-                              color: Color(0xFF9B5DE5),
-                              icon: Icons.auto_awesome),
+                          FinishBadge(card: card),
                         ],
                       ],
                     ),
