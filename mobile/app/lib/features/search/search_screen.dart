@@ -389,6 +389,14 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
     });
   }
 
+  /// Clear the TextField and the provider query together so they cannot desync.
+  void _clearQuery() {
+    _debounce?.cancel();
+    _controller.clear();
+    ref.read(searchFiltersProvider.notifier).setQuery('');
+    setState(() {});
+  }
+
   /// Pull-to-refresh: re-query Supabase so the latest synced prices show up,
   /// then toast when the pipeline last updated pricing.
   Future<void> _refresh() => refreshPricesWithToast(context, ref);
@@ -418,18 +426,20 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
                     ? null
                     : IconButton(
                         icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _controller.clear();
-                          ref
-                              .read(searchFiltersProvider.notifier)
-                              .setQuery('');
-                          setState(() {});
-                        },
+                        onPressed: _clearQuery,
                       ),
               ),
             ),
           ),
-          _FilterBar(filters: filters),
+          _FilterBar(
+            filters: filters,
+            onClear: () {
+              _debounce?.cancel();
+              _controller.clear();
+              ref.read(searchFiltersProvider.notifier).clear();
+              setState(() {});
+            },
+          ),
           const SizedBox(height: 4),
           Expanded(
             child: RefreshIndicator(
@@ -566,8 +576,9 @@ class _GroupTile extends ConsumerWidget {
 }
 
 class _FilterBar extends ConsumerWidget {
-  const _FilterBar({required this.filters});
+  const _FilterBar({required this.filters, required this.onClear});
   final CardFilters filters;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -601,7 +612,7 @@ class _FilterBar extends ConsumerWidget {
             ActionChip(
               label: const Text('Clear'),
               avatar: const Icon(Icons.close, size: 16),
-              onPressed: notifier.clear,
+              onPressed: onClear,
             ),
           ],
         ],
