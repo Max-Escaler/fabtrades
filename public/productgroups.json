@@ -1,5 +1,5 @@
 {
-    "totalItems": 102,
+    "totalItems": 103,
     "success": true,
     "errors": [],
     "results": [
@@ -18,7 +18,16 @@
             "abbreviation": "GEM",
             "isSupplemental": false,
             "publishedOn": "2026-09-25T00:00:00",
-            "modifiedOn": "2026-07-17T21:38:46.413",
+            "modifiedOn": "2026-07-20T19:19:32.82",
+            "categoryId": 62
+        },
+        {
+            "groupId": 24776,
+            "name": "Pre-release - Usurp the Shadow Throne",
+            "abbreviation": "IAR",
+            "isSupplemental": false,
+            "publishedOn": "2026-09-25T00:00:00",
+            "modifiedOn": "2026-07-20T19:35:12.233",
             "categoryId": 62
         },
         {
@@ -27,7 +36,7 @@
             "abbreviation": "IAR",
             "isSupplemental": false,
             "publishedOn": "2026-09-25T00:00:00",
-            "modifiedOn": "2026-07-17T21:40:51.947",
+            "modifiedOn": "2026-07-20T19:15:11.343",
             "categoryId": 62
         },
         {
@@ -36,7 +45,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2026-09-18T00:00:00",
-            "modifiedOn": "2026-07-17T20:04:10.84",
+            "modifiedOn": "2026-07-20T14:36:51.69",
             "categoryId": 62
         },
         {
@@ -45,7 +54,7 @@
             "abbreviation": "SAT",
             "isSupplemental": false,
             "publishedOn": "2026-09-18T00:00:00",
-            "modifiedOn": "2026-07-17T22:31:39.287",
+            "modifiedOn": "2026-07-20T14:37:35.563",
             "categoryId": 62
         },
         {
@@ -72,7 +81,7 @@
             "abbreviation": "GEM",
             "isSupplemental": false,
             "publishedOn": "2026-06-05T00:00:00",
-            "modifiedOn": "2026-07-13T18:53:55.78",
+            "modifiedOn": "2026-07-20T14:51:33.42",
             "categoryId": 62
         },
         {
@@ -207,7 +216,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2025-08-08T00:00:00",
-            "modifiedOn": "2025-08-07T16:17:38.5",
+            "modifiedOn": "2026-07-20T15:01:54.803",
             "categoryId": 62
         },
         {
@@ -630,7 +639,7 @@
             "abbreviation": "",
             "isSupplemental": false,
             "publishedOn": "2023-04-07T00:00:00",
-            "modifiedOn": "2025-03-03T22:52:50.06",
+            "modifiedOn": "2026-07-20T15:02:45.617",
             "categoryId": 62
         },
         {
@@ -864,7 +873,7 @@
             "abbreviation": "PR",
             "isSupplemental": false,
             "publishedOn": "2019-10-11T00:00:00",
-            "modifiedOn": "2026-07-17T15:05:03.103",
+            "modifiedOn": "2026-07-20T19:46:16.263",
             "categoryId": 62
         },
         {
