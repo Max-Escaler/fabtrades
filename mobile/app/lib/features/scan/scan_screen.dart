@@ -210,12 +210,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         return;
       }
 
+      final frameSw = Stopwatch()..start();
+
       // Signal 1: perceptual hash of the card inside the guide rectangle,
       // matched against the precomputed catalog hashes.
       var visual = const <CardModel>[];
       var bestDist = -1;
       var zScore = -1.0;
       var hashOk = false;
+      final hashSw = Stopwatch()..start();
       final hashIndex = ref.read(cardHashIndexProvider).asData?.value;
       if (hashIndex != null) {
         final hash = hashCameraFrame(image, rotation);
@@ -236,6 +239,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           ];
         }
       }
+      final hashMs = hashSw.elapsedMilliseconds;
 
       // Signal 2: OCR of the printed name + collector number.
       // Isolated from visual so an ML Kit / format failure on Android cannot
@@ -243,6 +247,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       var ocr = const <CardModel>[];
       var ocrNumbers = const <ScanNumber>[];
       var ocrNote = 'skip';
+      final ocrSw = Stopwatch()..start();
       final input = _toInputImage(image, rotation);
       if (input == null) {
         ocrNote = 'input=null fmt=${image.format.group}/'
@@ -262,17 +267,23 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           ocrNote = 'err=$e';
         }
       }
+      final ocrMs = ocrSw.elapsedMilliseconds;
 
       final matches =
           fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
       debugPrint(
         '[DEBUG-scan] rot=$rotation hash=${hashOk ? 'ok' : 'null'} '
         'best=$bestDist z=${zScore.toStringAsFixed(1)} '
-        'vis=${visual.length} ocr=${ocr.length} ($ocrNote)',
+        'vis=${visual.length} ocr=${ocr.length} ($ocrNote) '
+        'hashMs=$hashMs ocrMs=$ocrMs totalMs=${frameSw.elapsedMilliseconds}',
       );
       if (matches.isEmpty) {
         if (_pendingKey != null) {
           _pendingMisses++;
+          debugPrint(
+            '[DEBUG-scan] pending="$_pendingKey" hits=$_pendingHits '
+            'misses=$_pendingMisses (empty fuse)',
+          );
           if (_pendingMisses < 3) return; // tolerate brief OCR flicker
         }
         _pendingKey = null;
@@ -292,12 +303,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         _pendingKey = key;
         _pendingHits = 1;
       }
+      debugPrint('[DEBUG-scan] pending="$key" hits=$_pendingHits');
       if (_pendingHits >= 2) {
         final locked = [
           for (final c in matches)
             if (_scanConfirmKey(c) == key) c
         ];
-        debugPrint('[DEBUG-scan] LOCK key="$key" n=${locked.length}');
+        debugPrint(
+          '[DEBUG-scan] LOCK key="$key" n=${locked.length} '
+          'totalMs=${frameSw.elapsedMilliseconds}',
+        );
         await _lockOn(locked.isNotEmpty ? locked : matches);
       } else if (mounted) {
         setState(() => _statusMessage =
