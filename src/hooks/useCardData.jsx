@@ -173,7 +173,6 @@ const checkConsolidatedData = async () => {
 // Function to load consolidated JSON data
 const loadConsolidatedData = async () => {
     try {
-        console.log('Loading consolidated JSON data...');
         const response = await fetch('/price-guide/consolidated-data.json');
         if (!response.ok) {
             throw new Error(`Failed to fetch consolidated data: ${response.status}`);
@@ -185,7 +184,6 @@ const loadConsolidatedData = async () => {
             throw new Error('Invalid consolidated data format');
         }
 
-        console.log(`Loaded ${consolidatedData.data.length} records from consolidated JSON`);
         return consolidatedData;
     } catch (error) {
         console.error('Error loading consolidated data:', error);
@@ -196,10 +194,6 @@ const loadConsolidatedData = async () => {
 // Function to process JSON records and filter for actual cards
 const processJsonData = (jsonData) => {
     const allCards = [];
-    let totalRows = jsonData.length;
-    let filteredRows = 0;
-
-    console.log(`Processing ${totalRows} records from JSON data...`);
 
     jsonData.forEach(row => {
         // Only process actual cards
@@ -208,12 +202,9 @@ const processJsonData = (jsonData) => {
             if (card.name && card.name.trim()) {
                 allCards.push(card);
             }
-        } else {
-            filteredRows++;
         }
     });
 
-    console.log(`Processed ${allCards.length} actual cards, filtered out ${filteredRows} non-card products`);
     return allCards;
 };
 
@@ -297,7 +288,6 @@ export const CardDataProvider = ({ children }) => {
                 const consolidatedStatus = await checkConsolidatedData();
 
                 if (consolidatedStatus.available) {
-                    console.log('Using consolidated JSON data...');
                     setDataSource('consolidated-json');
 
                     // Load consolidated JSON data
@@ -320,8 +310,6 @@ export const CardDataProvider = ({ children }) => {
 
                     setCards(enhancedCards);
                     setCardIdLookup(idLookup);
-
-                    console.log(`Successfully loaded ${enhancedCards.length} cards from consolidated JSON`);
                 } else {
                     throw new Error(`Consolidated data not available: ${consolidatedStatus.reason}`);
                 }

@@ -1,122 +1,19 @@
 /**
- * URL encoding utilities for sharing trades
- * Handles compression, validation, and backwards compatibility
+ * URL encoding utilities for sharing trades.
+ *
+ * A shared link carries the trade as a `trade` query param: base64 of the
+ * minimal JSON payload `{ v, t, h, w }`. Decoding reverses that exactly —
+ * base64 → UTF-8 → JSON. (An earlier "compression" scheme applied lossy
+ * single-letter substitutions to card names; it had no encoder counterpart
+ * and corrupted normal names, so it was removed.)
  */
 
-function decompress(str) {
-  try {
-    console.log('Starting decompression of:', str.substring(0, 50) + '...');
-    
-    // Step 1: Base64 decode
-    let decoded;
-    try {
-      decoded = atob(str);
-      console.log('Base64 decoded successfully, length:', decoded.length);
-    } catch (base64Error) {
-      console.error('Base64 decode failed:', base64Error);
-      throw base64Error;
-    }
-    
-    // Step 2: Handle UTF-8 decoding
-    let utf8Decoded;
-    try {
-      utf8Decoded = decodeURIComponent(escape(decoded));
-      console.log('UTF-8 decoded successfully');
-    } catch (utf8Error) {
-      console.warn('UTF-8 decode failed, using raw decoded:', utf8Error);
-      utf8Decoded = decoded;
-    }
-    
-    // Step 3: Decompress repeated patterns
-    let patternDecompressed;
-    try {
-      patternDecompressed = decompressRepeatedPatterns(utf8Decoded);
-      console.log('Pattern decompression successful');
-    } catch (patternError) {
-      console.warn('Pattern decompression failed, skipping:', patternError);
-      patternDecompressed = utf8Decoded;
-    }
-    
-    // Step 4: Decompress card names
-    let result;
-    try {
-      result = decompressCardNames(patternDecompressed);
-      console.log('Card name decompression successful');
-    } catch (cardError) {
-      console.warn('Card name decompression failed, skipping:', cardError);
-      result = patternDecompressed;
-    }
-    
-    console.log('Final decompressed result:', result.substring(0, 100) + '...');
-    return result;
-  } catch (error) {
-    console.error('Complete decompression failed:', error);
-    console.log('Attempting fallback decompression...');
-    
-    // Fallback: try simple base64 decode
-    try {
-      const fallback = atob(str);
-      console.log('Fallback base64 decode successful');
-      return decodeURIComponent(escape(fallback));
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      return str;
-    }
-  }
-}
-
-// Decompress repeated JSON patterns
-function decompressRepeatedPatterns(str) {
-  const patterns = [
-    ['α', '"n":"'],      // name field
-    ['β', '"p":'],       // price field
-    ['γ', '"q":'],       // quantity field
-    ['δ', '{"'],         // object start
-    ['ε', '"}'],         // object end
-    ['ζ', ',"'],         // comma quote
-    ['η', '":'],         // quote colon
-  ];
-  
-  let decompressed = str;
-  patterns.forEach(([replacement, pattern]) => {
-    decompressed = decompressed.replace(new RegExp(escapeRegExp(replacement), 'g'), pattern);
-  });
-  
-  return decompressed;
-}
-
-// Decompress card name patterns
-function decompressCardNames(str) {
-  const cardPatterns = [
-    ['◊', ' of '],
-    ['♦', ' the '],
-    ['♠', ' and '],
-    ['Lt', 'Lightning'],
-    ['Th', 'Thunder'],
-    ['St', 'Strike'],
-    ['At', 'Attack'],
-    ['Df', 'Defense'],
-    ['Ac', 'Action'],
-    ['Eq', 'Equipment'],
-    ['Wp', 'Weapon'],
-    ['Rb', 'Rainbow'],
-    ['Y', 'Yellow'],
-    ['B', 'Blue'],
-    ['R', 'Red'],
-    ['~', ' - '],
-  ];
-  
-  let decompressed = str;
-  cardPatterns.forEach(([replacement, pattern]) => {
-    decompressed = decompressed.replace(new RegExp(escapeRegExp(replacement), 'g'), pattern);
-  });
-  
-  return decompressed;
-}
-
-// Escape special characters for regex
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Decode a base64 string that encodes UTF-8 bytes back into a JS string,
+// without relying on the deprecated `escape`/`unescape` globals.
+function base64ToUtf8(b64) {
+  const binary = atob(b64);
+  const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 /**
@@ -127,75 +24,54 @@ export function decodeTradeFromURL() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const tradeParam = urlParams.get('trade');
-    
-    console.log('Raw trade param from URL:', tradeParam);
-    
+
     if (!tradeParam) {
-      console.log('No trade parameter found in URL');
       return null;
     }
 
-    // Handle potential double encoding issues
-    let decoded;
+    // Tolerate older, double-encoded links. `URLSearchParams` already decodes
+    // one layer of percent-encoding; a second decode is a no-op for raw base64.
+    let decoded = tradeParam;
     try {
       decoded = decodeURIComponent(tradeParam);
-      console.log('First decode attempt:', decoded.substring(0, 100) + '...');
-    } catch (error) {
-      console.warn('First decode failed, trying direct use:', error);
+    } catch {
       decoded = tradeParam;
     }
-    
-    // Try decompression
-    let decompressed;
+
+    let json;
     try {
-      decompressed = decompress(decoded);
-      console.log('Decompressed data:', decompressed.substring(0, 200) + '...');
+      json = base64ToUtf8(decoded);
     } catch (error) {
-      console.error('Decompression failed:', error);
-      // Try direct JSON parse in case it's not compressed
-      try {
-        decompressed = atob(decoded);
-        console.log('Direct base64 decode worked:', decompressed.substring(0, 100) + '...');
-      } catch (base64Error) {
-        console.error('Base64 decode also failed:', base64Error);
-        return null;
-      }
-    }
-    
-    // Parse JSON
-    let tradeData;
-    try {
-      tradeData = JSON.parse(decompressed);
-      console.log('Parsed trade data:', tradeData);
-    } catch (parseError) {
-      console.error('JSON parse failed:', parseError);
-      console.error('Raw data was:', decompressed);
+      console.error('Failed to base64-decode trade data:', error);
       return null;
     }
-    
+
+    let tradeData;
+    try {
+      tradeData = JSON.parse(json);
+    } catch (error) {
+      console.error('Failed to parse trade data JSON:', error);
+      return null;
+    }
+
     // Validate version
     if (!tradeData.v || tradeData.v > 1) {
       console.warn('Unsupported trade data version:', tradeData.v);
       return null;
     }
-    
-    // Check timestamp age (warn if older than 7 days)
-    if (tradeData.t) {
-      const ageInDays = (Date.now() - tradeData.t) / (1000 * 60 * 60 * 24);
-      if (ageInDays > 7) {
-        console.warn(`Trade data is ${Math.round(ageInDays)} days old, prices may be outdated`);
-      }
-    }
-    
-    // Convert timestamp back from minutes to milliseconds
+
+    // Timestamps are stored in minutes; convert back to milliseconds.
     const timestamp = tradeData.t ? tradeData.t * 60000 : null;
-    
+    const ageInDays = timestamp
+      ? (Date.now() - timestamp) / (1000 * 60 * 60 * 24)
+      : null;
+
     return {
       version: tradeData.v,
-      timestamp: timestamp,
+      timestamp,
       have: tradeData.h || [],
       want: tradeData.w || [],
-      ageInDays: timestamp ? (Date.now() - timestamp) / (1000 * 60 * 60 * 24) : null
+      ageInDays
     };
   } catch (error) {
     console.error('Failed to decode trade from URL:', error);
@@ -293,46 +169,28 @@ export function reconstructCardsFromURLData(cardData, cardGroups, cardIdLookup =
         cardQuantity = urlCard.q || 1;
       }
       
-      let cardData = null;
+      let matchedCard = null;
       let cardGroup = null;
-      let matchStrategy = 'unknown';
-      
+
       // Strategy 1: Try unique ID lookup first (fastest and most reliable)
       if (cardIdLookup[cardIdentifier]) {
-        cardData = cardIdLookup[cardIdentifier];
+        matchedCard = cardIdLookup[cardIdentifier];
         // Find the card group that contains this card
-        cardGroup = cardGroups.find(group => 
-          group.name === cardData.displayName
+        cardGroup = cardGroups.find(group =>
+          group.name === matchedCard.displayName
         );
-        matchStrategy = 'unique-id';
-        console.log(`Card found by unique ID: "${cardIdentifier}" -> "${cardData.displayName}"`);
       }
-      
+
       // Strategy 2: Fallback to name-based matching for legacy URLs
       if (!cardGroup) {
         const matchResult = findBestCardMatch(cardIdentifier, cardGroups);
         if (matchResult) {
           cardGroup = matchResult.group;
-          matchStrategy = matchResult.strategy;
-          console.log(`Card matched using ${matchStrategy} strategy: "${cardIdentifier}" -> "${cardGroup.name}"`);
         }
       }
-      
+
       if (!cardGroup) {
         console.warn(`Card not found in current data after all matching attempts: ${cardIdentifier}`);
-        console.log('Available card groups sample:', cardGroups.slice(0, 5).map(g => g.name));
-        
-        // Enhanced debugging
-        const similarCards = cardGroups.filter(group => 
-          group.name.toLowerCase().includes('arknight') || 
-          group.name.toLowerCase().includes('shard') ||
-          normalizeCardName(group.name).includes(normalizeCardName(cardIdentifier).split(' ')[0])
-        ).slice(0, 5);
-        
-        if (similarCards.length > 0) {
-          console.log('Similar cards found:', similarCards.map(g => g.name));
-        }
-        
         return validCards;
       }
       

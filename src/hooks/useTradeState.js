@@ -90,9 +90,9 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
     };
 
     const updateQuantity = (list, setList, index, newQuantity) => {
-        const updatedList = [...list];
-        updatedList[index].quantity = newQuantity;
-        setList(updatedList);
+        setList(list.map((item, i) =>
+            i === index ? { ...item, quantity: newQuantity } : item
+        ));
     };
 
     // Refresh prices when catalog groups change (e.g. after data load).
@@ -140,13 +140,6 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                 setHaveList(reconstructedHave);
                 setWantList(reconstructedWant);
                 setHasLoadedFromURL(true);
-                
-                console.log(`Loaded trade from URL: ${reconstructedHave.length} have, ${reconstructedWant.length} want`);
-                
-                // Show warning if data is old
-                if (tradeData.ageInDays && tradeData.ageInDays > 7) {
-                    console.warn(`Trade data is ${Math.round(tradeData.ageInDays)} days old`);
-                }
             }
         }
     }, [cardGroups, cardIdLookup, hasLoadedFromURL]);
@@ -220,8 +213,6 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
 
         // Clear URL data when loading from history
         clearURLTradeData();
-
-        console.log(`Loaded trade from history: "${trade.name}" - ${reconstructedHave.length} have, ${reconstructedWant.length} want cards`);
     };
 
     const haveTotal = useMemo(() => calculateTotal(haveList), [haveList]);

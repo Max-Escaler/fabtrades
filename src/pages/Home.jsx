@@ -108,22 +108,20 @@ const Home = () => {
                     isLandscape={isLandscape}
                 />
 
-                {(tradeState.haveList.length >= 0 || tradeState.wantList.length >= 0) && (
-                    <TradeSummary
-                        haveList={tradeState.haveList}
-                        wantList={tradeState.wantList}
-                        haveTotal={tradeState.haveTotal}
-                        wantTotal={tradeState.wantTotal}
-                        haveLowTotal={tradeState.haveLowTotal}
-                        wantLowTotal={tradeState.wantLowTotal}
-                        diff={tradeState.diff}
-                        lowDiff={tradeState.lowDiff}
-                        isLandscape={isLandscape}
-                        clearURLTradeData={tradeState.clearURLTradeData}
-                        urlTradeData={tradeState.urlTradeData}
-                        hasLoadedFromURL={tradeState.hasLoadedFromURL}
-                    />
-                )}
+                <TradeSummary
+                    haveList={tradeState.haveList}
+                    wantList={tradeState.wantList}
+                    haveTotal={tradeState.haveTotal}
+                    wantTotal={tradeState.wantTotal}
+                    haveLowTotal={tradeState.haveLowTotal}
+                    wantLowTotal={tradeState.wantLowTotal}
+                    diff={tradeState.diff}
+                    lowDiff={tradeState.lowDiff}
+                    isLandscape={isLandscape}
+                    clearURLTradeData={tradeState.clearURLTradeData}
+                    urlTradeData={tradeState.urlTradeData}
+                    hasLoadedFromURL={tradeState.hasLoadedFromURL}
+                />
 
                 <CardPanel
                     title="Cards I Want"

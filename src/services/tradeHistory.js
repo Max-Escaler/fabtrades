@@ -1,6 +1,25 @@
 import { supabase } from '../lib/supabase';
 
 /**
+ * Ensure Supabase is configured and a user is authenticated.
+ * @param {string} unauthedMessage - Message to return when no user is signed in
+ * @returns {Promise<{ user: Object|null, error: Object|null }>}
+ */
+async function requireAuthenticatedUser(unauthedMessage) {
+    if (!supabase) {
+        return { user: null, error: { message: 'Authentication not configured' } };
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { user: null, error: { message: unauthedMessage } };
+    }
+
+    return { user, error: null };
+}
+
+/**
  * Save a trade to the user's trade history
  * @param {string} name - The name/title of the trade
  * @param {Array} haveList - Array of cards the user has
@@ -10,16 +29,9 @@ import { supabase } from '../lib/supabase';
  */
 export async function saveTradeToHistory(name, haveList, wantList, totals) {
     try {
-        // Check if Supabase is configured
-        if (!supabase) {
-            return { data: null, error: { message: 'Authentication not configured' } };
-        }
-
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-            return { data: null, error: { message: 'You must be logged in to save trades' } };
+        const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to save trades');
+        if (authError) {
+            return { data: null, error: authError };
         }
 
         // Validate input
@@ -60,16 +72,9 @@ export async function saveTradeToHistory(name, haveList, wantList, totals) {
  */
 export async function getUserTrades() {
     try {
-        // Check if Supabase is configured
-        if (!supabase) {
-            return { data: null, error: { message: 'Authentication not configured' } };
-        }
-
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-            return { data: null, error: { message: 'You must be logged in to view trade history' } };
+        const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to view trade history');
+        if (authError) {
+            return { data: null, error: authError };
         }
 
         // Fetch trades ordered by most recent first
@@ -95,16 +100,9 @@ export async function getUserTrades() {
  */
 export async function getTradeById(id) {
     try {
-        // Check if Supabase is configured
-        if (!supabase) {
-            return { data: null, error: { message: 'Authentication not configured' } };
-        }
-
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-            return { data: null, error: { message: 'You must be logged in to view trades' } };
+        const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to view trades');
+        if (authError) {
+            return { data: null, error: authError };
         }
 
         // Fetch specific trade
@@ -132,16 +130,9 @@ export async function getTradeById(id) {
  */
 export async function updateTrade(id, updates) {
     try {
-        // Check if Supabase is configured
-        if (!supabase) {
-            return { data: null, error: { message: 'Authentication not configured' } };
-        }
-
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-            return { data: null, error: { message: 'You must be logged in to update trades' } };
+        const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to update trades');
+        if (authError) {
+            return { data: null, error: authError };
         }
 
         // Update trade
@@ -172,16 +163,9 @@ export async function updateTrade(id, updates) {
  */
 export async function deleteTrade(id) {
     try {
-        // Check if Supabase is configured
-        if (!supabase) {
-            return { data: null, error: { message: 'Authentication not configured' } };
-        }
-
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-            return { data: null, error: { message: 'You must be logged in to delete trades' } };
+        const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to delete trades');
+        if (authError) {
+            return { data: null, error: authError };
         }
 
         // Delete trade

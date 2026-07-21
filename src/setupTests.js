@@ -3,6 +3,11 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
+
+// jsdom does not expose TextEncoder/TextDecoder globally; provide Node's.
+if (typeof globalThis.TextDecoder === 'undefined') globalThis.TextDecoder = TextDecoder;
+if (typeof globalThis.TextEncoder === 'undefined') globalThis.TextEncoder = TextEncoder;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
