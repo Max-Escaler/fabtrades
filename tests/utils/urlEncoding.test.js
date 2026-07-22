@@ -44,6 +44,74 @@ describe('decodeTradeFromURL', () => {
     expect(decoded.have[1][2]).toBe(3);
     expect(decoded.want[0][0]).toBe('DeltaVane');
   });
+
+  test('converts the timestamp from minutes to milliseconds and derives age', () => {
+    // 2 days ago, in whole minutes (the on-wire unit).
+    const twoDaysAgoMs = Date.now() - 2 * 24 * 60 * 60 * 1000;
+    const tMinutes = Math.floor(twoDaysAgoMs / 60000);
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ v: 1, t: tMinutes, h: [], w: [] })}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded.timestamp).toBe(tMinutes * 60000);
+    expect(decoded.ageInDays).toBeGreaterThan(1.9);
+    expect(decoded.ageInDays).toBeLessThan(2.1);
+  });
+
+  test('leaves timestamp and age null when no timestamp is present', () => {
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ v: 1, h: [['A', 1]], w: [] })}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded).not.toBeNull();
+    expect(decoded.timestamp).toBeNull();
+    expect(decoded.ageInDays).toBeNull();
+  });
+
+  test('defaults have and want to empty arrays when omitted', () => {
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ v: 1 })}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded).not.toBeNull();
+    expect(decoded.have).toEqual([]);
+    expect(decoded.want).toEqual([]);
+  });
+
+  test('rejects payloads with a newer, unsupported version', () => {
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ v: 2, h: [['A', 1]], w: [] })}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('rejects payloads with a missing or falsy version', () => {
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ h: [['A', 1]], w: [] })}`);
+    expect(decodeTradeFromURL()).toBeNull();
+
+    window.history.replaceState({}, '', `/?trade=${makeTradeParam({ v: 0, h: [], w: [] })}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('returns null when the base64 decodes to something that is not JSON', () => {
+    // Valid base64, but the decoded bytes are not JSON -> parse failure branch.
+    const param = encodeURIComponent(btoa('this is definitely not json'));
+    window.history.replaceState({}, '', `/?trade=${param}`);
+    expect(decodeTradeFromURL()).toBeNull();
+  });
+
+  test('round-trips card names verbatim, including letters the old lossy scheme corrupted', () => {
+    // The removed decompressor substituted single letters (B->Blue, R->Red,
+    // Y->Yellow) and digraphs (Lt->Lightning, Th->Thunder, St->Strike), which
+    // corrupted ordinary names. The new decoder must preserve them exactly.
+    const trickyNames = ['Blue Rider', 'Red Thunder Strike', 'Yellow Lightning', 'Café Ärẞt 龍'];
+    const param = makeTradeParam({
+      v: 1,
+      t: Math.floor(Date.now() / 60000),
+      h: trickyNames.map((name) => [name, 5]),
+      w: [],
+    });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const decoded = decodeTradeFromURL();
+    expect(decoded).not.toBeNull();
+    expect(decoded.have.map((c) => c[0])).toEqual(trickyNames);
+  });
 });
 
 describe('hasTradeDataInURL / clearTradeFromURL', () => {
