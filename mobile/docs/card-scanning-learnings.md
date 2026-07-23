@@ -35,7 +35,9 @@ differently by platform.
 
 | Factor | Webcam (Windows) | Pixel 6a |
 |---|---|---|
-| Stream format | BGRA8888 | NV21 via CameraX (requested nv21; plugin converts planes) |
+| Stream format | BGRA8888 | NV21 via **camera_android** (Camera2). CameraX
+  (`camera_android_camerax`) often mis-labels buffers → ML Kit
+  `InputImageConverterError` NPE on every frame — do not use it with OCR. |
 | Sensor orientation | Often 0° | Typically 90°; stream stays 1280×720 landscape |
 | OCR reliability | Relatively steady | Flickers empty between good frames; can throw `PlatformException` |
 | Printing variants in OCR hits | Felt fine | 6–12 Red/Yellow/Blue + foil + set rows for one physical card |
@@ -213,9 +215,19 @@ so name OCR remains primary).
    `card-scanning-research.md` (RiftTrades docs).
 3. **Remove or gate `[DEBUG-scan]` logs** for production if volume is noisy
    (keep them behind a debug flag).
-4. **Release-vs-debug ML Kit** — early Pixel release build threw
-   `PlatformException` every frame; debug later succeeded (model download /
-   timing). Worth a cold-install check on a fresh device before each store push.
+
+### Resolved: release-only ML Kit failure was R8, not model download
+
+Release builds threw `PlatformException(InputImageConverterError,
+NullPointerException ... getClass()' on a null object reference)` on **every**
+OCR frame while debug worked. Root cause: AGP 9 turned on strict R8 full-mode
+keep-rule enforcement, which is incompatible with ML Kit's shipped consumer
+ProGuard rules — R8 stripped the recognizer's internal protobuf-reflection
+classes (googlesamples/mlkit#1001, #1018). Fixed by
+`android.r8.strictFullModeForKeepRules=false` in `android/gradle.properties`;
+remove once ML Kit ships AGP 9-compatible rules. Symptom fingerprint: obfuscated
+`r8-map-id-…` stack frames ending in an internal `<init>`, deterministic in
+release, absent in debug.
 
 ---
 

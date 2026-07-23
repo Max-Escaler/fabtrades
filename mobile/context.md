@@ -57,11 +57,12 @@ the scan key), `is_sealed` (filter `= false`), `cardmarket_id`, `cardmarket_name
 
 ## Architecture decisions for the app
 - **State:** `flutter_riverpod` (no codegen).
-- **Persistence (user data):** `shared_preferences` storing JSON for settings, collection,
-  and trade history (small data, fully offline). Card catalog comes from Supabase (+
-  `cached_network_image` for art). Heavier drift/sqflite intentionally avoided for now.
-- **Navigation:** bottom nav shell (Search / Trade / Collection / Scan) via IndexedStack;
-  Settings + card detail are pushed routes.
+- **Persistence (user data):** `shared_preferences` storing JSON for settings, binder
+  (legacy key `collection_entries`), and trade history (small data, fully offline).
+  Card catalog comes from Supabase (+ `cached_network_image` for art). Heavier
+  drift/sqflite intentionally avoided for now.
+- **Navigation:** bottom nav shell (Browse · Trade · Binder · Lend) via IndexedStack;
+  Settings + card detail + scan are pushed routes.
 - **Charts:** `fl_chart`. **Scan:** `camera` + `google_mlkit_text_recognition`.
 - Money: store canonical value per printing = selected source/type (settings). USD default.
 
@@ -72,7 +73,8 @@ the scan key), `is_sealed` (filter `= false`), `cardmarket_id`, `cardmarket_name
 - Phase 2 offline cache: user data offline via prefs. Catalog still queried live from
   Supabase (no drift mirror yet — TODO if offline catalog is needed).
 - Phase 3 trade balancer + history: DONE (Have/Want + cash, live delta, save → history).
-- Phase 4 collection & want lists: DONE (owned/want tabs, totals, condition, qty, swipe-delete).
+- Phase 4 collection & want lists: DONE, then reworked into Phase 7 Binder
+  (tradeable stock + want list tabs; "Collection" left the UI).
 - Phase 5 scan: DONE, now VISUAL + OCR. The scanner fuses two offline signals per frame:
   (a) a 256-bit perceptual hash (pHash) of the card inside the guide rectangle, matched by
   Hamming distance against precomputed hashes of every catalog image (bundled asset
@@ -87,30 +89,42 @@ the scan key), `is_sealed` (filter `= false`), `cardmarket_id`, `cardmarket_name
 
 ## App code map (lib/)
 - `app/` — theme.dart, app.dart (HomeShell bottom nav), widgets.dart (CardThumbnail,
-  CardRow, PillBadge, RarityBadge), card_actions.dart (add-to sheet).
+  CardRow with Own/Wanted pills, PillBadge, RarityBadge), card_actions.dart (add-to sheet).
 - `core/models/` — card_model.dart (+PricePoint), app_settings.dart, trade.dart,
-  collection_entry.dart.
+  binder_entry.dart, lend_group.dart.
 - `core/data/` — card_repository.dart (search/filters/printings/history), settings/
-  collection/trade repositories (SharedPreferences JSON).
-- `core/logic/pricing.dart` — resolves canonical price for source/type with fallbacks.
-- `core/providers.dart` — all Riverpod providers + notifiers (settings, search, collection,
-  trade history, live trade draft). NOTE: `sharedPreferencesProvider` is overridden in main().
-- `features/` — search/ (search_screen + card_picker), card_detail/, trade/ (trade_screen +
-  trade_history_screen), collection/, scan/, settings/.
+  binder/trade/lend repositories (SharedPreferences JSON). Binder keeps prefs key
+  `collection_entries` for device-data continuity.
+- `core/logic/` — pricing.dart, confirm_trade.dart (binder reconcile), trade_filler.dart
+  (binder/want boost partition).
+- `core/providers.dart` — all Riverpod providers + notifiers (settings, search, binder,
+  trade history, live trade draft, lend). NOTE: `sharedPreferencesProvider` is overridden in main().
+- `features/` — search/ (browse + card_picker), card_detail/, trade/ (trade_screen +
+  confirm trade + filler + history), binder/ (Binder + Want List tabs), want_list/
+  (WantListPane grid), lend/, scan/, settings/.
 
 ## Gotchas / decisions made
 - State mgmt: Riverpod 3.x (Notifier/NotifierProvider). No codegen.
 - Do NOT put a nested `Scaffold.bottomNavigationBar` inside the IndexedStack tab screens —
-  it expands to full height. Use a Column with the bar as the last child (see trade_screen).
-- Trade draft is in-memory (resets on app restart, by design). Collection + trade history
-  persist via SharedPreferences.
+  it expands to full height. Use a Column with the bar as the last child (Confirm Trade
+  footer on TradeScreen follows this).
+- Trade draft is in-memory (resets on app restart, by design). Binder + trade history
+  persist via SharedPreferences (binder key still `collection_entries`).
 - Android manifest: added CAMERA/INTERNET permissions + mlkit `ocr` DEPENDENCIES meta-data.
 - Adding native plugins (camera/mlkit) requires a full `flutter run` rebuild, not hot reload.
 
 ## Current status / next steps
-All planned phases (1–5) implemented and verified on the emulator (screenshots taken of
-search, detail, trade, collection, scan, settings). Analyzer clean. Committed + pushed.
+Phases 1–5 done. **Phase 7 Binder (B1–B4) implemented:**
+- B1: Collection → Binder rename; `BinderScreen` with Binder + Want List tabs; nav is
+  Browse · Trade · Binder · Lend. Prefs key remains `collection_entries`.
+- B2: `ScanScreen.forBinder()` + type-via-picker; card actions say "Add to Binder".
+- B3: Confirm Trade on trade screen → history + binder reconcile (given leave /
+  received enter / want-list clear) + draft clear. First caller of `addTrade`.
+- B4: Trade Filler boosts Binder (my gap) / Want List (their gap); Own N / Wanted
+  pills on rows + tappable qty editor on card detail.
+- B5 deferred: binder value-over-time chart, lend exclusion from filler, cloud sync.
 
 Possible next steps: (a) drift offline catalog mirror (Phase 2 full), (b) Supabase Auth +
-cloud sync (Phase 6), (c) group search results by card name with a printings expander,
-(d) real-device OCR validation, (e) app icon + splash + store metadata.
+cloud sync (Phase 6 / B5), (c) real-device binder-page scan validation (sleeved glare),
+(d) B5 value-over-time once `fab_price_history` has depth, (e) app icon + splash +
+store metadata.

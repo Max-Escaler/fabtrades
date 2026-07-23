@@ -194,6 +194,10 @@ because search + trade balancing deliver most of the value first.
 - **Phase 4 — Collection & want lists.** Owned + wanted, totals, sorting.
 - **Phase 5 — Card scanning.** ML Kit OCR of `collector_number` → identify → add.
 - **Phase 6 — Cloud sync (optional).** Supabase Auth + RLS for multi-device user data.
+- **Phase 7 — Binder.** Tradeable-stock binder replacing the Collection concept: one
+  Binder nav tab (Binder + Want List views), scan/type add paths reusing existing flows,
+  Confirm Trade reconciles the binder, filler/badge synergies. Full plan in
+  [`BINDER-PLAN.md`](BINDER-PLAN.md); domain glossary in the repo-root `CONTEXT.md`.
 
 ---
 
