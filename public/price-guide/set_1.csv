@@ -1,0 +1,4 @@
+productId,name,cleanName,imageUrl,categoryId,groupId,url,modifiedOn,imageCount,extRarity,extNumber,extCardType,extCardSubType,extClass,extTalent,extIntellect,extLife,extPower
+706905,"Killjoy, the Crooked Blade",Killjoy the Crooked Blade,https://tcgplayer-cdn.tcgplayer.com/product/706905_200w.jpg,62,24773,https://cpt.tcgcsv.com/7NG7,2026-07-20T20:56:45.83,1,Rare,SPW001,Hero,Young,Warrior;Thief,Reviled,4,20,
+706906,"Zane, Broadly Beloved",Zane Broadly Beloved,https://tcgplayer-cdn.tcgplayer.com/product/706906_200w.jpg,62,24773,https://cpt.tcgcsv.com/8NG7,2026-07-20T20:57:01.127,1,Rare,SPW003,Hero,Young,Warrior,Revered,4,20,
+706907,Trained Saurian,Trained Saurian,https://tcgplayer-cdn.tcgplayer.com/product/706907_200w.jpg,62,24773,https://cpt.tcgcsv.com/9NG7,2026-07-20T20:56:53.77,1,Majestic,SPW012,Event,Ally,Generic,,,3,4
