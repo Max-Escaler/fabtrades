@@ -28,11 +28,11 @@ void main() {
 
   testWidgets('toggling dark mode updates settings state', (tester) async {
     final container = await pumpApp(tester, const SettingsScreen());
-    expect(container.read(settingsProvider).themeMode, AppThemeMode.light);
+    expect(container.read(settingsProvider).themeMode, AppThemeMode.dark);
 
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
-    expect(container.read(settingsProvider).themeMode, AppThemeMode.dark);
+    expect(container.read(settingsProvider).themeMode, AppThemeMode.light);
   });
 }

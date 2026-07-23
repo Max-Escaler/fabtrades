@@ -24,7 +24,7 @@ class AppSettings {
 
   const AppSettings({
     this.source = PriceSource.tcgplayer,
-    this.themeMode = AppThemeMode.light,
+    this.themeMode = AppThemeMode.dark,
   });
 
   AppSettings copyWith({
@@ -48,7 +48,7 @@ class AppSettings {
         ),
         themeMode: AppThemeMode.values.firstWhere(
           (e) => e.name == json['themeMode'],
-          orElse: () => AppThemeMode.light,
+          orElse: () => AppThemeMode.dark,
         ),
       );
 }

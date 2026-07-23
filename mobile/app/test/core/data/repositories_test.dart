@@ -120,7 +120,7 @@ void main() {
       final repo = SettingsRepository(await freshPrefs());
       final s = repo.load();
       expect(s.source, PriceSource.tcgplayer);
-      expect(s.themeMode, AppThemeMode.light);
+      expect(s.themeMode, AppThemeMode.dark);
     });
 
     test('save then load round-trips settings', () async {

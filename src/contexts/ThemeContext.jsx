@@ -200,17 +200,13 @@ const darkTheme = createTheme({
 });
 
 export const ThemeModeProvider = ({ children }) => {
-    // Check for saved preference or system preference
+    // Check for saved preference; default to dark
     const getInitialMode = () => {
         const saved = localStorage.getItem('fabtrades-theme-mode');
         if (saved) {
             return saved;
         }
-        // Check system preference
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-        }
-        return 'light';
+        return 'dark';
     };
 
     const [mode, setMode] = useState(getInitialMode);

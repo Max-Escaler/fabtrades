@@ -3,21 +3,21 @@ import 'package:fabtrades/core/models/app_settings.dart';
 
 void main() {
   group('AppSettings', () {
-    test('defaults to TCGplayer light theme', () {
+    test('defaults to TCGplayer dark theme', () {
       const s = AppSettings();
       expect(s.source, PriceSource.tcgplayer);
-      expect(s.themeMode, AppThemeMode.light);
+      expect(s.themeMode, AppThemeMode.dark);
     });
 
     test('copyWith overrides selectively', () {
       const s = AppSettings();
       final updated = s.copyWith(source: PriceSource.cardmarket);
       expect(updated.source, PriceSource.cardmarket);
-      expect(updated.themeMode, AppThemeMode.light);
+      expect(updated.themeMode, AppThemeMode.dark);
 
-      final dark = s.copyWith(themeMode: AppThemeMode.dark);
-      expect(dark.themeMode, AppThemeMode.dark);
-      expect(dark.source, PriceSource.tcgplayer);
+      final light = s.copyWith(themeMode: AppThemeMode.light);
+      expect(light.themeMode, AppThemeMode.light);
+      expect(light.source, PriceSource.tcgplayer);
     });
 
     test('toJson -> fromJson round-trips', () {
@@ -36,7 +36,7 @@ void main() {
         'themeMode': 'nope',
       });
       expect(restored.source, PriceSource.tcgplayer);
-      expect(restored.themeMode, AppThemeMode.light);
+      expect(restored.themeMode, AppThemeMode.dark);
     });
 
     test('fromJson ignores legacy type field and defaults themeMode when missing',
@@ -46,7 +46,7 @@ void main() {
         'type': 'low',
       });
       expect(restored.source, PriceSource.tcgplayer);
-      expect(restored.themeMode, AppThemeMode.light);
+      expect(restored.themeMode, AppThemeMode.dark);
     });
 
     test('enum metadata is correct', () {
