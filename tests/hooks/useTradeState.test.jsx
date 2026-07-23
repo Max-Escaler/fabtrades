@@ -51,6 +51,37 @@ describe('useTradeState — adding cards', () => {
     expect(result.current.haveList).toHaveLength(1);
   });
 
+  test('re-adding a card bumps its quantity, capped at 6', () => {
+    const { result } = setup();
+    for (let i = 0; i < 8; i += 1) {
+      act(() => result.current.addHaveCard('Card A'));
+    }
+    expect(result.current.haveList).toHaveLength(1);
+    expect(result.current.haveList[0].quantity).toBe(6);
+  });
+
+  test('bumps quantity when the same printing is re-added via an option object', () => {
+    const { result } = setup();
+    const option = {
+      label: 'Card A',
+      card: { _uniqueId: 'a-rf', subTypeName: 'Rainbow Foil' },
+    };
+    act(() => result.current.addHaveCard(option));
+    act(() => result.current.addHaveCard(option));
+
+    expect(result.current.haveList).toHaveLength(1);
+    expect(result.current.haveList[0]).toMatchObject({
+      subTypeName: 'Rainbow Foil',
+      quantity: 2,
+    });
+  });
+
+  test('ignores non-string, non-object input', () => {
+    const { result } = setup();
+    act(() => result.current.addHaveCard(123));
+    expect(result.current.haveList).toHaveLength(0);
+  });
+
   test('ignores unknown card names', () => {
     const { result } = setup();
     act(() => result.current.addHaveCard('Nonexistent Card'));
@@ -89,6 +120,19 @@ describe('useTradeState — removing & quantities', () => {
     act(() => result.current.updateHaveCardQuantity(0, 4));
     expect(result.current.haveList[0].quantity).toBe(4);
   });
+
+  test('removes and updates cards on the want side independently', () => {
+    const { result } = setup();
+    act(() => result.current.addWantCard('Card A'));
+    act(() => result.current.addWantCard('Card B'));
+
+    act(() => result.current.updateWantCardQuantity(1, 3));
+    expect(result.current.wantList[1].quantity).toBe(3);
+
+    act(() => result.current.removeWantCard(0));
+    expect(result.current.wantList).toHaveLength(1);
+    expect(result.current.wantList[0].name).toBe('Card B');
+  });
 });
 
 describe('useTradeState — totals & diff', () => {
@@ -108,6 +152,137 @@ describe('useTradeState — totals & diff', () => {
     expect(result.current.haveTotal).toBe(0);
     expect(result.current.wantTotal).toBe(0);
     expect(result.current.diff).toBe(0);
+  });
+});
+
+describe('useTradeState — price refresh on catalog change', () => {
+  test('re-prices existing cards when cardGroups reload with new prices', () => {
+    const initialGroups = [
+      { name: 'Card A', editions: [{ subTypeName: 'Normal', cardPrice: 10, lowPrice: 8, uniqueId: 'a-normal' }] },
+    ];
+    const { result, rerender } = renderHook(
+      ({ groups }) => useTradeState(groups, {}),
+      { initialProps: { groups: initialGroups } }
+    );
+
+    act(() => result.current.addHaveCard('Card A'));
+    expect(result.current.haveList[0].price).toBe(10);
+
+    const updatedGroups = [
+      { name: 'Card A', editions: [{ subTypeName: 'Normal', cardPrice: 15, lowPrice: 12, uniqueId: 'a-normal' }] },
+    ];
+    act(() => rerender({ groups: updatedGroups }));
+
+    expect(result.current.haveList[0].price).toBe(15);
+    expect(result.current.haveList[0].lowPrice).toBe(12);
+    expect(result.current.haveTotal).toBe(15);
+  });
+});
+
+describe('useTradeState — loadTradeFromHistory', () => {
+  test('does nothing when given a falsy trade', () => {
+    const { result } = setup();
+    act(() => result.current.addHaveCard('Card A'));
+    act(() => result.current.loadTradeFromHistory(null));
+    expect(result.current.haveList).toHaveLength(1);
+  });
+
+  test('reconstructs cards, matching editions by subTypeName and uniqueId', () => {
+    const { result } = setup();
+    act(() =>
+      result.current.loadTradeFromHistory({
+        have_list: [{ name: 'Card A', subTypeName: 'Rainbow Foil', quantity: 2 }],
+        want_list: [{ name: 'Card A', uniqueId: 'a-rf' }],
+      })
+    );
+
+    expect(result.current.haveList).toHaveLength(1);
+    expect(result.current.haveList[0]).toMatchObject({
+      name: 'Card A',
+      subTypeName: 'Rainbow Foil',
+      price: 25,
+      quantity: 2,
+    });
+    // Matched by uniqueId, quantity defaults to 1.
+    expect(result.current.wantList[0]).toMatchObject({
+      subTypeName: 'Rainbow Foil',
+      price: 25,
+      quantity: 1,
+    });
+  });
+
+  test('falls back to the first edition when no subTypeName/uniqueId is given', () => {
+    const { result } = setup();
+    act(() =>
+      result.current.loadTradeFromHistory({ have_list: [{ name: 'Card A' }], want_list: [] })
+    );
+    expect(result.current.haveList[0]).toMatchObject({
+      subTypeName: 'Normal',
+      price: 10,
+      quantity: 1,
+    });
+  });
+
+  test('drops saved cards that are no longer in the catalog', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result } = setup();
+    act(() =>
+      result.current.loadTradeFromHistory({
+        have_list: [{ name: 'Card A' }, { name: 'Deleted Card' }],
+        want_list: [],
+      })
+    );
+    expect(result.current.haveList).toHaveLength(1);
+    expect(result.current.haveList[0].name).toBe('Card A');
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  test('treats a non-array saved list as empty', () => {
+    const { result } = setup();
+    act(() =>
+      result.current.loadTradeFromHistory({ have_list: 'not-an-array', want_list: [{ name: 'Card B' }] })
+    );
+    expect(result.current.haveList).toHaveLength(0);
+    expect(result.current.wantList).toHaveLength(1);
+  });
+});
+
+describe('useTradeState — loading a trade from the URL', () => {
+  const buildTradeParam = (payload) => encodeURIComponent(btoa(JSON.stringify(payload)));
+
+  afterEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
+  test('reconstructs the trade encoded in the ?trade= param on mount', () => {
+    const param = buildTradeParam({
+      v: 1,
+      h: [['Card A', 25, 2]],
+      w: [['Card B', 5, 1]],
+    });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const { result } = setup();
+
+    expect(result.current.hasLoadedFromURL).toBe(true);
+    expect(result.current.urlTradeData).not.toBeNull();
+    expect(result.current.haveList[0]).toMatchObject({ name: 'Card A', price: 25, quantity: 2 });
+    expect(result.current.wantList[0]).toMatchObject({ name: 'Card B', price: 5 });
+  });
+
+  test('clearURLTradeData resets loaded state and strips the param', () => {
+    const param = buildTradeParam({ v: 1, h: [['Card A', 10, 1]], w: [] });
+    window.history.replaceState({}, '', `/?trade=${param}`);
+
+    const { result } = setup();
+    expect(result.current.hasLoadedFromURL).toBe(true);
+
+    act(() => result.current.clearURLTradeData());
+
+    expect(result.current.urlTradeData).toBeNull();
+    expect(result.current.hasLoadedFromURL).toBe(false);
+    expect(window.location.search).not.toContain('trade=');
   });
 });
 
