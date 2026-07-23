@@ -8,17 +8,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/app_update_repository.dart';
 import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
-import 'data/collection_repository.dart';
+import 'data/binder_repository.dart';
 import 'data/lend_repository.dart';
 import 'data/set_logo_cache.dart';
 import 'data/set_logos.dart';
 import 'data/set_published_on.dart';
 import 'data/settings_repository.dart';
 import 'data/trade_repository.dart';
+import 'logic/confirm_trade.dart';
 import 'logic/pricing.dart';
 import 'models/app_settings.dart';
+import 'models/binder_entry.dart';
 import 'models/card_model.dart';
-import 'models/collection_entry.dart';
 import 'models/lend_group.dart';
 import 'models/trade.dart';
 import 'scan/card_hash_index.dart';
@@ -215,17 +216,16 @@ final priceUpdatedAtProvider = Provider<DateTime?>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// Collection & want lists
+// Binder & want lists
 // ---------------------------------------------------------------------------
-final collectionRepositoryProvider = Provider<CollectionRepository>(
-    (ref) => CollectionRepository(ref.watch(sharedPreferencesProvider)));
+final binderRepositoryProvider = Provider<BinderRepository>(
+    (ref) => BinderRepository(ref.watch(sharedPreferencesProvider)));
 
-class CollectionNotifier extends Notifier<List<CollectionEntry>> {
+class BinderNotifier extends Notifier<List<BinderEntry>> {
   @override
-  List<CollectionEntry> build() =>
-      ref.watch(collectionRepositoryProvider).load();
+  List<BinderEntry> build() => ref.watch(binderRepositoryProvider).load();
 
-  void _persist() => ref.read(collectionRepositoryProvider).save(state);
+  void _persist() => ref.read(binderRepositoryProvider).save(state);
 
   void add(CardModel card,
       {int quantity = 1, String condition = 'NM', bool isWanted = false}) {
@@ -238,7 +238,7 @@ class CollectionNotifier extends Notifier<List<CollectionEntry>> {
       state = updated;
     } else {
       state = [
-        CollectionEntry(
+        BinderEntry(
           card: card,
           quantity: quantity,
           condition: condition,
@@ -284,14 +284,38 @@ class CollectionNotifier extends Notifier<List<CollectionEntry>> {
     _persist();
   }
 
+  /// Decrements binder/want qty, clamping at zero (silent — no warnings).
+  void decrement(String cardId, int quantity, {bool isWanted = false}) {
+    final current = quantityOf(cardId, isWanted: isWanted);
+    setQuantity(cardId, isWanted, current - quantity);
+  }
+
   int quantityOf(String cardId, {bool isWanted = false}) => state
       .where((e) => e.card.id == cardId && e.isWanted == isWanted)
       .fold<int>(0, (s, e) => s + e.quantity);
+
+  bool isWanted(String cardId) =>
+      state.any((e) => e.card.id == cardId && e.isWanted && e.quantity > 0);
+
+  /// Applies Confirm Trade binder side-effects (given leave / received enter /
+  /// want-list clear). Does not touch trade history or the draft.
+  void applyTradeConfirm(
+    Trade trade, {
+    required bool removeGivenFromBinder,
+    required bool addReceivedToBinder,
+  }) {
+    state = reconcileBinderAfterTrade(
+      entries: state,
+      trade: trade,
+      removeGivenFromBinder: removeGivenFromBinder,
+      addReceivedToBinder: addReceivedToBinder,
+    );
+    _persist();
+  }
 }
 
-final collectionProvider =
-    NotifierProvider<CollectionNotifier, List<CollectionEntry>>(
-        CollectionNotifier.new);
+final binderProvider =
+    NotifierProvider<BinderNotifier, List<BinderEntry>>(BinderNotifier.new);
 
 // ---------------------------------------------------------------------------
 // Lend / borrow tracker

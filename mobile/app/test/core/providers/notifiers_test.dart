@@ -81,42 +81,42 @@ void main() {
     });
   });
 
-  group('CollectionNotifier', () {
+  group('BinderNotifier', () {
     test('add merges quantity for a duplicate printing+list', () async {
       final c = await makeContainer();
-      final n = c.read(collectionProvider.notifier);
+      final n = c.read(binderProvider.notifier);
       final card = buildCard(id: 'k');
       n.add(card, quantity: 1);
       n.add(card, quantity: 2);
-      expect(c.read(collectionProvider).length, 1);
+      expect(c.read(binderProvider).length, 1);
       expect(n.quantityOf('k'), 3);
     });
 
-    test('same card in owned vs wanted are separate entries', () async {
+    test('same card in binder vs wanted are separate entries', () async {
       final c = await makeContainer();
-      final n = c.read(collectionProvider.notifier);
+      final n = c.read(binderProvider.notifier);
       final card = buildCard(id: 'k');
       n.add(card, isWanted: false);
       n.add(card, isWanted: true);
-      expect(c.read(collectionProvider).length, 2);
+      expect(c.read(binderProvider).length, 2);
       expect(n.quantityOf('k', isWanted: false), 1);
       expect(n.quantityOf('k', isWanted: true), 1);
     });
 
     test('setQuantity to zero removes the entry', () async {
       final c = await makeContainer();
-      final n = c.read(collectionProvider.notifier);
+      final n = c.read(binderProvider.notifier);
       n.add(buildCard(id: 'k'));
       n.setQuantity('k', false, 0);
-      expect(c.read(collectionProvider), isEmpty);
+      expect(c.read(binderProvider), isEmpty);
     });
 
     test('setCondition updates only the matching entry', () async {
       final c = await makeContainer();
-      final n = c.read(collectionProvider.notifier);
+      final n = c.read(binderProvider.notifier);
       n.add(buildCard(id: 'k'));
       n.setCondition('k', false, 'HP');
-      expect(c.read(collectionProvider).single.condition, 'HP');
+      expect(c.read(binderProvider).single.condition, 'HP');
     });
 
     test('state persists across a rebuilt container', () async {
@@ -125,14 +125,40 @@ void main() {
       final c1 = ProviderContainer(overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ]);
-      c1.read(collectionProvider.notifier).add(buildCard(id: 'persist'));
+      c1.read(binderProvider.notifier).add(buildCard(id: 'persist'));
       c1.dispose();
 
       final c2 = ProviderContainer(overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ]);
       addTearDown(c2.dispose);
-      expect(c2.read(collectionProvider).single.card.id, 'persist');
+      expect(c2.read(binderProvider).single.card.id, 'persist');
+    });
+
+    test('applyTradeConfirm decrements, adds, clears want list, clamps',
+        () async {
+      final c = await makeContainer();
+      final n = c.read(binderProvider.notifier);
+      final given = buildCard(id: 'give');
+      final received = buildCard(id: 'recv');
+      n.add(given, quantity: 1); // will clamp when decrementing 2
+      n.add(received, quantity: 1, isWanted: true);
+
+      final trade = Trade(
+        id: 't1',
+        createdAt: DateTime.utc(2026, 1, 1),
+        haveItems: [TradeItem(card: given, quantity: 2, priceEach: 1)],
+        wantItems: [TradeItem(card: received, quantity: 1, priceEach: 2)],
+      );
+      n.applyTradeConfirm(trade,
+          removeGivenFromBinder: true, addReceivedToBinder: true);
+
+      final state = c.read(binderProvider);
+      expect(state.where((e) => e.card.id == 'give'), isEmpty);
+      expect(
+          state.where((e) => e.card.id == 'recv' && !e.isWanted).single.quantity,
+          1);
+      expect(state.where((e) => e.card.id == 'recv' && e.isWanted), isEmpty);
     });
   });
 

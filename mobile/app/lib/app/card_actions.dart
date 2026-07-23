@@ -71,21 +71,19 @@ Future<void> showCardActions(
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.inventory_2_outlined),
-              title: const Text('Add to Collection'),
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text('Add to Binder'),
               onTap: () {
-                ref.read(collectionProvider.notifier).add(card);
-                done('Added to Collection');
+                ref.read(binderProvider.notifier).add(card);
+                done('Added to Binder');
               },
             ),
             ListTile(
               leading: const Icon(Icons.favorite_border),
-              title: const Text('Add to Want list'),
+              title: const Text('Add to Want List'),
               onTap: () {
-                ref
-                    .read(collectionProvider.notifier)
-                    .add(card, isWanted: true);
-                done('Added to Want list');
+                ref.read(binderProvider.notifier).add(card, isWanted: true);
+                done('Added to Want List');
               },
             ),
           ],

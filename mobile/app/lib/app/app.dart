@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/models/app_settings.dart';
 import '../core/providers.dart';
+import '../features/binder/binder_screen.dart';
 import '../features/lend/lend_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/trade/trade_screen.dart';
 import '../features/update/update_prompt.dart';
-import '../features/want_list/want_list_screen.dart';
 import 'theme.dart';
 
 class FabTradesApp extends ConsumerWidget {
@@ -42,11 +42,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
 
   // Note: the Scan feature (ScanScreen) is still implemented and can be
-  // re-enabled by adding it back here and to the navigation destinations.
+  // opened via Browse / Binder add paths — it is not a top-level tab.
   static const _screens = [
     BrowseScreen(),
     TradeScreen(),
-    WantListScreen(),
+    BinderScreen(),
     LendScreen(),
   ];
 
@@ -86,9 +86,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             label: 'Trade',
           ),
           const NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Want List',
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Binder',
           ),
           const NavigationDestination(
             icon: Icon(Icons.sync_alt_outlined),

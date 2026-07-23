@@ -16,6 +16,18 @@ import '../../core/providers.dart';
 import '../../core/scan/frame_hasher.dart';
 import '../card_detail/card_detail_screen.dart';
 
+/// Where a locked scan match goes when the user taps it.
+enum ScanDestination {
+  /// Open card detail (default browse mode).
+  detail,
+
+  /// Add to a side of the live trade draft and keep scanning.
+  trade,
+
+  /// Add to the Binder (qty+1, NM) and keep scanning.
+  binder,
+}
+
 /// Live card scanner. Streams camera frames through two offline recognizers —
 /// a perceptual-hash match of the card image inside the guide rectangle
 /// against precomputed hashes of every catalog scan, and ML Kit OCR of the
@@ -23,17 +35,39 @@ import '../card_detail/card_detail_screen.dart';
 /// onto a card once the same top match is seen on two consecutive frames, so
 /// a steady aim identifies it hands-free.
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key, this.tradeSide});
+  const ScanScreen({
+    super.key,
+    this.destination = ScanDestination.detail,
+    this.tradeSide,
+  }) : assert(
+          destination != ScanDestination.trade || tradeSide != null,
+          'tradeSide is required when destination is trade',
+        );
 
-  /// When set, tapping a match adds that card straight to the given side of the
-  /// live trade draft, shows a confirmation, and keeps scanning — so several
-  /// cards can be added in a row without leaving the scanner.
+  final ScanDestination destination;
+
+  /// Required when [destination] is [ScanDestination.trade].
   final TradeSide? tradeSide;
 
   /// Opens the scanner wired to add scanned cards to [side] of the trade draft.
   static Future<void> forTrade(BuildContext context, TradeSide side) {
     return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => ScanScreen(tradeSide: side)),
+      MaterialPageRoute(
+        builder: (_) => ScanScreen(
+          destination: ScanDestination.trade,
+          tradeSide: side,
+        ),
+      ),
+    );
+  }
+
+  /// Opens the scanner wired to add scanned cards to the Binder.
+  static Future<void> forBinder(BuildContext context) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            const ScanScreen(destination: ScanDestination.binder),
+      ),
     );
   }
 
@@ -250,8 +284,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       final ocrSw = Stopwatch()..start();
       final input = _toInputImage(image, rotation);
       if (input == null) {
+        final bytes0 =
+            image.planes.isEmpty ? 0 : image.planes.first.bytes.length;
+        final expectedNv21 = image.width * image.height * 3 ~/ 2;
         ocrNote = 'input=null fmt=${image.format.group}/'
-            '${image.format.raw} planes=${image.planes.length}';
+            '${image.format.raw} planes=${image.planes.length} '
+            '${image.width}x${image.height} bytes0=$bytes0 '
+            'nv21Expect=$expectedNv21';
       } else {
         try {
           final result = await _recognizer.processImage(input);
@@ -264,7 +303,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
               : '"${snippet.length > 40 ? '${snippet.substring(0, 40)}…' : snippet}"';
         } catch (e) {
           // Full exception — PlatformException.message is the useful part.
-          ocrNote = 'err=$e';
+          ocrNote = 'err=$e fmt=${image.format.group}/${image.format.raw} '
+              'planes=${image.planes.length} '
+              '${image.width}x${image.height}';
         }
       }
       final ocrMs = ocrSw.elapsedMilliseconds;
@@ -358,6 +399,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   /// Matches the google_mlkit_commons contract: Android must be a single-plane
   /// NV21 buffer, iOS a single-plane BGRA8888 buffer. Anything else returns
   /// null so OCR is skipped rather than throwing and poisoning the frame.
+  ///
+  /// On Android we depend on `camera_android` (Camera2) rather than CameraX so
+  /// the stream is real NV21 — CameraX often mis-labels / mis-sizes buffers and
+  /// ML Kit then throws InputImageConverterError on every frame.
   InputImage? _toInputImage(CameraImage image, int rotationDegrees) {
     final rotation = InputImageRotationValue.fromRawValue(rotationDegrees);
     if (rotation == null) return null;
@@ -368,6 +413,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     if (Platform.isIOS && format != InputImageFormat.bgra8888) return null;
     if (image.planes.length != 1) return null;
     final plane = image.planes.first;
+
+    // NV21 = Y (w*h) + interleaved VU (w*h/2). Reject undersized buffers that
+    // make ML Kit's native converter NPE instead of a clear format error.
+    if (Platform.isAndroid) {
+      final expected = image.width * image.height * 3 ~/ 2;
+      if (plane.bytes.length < expected) return null;
+    }
 
     return InputImage.fromBytes(
       bytes: plane.bytes,
@@ -394,21 +446,35 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     });
   }
 
-  /// Adds a scanned card to the trade draft, confirms with a snackbar, and
-  /// immediately resumes scanning so more cards can be added in a row.
-  Future<void> _addToTrade(CardModel card) async {
-    final side = widget.tradeSide;
-    if (side == null) return;
-    ref.read(tradeDraftProvider.notifier).addCard(side, card);
+  /// Adds a scanned card to the trade draft or Binder, confirms with a
+  /// snackbar, and immediately resumes scanning so more cards can be added.
+  Future<void> _addLockedCard(CardModel card) async {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text('Added ${card.name} to trade'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    switch (widget.destination) {
+      case ScanDestination.trade:
+        final side = widget.tradeSide;
+        if (side == null) return;
+        ref.read(tradeDraftProvider.notifier).addCard(side, card);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Added ${card.name} to trade'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      case ScanDestination.binder:
+        ref.read(binderProvider.notifier).add(card);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Added ${card.name} to Binder'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      case ScanDestination.detail:
+        return;
+    }
     await _scanAgain();
   }
 
@@ -509,7 +575,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     ref.watch(cardHashIndexProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.tradeSide != null ? 'Scan a card to add' : 'Scan'),
+        title: Text(switch (widget.destination) {
+          ScanDestination.trade => 'Scan a card to add',
+          ScanDestination.binder => 'Scan into Binder',
+          ScanDestination.detail => 'Scan',
+        }),
         actions: [
           if (_cameraAvailable && !_locked)
             IconButton(
@@ -651,13 +721,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
       itemBuilder: (context, i) {
         final card = _matches[i];
-        if (widget.tradeSide != null) {
+        final quickAdd = widget.destination == ScanDestination.trade ||
+            widget.destination == ScanDestination.binder;
+        if (quickAdd) {
           return CardRow(
             card: card,
             priceLabel: pricing.priceLabel(card),
             secondaryLabel: pricing.lowPriceLabel(card),
             trailing: const Icon(Icons.add_circle),
-            onTap: () => _addToTrade(card),
+            onTap: () => _addLockedCard(card),
           );
         }
         return CardRow(

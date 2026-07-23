@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fabtrades/core/models/collection_entry.dart';
+import 'package:fabtrades/core/models/binder_entry.dart';
 
 import '../../support/fixtures.dart';
 
 void main() {
-  group('CollectionEntry', () {
+  group('BinderEntry', () {
     test('copyWith overrides only provided fields and keeps card/addedAt', () {
       final added = DateTime(2026, 2, 3);
-      final entry = CollectionEntry(
+      final entry = BinderEntry(
         card: buildCard(id: 'c1'),
         quantity: 1,
         condition: 'NM',
@@ -22,14 +22,14 @@ void main() {
     });
 
     test('toJson -> fromJson round-trips', () {
-      final entry = CollectionEntry(
+      final entry = BinderEntry(
         card: buildCard(id: 'c2', name: 'Jinx'),
         quantity: 3,
         condition: 'MP',
         isWanted: true,
         addedAt: DateTime.utc(2026, 4, 5, 6, 7, 8),
       );
-      final restored = CollectionEntry.fromJson(entry.toJson());
+      final restored = BinderEntry.fromJson(entry.toJson());
       expect(restored.card.id, 'c2');
       expect(restored.card.name, 'Jinx');
       expect(restored.quantity, 3);
@@ -39,7 +39,7 @@ void main() {
     });
 
     test('fromJson applies defaults for a minimal payload', () {
-      final restored = CollectionEntry.fromJson({
+      final restored = BinderEntry.fromJson({
         'card': buildCard().toStub(),
       });
       expect(restored.quantity, 1);
@@ -49,7 +49,7 @@ void main() {
     });
 
     test('conditions constant lists all grades', () {
-      expect(CollectionEntry.conditions, ['NM', 'LP', 'MP', 'HP', 'DMG']);
+      expect(BinderEntry.conditions, ['NM', 'LP', 'MP', 'HP', 'DMG']);
     });
   });
 }

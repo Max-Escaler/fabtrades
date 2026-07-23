@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/data/set_logo_cache.dart';
 import '../core/models/card_model.dart';
+import '../core/providers.dart';
 import 'theme.dart';
 
 /// Official FAB set logo for browse lists. Falls back to [setName] when the
@@ -459,7 +461,7 @@ class FinishBadge extends StatelessWidget {
 }
 
 /// Reusable list row for a card printing (used in search, picker, results).
-class CardRow extends StatelessWidget {
+class CardRow extends ConsumerWidget {
   const CardRow({
     super.key,
     required this.card,
@@ -471,6 +473,7 @@ class CardRow extends StatelessWidget {
     this.trailing,
     this.showThumbnail = true,
     this.inlineBadges = false,
+    this.showOwnership = true,
   });
 
   final CardModel card;
@@ -486,6 +489,9 @@ class CardRow extends StatelessWidget {
   /// line instead of on their own row below it (used by the browse list).
   final bool inlineBadges;
 
+  /// Shows "Own N" / "Wanted" pills from the Binder store when true.
+  final bool showOwnership;
+
   /// When set, a small marketplace attribution (e.g. "TCGplayer") is shown
   /// beneath the price so the source of the number is always clear.
   final String? priceSource;
@@ -494,8 +500,26 @@ class CardRow extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final owned = showOwnership
+        ? ref.watch(binderProvider.select(
+            (entries) => entries
+                .where((e) => e.card.id == card.id && !e.isWanted)
+                .fold<int>(0, (s, e) => s + e.quantity)))
+        : 0;
+    final wanted = showOwnership &&
+        ref.watch(binderProvider.select((entries) => entries
+            .any((e) => e.card.id == card.id && e.isWanted && e.quantity > 0)));
+
+    final ownership = <Widget>[
+      if (owned > 0)
+        PillBadge(label: 'Own $owned', color: AppTheme.positive, icon: Icons.check),
+      if (wanted)
+        PillBadge(
+            label: 'Wanted', color: AppTheme.wantAccent, icon: Icons.favorite),
+    ];
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -525,18 +549,21 @@ class CardRow extends StatelessWidget {
                         CardMetaLine(card: card),
                         RarityBadge(rarity: card.rarity),
                         FinishBadge(card: card),
+                        ...ownership,
                       ],
                     )
                   else ...[
                     CardMetaLine(card: card),
                     const SizedBox(height: 5),
-                    Row(
+                    Wrap(
+                      spacing: 5,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         RarityBadge(rarity: card.rarity),
-                        if (card.finishBadgeLabel != null) ...[
-                          const SizedBox(width: 5),
+                        if (card.finishBadgeLabel != null)
                           FinishBadge(card: card),
-                        ],
+                        ...ownership,
                       ],
                     ),
                   ],

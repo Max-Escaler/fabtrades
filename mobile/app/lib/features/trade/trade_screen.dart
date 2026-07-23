@@ -59,54 +59,177 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
           const SettingsAction(),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Flex-based split so panes can never be sized negative, regardless
-          // of the available height.
-          final avail =
-              (constraints.maxHeight - _dragBarHeight).clamp(1.0, double.infinity);
-          final frac = _topFraction.clamp(_minFraction, 1 - _minFraction);
-          final topFlex = (frac * 1000).round();
+      // Confirm Trade lives in a Column (not Scaffold.bottomNavigationBar) so
+      // it does not expand to full height inside the HomeShell IndexedStack.
+      body: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final avail = (constraints.maxHeight - _dragBarHeight)
+                    .clamp(1.0, double.infinity);
+                final frac = _topFraction.clamp(_minFraction, 1 - _minFraction);
+                final topFlex = (frac * 1000).round();
 
-          return Column(
-            children: [
-              Expanded(
-                flex: topFlex,
-                child: _TradeSideList(
-                  side: TradeSide.want,
-                  title: 'Their cards',
-                  accent: AppTheme.wantAccent,
-                  items: trade.wantItems,
-                  symbol: trade.currencySymbol,
-                  addLabel: 'Add their cards',
+                return Column(
+                  children: [
+                    Expanded(
+                      flex: topFlex,
+                      child: _TradeSideList(
+                        side: TradeSide.want,
+                        title: 'Their cards',
+                        accent: AppTheme.wantAccent,
+                        items: trade.wantItems,
+                        symbol: trade.currencySymbol,
+                        addLabel: 'Add their cards',
+                      ),
+                    ),
+                    _DragBar(
+                      trade: trade,
+                      settings: settings,
+                      pricing: pricing,
+                      onFindFiller: () => showTradeFillerSheet(context, ref),
+                      onDrag: (dy) {
+                        setState(() {
+                          _topFraction = (frac + dy / avail)
+                              .clamp(_minFraction, 1 - _minFraction);
+                        });
+                      },
+                    ),
+                    Expanded(
+                      flex: 1000 - topFlex,
+                      child: _TradeSideList(
+                        side: TradeSide.have,
+                        title: 'My cards',
+                        accent: AppTheme.haveAccent,
+                        items: trade.haveItems,
+                        symbol: trade.currencySymbol,
+                        addLabel: 'Add my cards',
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48)),
+                  onPressed: isEmpty ? null : () => _confirmTrade(context),
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Confirm Trade'),
                 ),
               ),
-              _DragBar(
-                trade: trade,
-                settings: settings,
-                pricing: pricing,
-                onFindFiller: () => showTradeFillerSheet(context, ref),
-                onDrag: (dy) {
-                  setState(() {
-                    _topFraction =
-                        (frac + dy / avail).clamp(_minFraction, 1 - _minFraction);
-                  });
-                },
-              ),
-              Expanded(
-                flex: 1000 - topFlex,
-                child: _TradeSideList(
-                  side: TradeSide.have,
-                  title: 'My cards',
-                  accent: AppTheme.haveAccent,
-                  items: trade.haveItems,
-                  symbol: trade.currencySymbol,
-                  addLabel: 'Add my cards',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmTrade(BuildContext context) async {
+    final draft = ref.read(tradeDraftProvider);
+    final given = draft.haveCount;
+    final received = draft.wantCount;
+    var removeGiven = true;
+    var addReceived = true;
+
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Confirm Trade',
+                        style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Giving $given ${given == 1 ? 'card' : 'cards'} · '
+                      'Receiving $received ${received == 1 ? 'card' : 'cards'}',
+                      style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(ctx).colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: removeGiven,
+                      onChanged: given == 0
+                          ? null
+                          : (v) => setSheetState(() => removeGiven = v ?? true),
+                      title: Text(
+                          'Remove my $given given ${given == 1 ? 'card' : 'cards'} from Binder'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: addReceived,
+                      onChanged: received == 0
+                          ? null
+                          : (v) =>
+                              setSheetState(() => addReceived = v ?? true),
+                      title: Text(
+                          'Add their $received ${received == 1 ? 'card' : 'cards'} to my Binder'),
+                      subtitle: const Text('Uncheck for deck-bound pulls'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Confirm'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        },
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final saved = Trade(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      createdAt: DateTime.now(),
+      notes: draft.notes,
+      haveItems: draft.haveItems,
+      wantItems: draft.wantItems,
+      haveCash: draft.haveCash,
+      wantCash: draft.wantCash,
+      currencySymbol: draft.currencySymbol,
+    );
+    ref.read(tradeHistoryProvider.notifier).addTrade(saved);
+    ref.read(binderProvider.notifier).applyTradeConfirm(
+          saved,
+          removeGivenFromBinder: removeGiven && given > 0,
+          addReceivedToBinder: addReceived && received > 0,
+        );
+    ref.read(tradeDraftProvider.notifier).clear();
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Trade confirmed'),
+        duration: Duration(seconds: 2),
       ),
     );
   }

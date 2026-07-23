@@ -46,7 +46,11 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final pricing = ref.watch(pricingProvider);
-    final owned = ref.watch(collectionProvider.notifier).quantityOf(_selected.id);
+    final owned = ref.watch(binderProvider.select((entries) => entries
+        .where((e) => e.card.id == _selected.id && !e.isWanted)
+        .fold<int>(0, (s, e) => s + e.quantity)));
+    final wanted = ref.watch(binderProvider.select((entries) => entries.any(
+        (e) => e.card.id == _selected.id && e.isWanted && e.quantity > 0)));
     final catalog = ref.watch(catalogProvider).maybeWhen(
           data: (cards) => cards,
           orElse: () => const <CardModel>[],
@@ -103,10 +107,18 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                         RarityBadge(rarity: _selected.rarity),
                         FinishBadge(card: _selected),
                         if (owned > 0)
+                          GestureDetector(
+                            onTap: () => _editBinderQty(context, owned),
+                            child: PillBadge(
+                                label: 'Own $owned',
+                                color: AppTheme.positive,
+                                icon: Icons.check),
+                          ),
+                        if (wanted)
                           PillBadge(
-                              label: 'Owned ×$owned',
-                              color: AppTheme.positive,
-                              icon: Icons.check),
+                              label: 'Wanted',
+                              color: AppTheme.wantAccent,
+                              icon: Icons.favorite),
                       ],
                     ),
                     if (printings.length >= 2) ...[
@@ -130,6 +142,52 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
       ),
       bottomNavigationBar: _ActionBar(card: _selected),
     );
+  }
+
+  Future<void> _editBinderQty(BuildContext context, int current) async {
+    var qty = current;
+    final saved = await showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Binder quantity'),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: qty > 0
+                        ? () => setDialogState(() => qty--)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  Text('$qty',
+                      style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800)),
+                  IconButton(
+                    onPressed: () => setDialogState(() => qty++),
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Cancel')),
+                FilledButton(
+                    onPressed: () => Navigator.pop(ctx, qty),
+                    child: const Text('Save')),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (saved == null || !mounted) return;
+    ref
+        .read(binderProvider.notifier)
+        .setQuantity(_selected.id, false, saved);
   }
 }
 
@@ -573,9 +631,7 @@ class _ActionBar extends ConsumerWidget {
                 icon: const Icon(Icons.favorite_border),
                 label: const Text('Want List'),
                 onPressed: () {
-                  ref
-                      .read(collectionProvider.notifier)
-                      .add(card, isWanted: true);
+                  ref.read(binderProvider.notifier).add(card, isWanted: true);
                   snack('Added to Want List');
                 },
               ),

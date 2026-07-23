@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fabtrades/core/data/catalog_repository.dart';
-import 'package:fabtrades/core/data/collection_repository.dart';
+import 'package:fabtrades/core/data/binder_repository.dart';
 import 'package:fabtrades/core/data/lend_repository.dart';
 import 'package:fabtrades/core/data/settings_repository.dart';
 import 'package:fabtrades/core/data/trade_repository.dart';
 import 'package:fabtrades/core/models/app_settings.dart';
-import 'package:fabtrades/core/models/collection_entry.dart';
+import 'package:fabtrades/core/models/binder_entry.dart';
 import 'package:fabtrades/core/models/lend_group.dart';
 import 'package:fabtrades/core/models/trade.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,16 +20,16 @@ void main() {
     return SharedPreferences.getInstance();
   }
 
-  group('CollectionRepository', () {
+  group('BinderRepository', () {
     test('returns empty when nothing stored', () async {
-      final repo = CollectionRepository(await freshPrefs());
+      final repo = BinderRepository(await freshPrefs());
       expect(repo.load(), isEmpty);
     });
 
     test('save then load round-trips entries', () async {
-      final repo = CollectionRepository(await freshPrefs());
+      final repo = BinderRepository(await freshPrefs());
       final entries = [
-        CollectionEntry(
+        BinderEntry(
           card: buildCard(id: 'c1', name: 'Vex'),
           quantity: 2,
           condition: 'LP',
@@ -47,9 +47,24 @@ void main() {
     });
 
     test('returns empty on corrupt json', () async {
-      final repo = CollectionRepository(
+      final repo = BinderRepository(
           await freshPrefs({'collection_entries': 'not json'}));
       expect(repo.load(), isEmpty);
+    });
+
+    test('reads legacy collection_entries key payloads', () async {
+      final prefs = await freshPrefs();
+      // Simulate a pre-rename payload written under the legacy key.
+      await prefs.setString(
+        'collection_entries',
+        '[{"card":{"id":"legacy","name":"Old","is_foil":false},'
+        '"quantity":4,"condition":"NM","is_wanted":false,'
+        '"added_at":"2026-01-01T00:00:00.000Z"}]',
+      );
+      final loaded = BinderRepository(prefs).load();
+      expect(loaded.single.card.id, 'legacy');
+      expect(loaded.single.quantity, 4);
+      expect(loaded.single.isWanted, isFalse);
     });
   });
 

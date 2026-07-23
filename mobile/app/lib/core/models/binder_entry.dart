@@ -1,14 +1,15 @@
 import 'card_model.dart';
 
-/// A card the user owns (or wants). Keyed by printing [CardModel.id].
-class CollectionEntry {
+/// A card in the user's Binder (tradeable stock) or Want List.
+/// Keyed by printing [CardModel.id].
+class BinderEntry {
   final CardModel card;
   final int quantity;
   final String condition; // e.g. NM, LP, MP, HP, DMG
-  final bool isWanted; // true => want list, false => owned
+  final bool isWanted; // true => want list, false => binder
   final DateTime addedAt;
 
-  const CollectionEntry({
+  const BinderEntry({
     required this.card,
     this.quantity = 1,
     this.condition = 'NM',
@@ -16,12 +17,12 @@ class CollectionEntry {
     required this.addedAt,
   });
 
-  CollectionEntry copyWith({
+  BinderEntry copyWith({
     int? quantity,
     String? condition,
     bool? isWanted,
   }) =>
-      CollectionEntry(
+      BinderEntry(
         card: card,
         quantity: quantity ?? this.quantity,
         condition: condition ?? this.condition,
@@ -37,8 +38,7 @@ class CollectionEntry {
         'added_at': addedAt.toIso8601String(),
       };
 
-  factory CollectionEntry.fromJson(Map<String, dynamic> json) =>
-      CollectionEntry(
+  factory BinderEntry.fromJson(Map<String, dynamic> json) => BinderEntry(
         card: CardModel.fromStub(
             Map<String, dynamic>.from(json['card'] as Map)),
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,

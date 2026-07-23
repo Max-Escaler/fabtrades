@@ -2,69 +2,81 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
-import '../../core/models/collection_entry.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../search/card_picker.dart';
 
-/// A full-screen collage of large card images meant to be handed to another
-/// player at an event so they can scroll through and check their binder.
-///
-/// Backed by the "wanted" entries of the shared collection store, so the list
-/// persists and stays in sync with the rest of the app.
-class WantListScreen extends ConsumerStatefulWidget {
-  const WantListScreen({super.key});
+/// Show-mode collage of Want List cards — embedded as the Want List tab inside
+/// [BinderScreen], or usable standalone with its own scaffold.
+class WantListPane extends ConsumerStatefulWidget {
+  const WantListPane({super.key, this.onAdd, this.showFab = false});
+
+  /// Called when the empty-state add button is pressed. Defaults to the
+  /// card picker + binder want-list add if null.
+  final VoidCallback? onAdd;
+
+  /// When true, shows its own FAB (standalone use). Binder hosts its own FAB.
+  final bool showFab;
 
   @override
-  ConsumerState<WantListScreen> createState() => _WantListScreenState();
+  ConsumerState<WantListPane> createState() => _WantListPaneState();
 }
 
-class _WantListScreenState extends ConsumerState<WantListScreen> {
+class _WantListPaneState extends ConsumerState<WantListPane> {
   bool _editing = false;
 
   @override
   Widget build(BuildContext context) {
-    final wanted = ref
-        .watch(collectionProvider)
-        .where((e) => e.isWanted)
-        .toList();
+    final wanted =
+        ref.watch(binderProvider).where((e) => e.isWanted).toList();
+
+    final body = wanted.isEmpty
+        ? _EmptyState(onAdd: widget.onAdd ?? () => _defaultAdd(context))
+        : Column(
+            children: [
+              if (wanted.isNotEmpty)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: Icon(_editing ? Icons.done : Icons.edit_outlined),
+                    tooltip: _editing ? 'Done' : 'Edit',
+                    onPressed: () => setState(() => _editing = !_editing),
+                  ),
+                ),
+              Expanded(
+                child: _WantGrid(entries: wanted, editing: _editing),
+              ),
+            ],
+          );
+
+    if (!widget.showFab) return body;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Want List'),
-        actions: [
-          if (wanted.isNotEmpty)
-            IconButton(
-              icon: Icon(_editing ? Icons.done : Icons.edit_outlined),
-              tooltip: _editing ? 'Done' : 'Edit',
-              onPressed: () => setState(() => _editing = !_editing),
-            ),
-        ],
-      ),
-      body: wanted.isEmpty
-          ? _EmptyState(onAdd: () => _add(context))
-          : _WantGrid(entries: wanted, editing: _editing),
+      appBar: AppBar(title: const Text('Want List')),
+      body: body,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'wantListFab',
-        onPressed: () => _add(context),
+        onPressed: widget.onAdd ?? () => _defaultAdd(context),
         icon: const Icon(Icons.add),
         label: const Text('Add card'),
       ),
     );
   }
 
-  Future<void> _add(BuildContext context) async {
-    final card = await CardPickerScreen.show(context, title: 'Add to want list');
+  Future<void> _defaultAdd(BuildContext context) async {
+    final card =
+        await CardPickerScreen.show(context, title: 'Add to Want List');
     if (card == null) return;
-    ref.read(collectionProvider.notifier).add(card, isWanted: true);
+    ref.read(binderProvider.notifier).add(card, isWanted: true);
   }
 }
 
 class _WantGrid extends ConsumerWidget {
   const _WantGrid({required this.entries, required this.editing});
 
-  final List<CollectionEntry> entries;
+  final List<BinderEntry> entries;
   final bool editing;
 
   @override
@@ -83,7 +95,7 @@ class _WantGrid extends ConsumerWidget {
         entry: entries[i],
         editing: editing,
         onRemove: () => ref
-            .read(collectionProvider.notifier)
+            .read(binderProvider.notifier)
             .remove(entries[i].card.id, true),
       ),
     );
@@ -97,7 +109,7 @@ class _WantCard extends StatelessWidget {
     required this.onRemove,
   });
 
-  final CollectionEntry entry;
+  final BinderEntry entry;
   final bool editing;
   final VoidCallback onRemove;
 

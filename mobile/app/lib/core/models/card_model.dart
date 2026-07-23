@@ -170,7 +170,7 @@ class CardModel {
         'cm_trend_foil': cmTrendFoil,
       };
 
-  /// Compact map used to cache a printing alongside user data (collection/trades),
+  /// Compact map used to cache a printing alongside user data (binder/trades),
   /// so those screens can render without a network round-trip.
   Map<String, dynamic> toStub() => {
         'id': id,

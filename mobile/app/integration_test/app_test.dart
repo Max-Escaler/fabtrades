@@ -65,7 +65,7 @@ void main() {
 
     expect(find.text('Browse'), findsWidgets);
     expect(find.text('Trade'), findsWidgets);
-    expect(find.text('Want List'), findsWidgets);
+    expect(find.text('Binder'), findsWidgets);
     expect(find.text('Lend'), findsWidgets);
   });
 

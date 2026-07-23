@@ -4,14 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
 import '../../core/logic/pricing.dart';
+import '../../core/logic/trade_filler.dart';
+import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
 
 /// Opens the "Find Trade Filler" popup. It looks at the current value gap
 /// between the two sides of the live trade and suggests catalog cards whose
-/// price most closely matches that gap, so the player who owes value can spot
-/// a card they might have to even things out.
+/// price most closely matches that gap, boosting binder / want-list cards
+/// to the top without filtering the rest of the catalog.
 Future<void> showTradeFillerSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet<void>(
     context: context,
@@ -19,21 +21,6 @@ Future<void> showTradeFillerSheet(BuildContext context, WidgetRef ref) {
     isScrollControlled: true,
     builder: (_) => const _TradeFillerSheet(),
   );
-}
-
-/// A candidate filler card together with how far its price sits from the gap.
-class _FillerMatch {
-  const _FillerMatch({
-    required this.card,
-    required this.price,
-    required this.gapDistance,
-  });
-
-  final CardModel card;
-  final double price;
-
-  /// Absolute distance between this card's price and the value gap to fill.
-  final double gapDistance;
 }
 
 class _TradeFillerSheet extends ConsumerStatefulWidget {
@@ -52,6 +39,7 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
     final trade = ref.watch(tradeDraftProvider);
     final pricing = ref.watch(pricingProvider);
     final catalog = ref.watch(catalogProvider).asData?.value ?? const [];
+    final binder = ref.watch(binderProvider);
 
     final symbol = trade.currencySymbol;
     // + gap => their side is worth more, so MY (have) side needs value.
@@ -78,8 +66,6 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
               if (balanced)
                 _balancedState(theme)
               else ...[
-                _resultsHeader(theme),
-                const SizedBox(height: 8),
                 Flexible(
                   child: _results(
                     context: context,
@@ -89,6 +75,8 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
                     target: target,
                     fillSide: fillSide,
                     symbol: symbol,
+                    sideIsMine: sideIsMine,
+                    binderEntries: binder,
                     catalogLoading:
                         ref.watch(catalogProvider).asData == null,
                   ),
@@ -162,17 +150,16 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
     );
   }
 
-  Widget _resultsHeader(ThemeData theme) {
-    return Row(
-      children: [
-        Icon(Icons.sort, size: 16, color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(width: 6),
-        Text(
-          'Closest matches first',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+  Widget _sectionLabel(ThemeData theme, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 6),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
         ),
-      ],
+      ),
     );
   }
 
@@ -184,6 +171,8 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
     required double target,
     required TradeSide fillSide,
     required String symbol,
+    required bool sideIsMine,
+    required List<BinderEntry> binderEntries,
     required bool catalogLoading,
   }) {
     if (catalogLoading && catalog.isEmpty) {
@@ -193,20 +182,16 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
       );
     }
 
-    final matches = <_FillerMatch>[];
-    for (final card in catalog) {
-      final price = pricing.value(card);
-      if (price == null || price <= 0) continue;
-      matches.add(_FillerMatch(
-        card: card,
-        price: price,
-        gapDistance: (price - target).abs(),
-      ));
-    }
-    matches.sort((a, b) => a.gapDistance.compareTo(b.gapDistance));
-    final top = matches.take(_maxResults).toList();
+    final partition = partitionFillerMatches(
+      catalog: catalog,
+      pricing: pricing,
+      target: target,
+      fillSide: fillSide,
+      binderEntries: binderEntries,
+      maxResults: _maxResults,
+    );
 
-    if (top.isEmpty) {
+    if (partition.boosted.isEmpty && partition.catalog.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: Center(
@@ -219,27 +204,56 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
       );
     }
 
-    return ListView.separated(
+    final boostLabel =
+        sideIsMine ? 'From your Binder' : 'From your Want List';
+
+    return ListView(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
-      itemCount: top.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
-      itemBuilder: (context, i) {
-        final m = top[i];
-        final low = pricing.lowPriceLabel(m.card);
-        final closeness = _closenessLabel(m, target, symbol);
-        return CardRow(
-          card: m.card,
-          priceLabel: pricing.priceLabel(m.card),
-          secondaryLabel: low == null ? closeness : '$low · $closeness',
-          onAdd: () => _addFiller(context, m.card, fillSide),
-          onTap: () => _addFiller(context, m.card, fillSide),
-        );
-      },
+      children: [
+        if (partition.boosted.isNotEmpty) ...[
+          _sectionLabel(theme, boostLabel),
+          for (var i = 0; i < partition.boosted.length; i++) ...[
+            if (i > 0) const Divider(height: 1, indent: 72),
+            _matchRow(context, pricing, partition.boosted[i], target, symbol,
+                fillSide),
+          ],
+          if (partition.catalog.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _sectionLabel(theme, 'Catalog'),
+          ],
+        ] else
+          _sectionLabel(theme, 'Closest matches first'),
+        for (var i = 0; i < partition.catalog.length; i++) ...[
+          if (i > 0 || partition.boosted.isNotEmpty)
+            const Divider(height: 1, indent: 72),
+          _matchRow(context, pricing, partition.catalog[i], target, symbol,
+              fillSide),
+        ],
+      ],
     );
   }
 
-  String _closenessLabel(_FillerMatch m, double target, String symbol) {
+  Widget _matchRow(
+    BuildContext context,
+    Pricing pricing,
+    FillerMatch m,
+    double target,
+    String symbol,
+    TradeSide fillSide,
+  ) {
+    final low = pricing.lowPriceLabel(m.card);
+    final closeness = _closenessLabel(m, target, symbol);
+    return CardRow(
+      card: m.card,
+      priceLabel: pricing.priceLabel(m.card),
+      secondaryLabel: low == null ? closeness : '$low · $closeness',
+      onAdd: () => _addFiller(context, m.card, fillSide),
+      onTap: () => _addFiller(context, m.card, fillSide),
+    );
+  }
+
+  String _closenessLabel(FillerMatch m, double target, String symbol) {
     if (m.gapDistance < 0.01) return 'Exact match';
     final over = m.price > target;
     return '$symbol${m.gapDistance.toStringAsFixed(2)} ${over ? 'over' : 'under'}';

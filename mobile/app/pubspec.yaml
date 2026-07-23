@@ -46,6 +46,7 @@ dependencies:
   google_fonts: ^8.1.0
   package_info_plus: ^10.2.1
   url_launcher: ^6.3.2
+  camera_android: ^0.10.11
 
 dev_dependencies:
   flutter_test:

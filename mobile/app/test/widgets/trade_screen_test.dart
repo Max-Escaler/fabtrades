@@ -47,7 +47,7 @@ void main() {
     await tester.pump();
 
     expect(find.byTooltip('Clear trade'), findsNothing);
-    expect(find.byTooltip('Save trade'), findsNothing);
+    expect(find.text('Confirm Trade'), findsOneWidget);
 
     container.read(tradeDraftProvider.notifier).addCard(
           TradeSide.have,
@@ -55,7 +55,7 @@ void main() {
         );
     await tester.pump();
 
-    expect(find.byTooltip('Save trade'), findsNothing);
+    expect(find.text('Confirm Trade'), findsOneWidget);
     expect(find.byTooltip('Clear trade'), findsOneWidget);
     expect(find.text('Low \$0.50'), findsOneWidget);
   });
