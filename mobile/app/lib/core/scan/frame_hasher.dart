@@ -13,7 +13,8 @@ export 'phash.dart'
         kViewportAspect,
         kGuideWidthFraction,
         kGuideMaxHeightFraction,
-        kCardAspect;
+        kCardAspect,
+        kGraySide;
 
 /// Turns live camera frames into perceptual hashes of the card inside the
 /// on-screen guide rectangle, ready to match against [CardHashIndex].
@@ -30,7 +31,12 @@ export 'phash.dart'
 /// null when the frame format isn't usable. [rotationDegrees] is the clockwise
 /// rotation that turns the raw sensor frame into the upright displayed image
 /// (the same value the screen computes for ML Kit).
-Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees) {
+///
+/// [onGrid] (when set) receives the [kGraySide]² luma grid that was actually
+/// hashed — the scan screen's diagnostics overlay renders it so sampling
+/// geometry can be verified on-device.
+Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees,
+    {void Function(Float64List grid)? onGrid}) {
   final lumaAt = _lumaSampler(image);
   if (lumaAt == null) return null;
 
@@ -82,13 +88,15 @@ Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees) {
   // and steadier frame-to-frame.
   if (quad != null &&
       !quadMatchesGuide(quad, left, top, guideW, guideH)) {
-    return phashFromLuma(sampleLumaQuad(
+    final quadGrid = sampleLumaQuad(
       rawWidth: rawW,
       rawHeight: rawH,
       lumaAt: lumaAt,
       rotationDegrees: rotationDegrees,
       quad: quad,
-    ));
+    );
+    onGrid?.call(quadGrid);
+    return phashFromLuma(quadGrid);
   }
 
   // Fallback: fixed guide crop with the same edge trim as the catalog hashes.
@@ -102,6 +110,7 @@ Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees) {
     width: guideW * (1 - 2 * kCardInsetFraction),
     height: guideH * (1 - 2 * kCardInsetFraction),
   );
+  onGrid?.call(grid);
   return phashFromLuma(grid);
 }
 

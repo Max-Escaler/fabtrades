@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -119,13 +122,61 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   /// stats and any camera error are drawn over the viewport when enabled.
   bool _showDiag = false;
   String? _lastDiag;
+  DateTime? _lastDiagAt;
   String? _cameraError;
+
+  /// Frames delivered by the camera stream vs frames the pipeline actually
+  /// processed. If rx stops climbing the camera stream died; if rx climbs but
+  /// proc doesn't, something inside `_processImage` is stuck (e.g. ML Kit
+  /// never completing and leaving `_processing` latched).
+  int _framesReceived = 0;
+  int _framesProcessed = 0;
+
+  /// Repaints the overlay once a second while diagnostics are shown, so the
+  /// counters / "last frame X s ago" stay live even when no frames arrive.
+  Timer? _diagTicker;
+
+  /// The luma grid the hasher actually sampled, rendered as a tiny image —
+  /// shows exactly what the visual matcher "sees" inside the guide.
+  ui.Image? _diagGrid;
 
   /// Mirrors every `[DEBUG-scan]` console line into the on-screen overlay.
   void _recordDiag(String line) {
     debugPrint('[DEBUG-scan] $line');
     _lastDiag = line;
+    _lastDiagAt = DateTime.now();
     if (_showDiag && mounted) setState(() {});
+  }
+
+  void _toggleDiag() {
+    setState(() => _showDiag = !_showDiag);
+    _diagTicker?.cancel();
+    _diagTicker = _showDiag
+        ? Timer.periodic(const Duration(seconds: 1), (_) {
+            if (mounted) setState(() {});
+          })
+        : null;
+  }
+
+  /// Renders the sampled 64×64 luma grid into [_diagGrid] for the overlay.
+  void _updateDiagGrid(Float64List grid) {
+    final px = Uint8List(grid.length * 4);
+    for (var i = 0; i < grid.length; i++) {
+      final v = grid[i].clamp(0.0, 255.0).round();
+      px[i * 4] = v;
+      px[i * 4 + 1] = v;
+      px[i * 4 + 2] = v;
+      px[i * 4 + 3] = 255;
+    }
+    ui.decodeImageFromPixels(px, kGraySide, kGraySide, ui.PixelFormat.rgba8888,
+        (img) {
+      if (!mounted || !_showDiag) {
+        img.dispose();
+        return;
+      }
+      _diagGrid = img;
+      setState(() {});
+    });
   }
 
   @override
@@ -138,6 +189,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _diagTicker?.cancel();
     _disposeCamera();
     _recognizer.close();
     super.dispose();
@@ -244,6 +296,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   Future<void> _processImage(CameraImage image) async {
+    _framesReceived++;
     if (_processing || _locked) return;
     final now = DateTime.now();
     if (_lastProcessedAt != null &&
@@ -252,6 +305,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     }
     _processing = true;
     _lastProcessedAt = now;
+    _framesProcessed++;
     try {
       final rotation = _rotationDegrees();
       if (rotation == null) {
@@ -286,7 +340,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       final hashRotation = Platform.isIOS ? 0 : rotation;
       final hashIndex = ref.read(cardHashIndexProvider).asData?.value;
       if (hashIndex != null) {
-        final hash = hashCameraFrame(image, hashRotation);
+        final hash = hashCameraFrame(image, hashRotation,
+            onGrid: _showDiag ? _updateDiagGrid : null);
         hashOk = hash != null;
         if (hash != null) {
           final byId = ref.read(catalogByIdProvider);
@@ -324,7 +379,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             'nv21Expect=$expectedNv21';
       } else {
         try {
-          final result = await _recognizer.processImage(input);
+          // A hung native call would otherwise leave `_processing` latched
+          // and silently kill the whole pipeline after one frame.
+          final result = await _recognizer
+              .processImage(input)
+              .timeout(const Duration(seconds: 3));
           if (!mounted || _locked) return;
           ocr = identifyCards(catalog, result.text);
           ocrNumbers = parseScanNumbers(result.text);
@@ -344,11 +403,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       final matches =
           fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
       _recordDiag(
-        'rot=$rotation hashRot=$hashRotation '
+        'f=$_framesProcessed rot=$rotation hashRot=$hashRotation '
         'hash=${hashOk ? 'ok' : 'null'} '
         'best=$bestDist z=${zScore.toStringAsFixed(1)} '
         'vis=${visual.length} ocr=${ocr.length} ($ocrNote) '
         '${image.width}x${image.height} '
+        'bpr=${image.planes.isEmpty ? 0 : image.planes.first.bytesPerRow} '
         'hashMs=$hashMs ocrMs=$ocrMs totalMs=${frameSw.elapsedMilliseconds}',
       );
       if (matches.isEmpty) {
@@ -629,7 +689,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             icon: Icon(
                 _showDiag ? Icons.bug_report : Icons.bug_report_outlined),
             tooltip: 'Scan diagnostics',
-            onPressed: () => setState(() => _showDiag = !_showDiag),
+            onPressed: _toggleDiag,
           ),
           const SettingsAction(),
         ],
@@ -757,16 +817,40 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                       color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      [
-                        if (_cameraError != null) _cameraError!,
-                        _lastDiag ?? 'waiting for first frame…',
-                      ].join('\n'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontFamily: 'monospace',
-                      ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_diagGrid != null) ...[
+                          // The sampled grid is square; stretch it back to
+                          // card aspect so it reads like the crop it is.
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: RawImage(
+                              image: _diagGrid,
+                              width: 63,
+                              height: 88,
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.none,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Expanded(
+                          child: Text(
+                            [
+                              if (_cameraError != null) _cameraError!,
+                              _lastDiag ?? 'waiting for first frame…',
+                              'rx=$_framesReceived proc=$_framesProcessed'
+                                  '${_lastDiagAt == null ? '' : ' last=${DateTime.now().difference(_lastDiagAt!).inSeconds}s ago'}',
+                            ].join('\n'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
