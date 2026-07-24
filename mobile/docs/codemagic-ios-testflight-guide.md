@@ -25,6 +25,8 @@ Sources below are official Codemagic, Apple Developer / App Store Connect, and F
 4. Add `codemagic.yaml` at the **fabtrades repo root** with `working_directory: mobile/app`, `ios_signing.distribution_type: app_store`, Flutter IPA build, and `publishing.app_store_connect`.
 5. Run the workflow → IPA uploads to App Store Connect → answer export compliance if needed → enable **Internal Testing**, then (optional) **External Testing** (may require TestFlight beta review).
 
+**Note:** Creating the App Store Connect app record (Phase 1) gives you a numeric **Apple ID** immediately. You do **not** need a prior binary upload for that ID. Auto-increment from TestFlight is optional and only useful after the first successful upload.
+
 ---
 
 ## 1. Apple prerequisites
