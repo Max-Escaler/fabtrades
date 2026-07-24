@@ -114,6 +114,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   List<CardModel> _matches = const [];
   String? _lastNumber;
 
+  /// On-device diagnostics (bug icon in the app bar) so scan failures can be
+  /// inspected on a phone without a tethered console — the per-frame pipeline
+  /// stats and any camera error are drawn over the viewport when enabled.
+  bool _showDiag = false;
+  String? _lastDiag;
+  String? _cameraError;
+
+  /// Mirrors every `[DEBUG-scan]` console line into the on-screen overlay.
+  void _recordDiag(String line) {
+    debugPrint('[DEBUG-scan] $line');
+    _lastDiag = line;
+    if (_showDiag && mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -160,6 +174,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       if (cameras.isEmpty) {
         if (!mounted) return;
         setState(() {
+          _cameraError = 'No cameras reported by the OS.';
           _initializing = false;
           _cameraAvailable = false;
         });
@@ -184,13 +199,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       setState(() {
         _controller = controller;
         _cameraAvailable = true;
+        _cameraError = null;
         _initializing = false;
         _torchOn = false;
       });
       if (!_locked) await _startStream();
-    } catch (_) {
+    } catch (e) {
+      _recordDiag('camera init failed: $e');
       if (!mounted) return;
       setState(() {
+        _cameraError = 'Camera init failed: $e';
         _initializing = false;
         _cameraAvailable = false;
       });
@@ -206,7 +224,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       if (mounted && _statusMessage == null) {
         setState(() => _statusMessage = 'Point at a card to identify it.');
       }
-    } catch (_) {}
+    } catch (e) {
+      _recordDiag('stream start failed: $e');
+      if (mounted) {
+        setState(() => _cameraError = 'Stream start failed: $e');
+      }
+    }
   }
 
   Future<void> _stopStream() async {
@@ -232,8 +255,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     try {
       final rotation = _rotationDegrees();
       if (rotation == null) {
-        debugPrint(
-            '[DEBUG-scan] rot=null orient=${_controller?.value.deviceOrientation} '
+        _recordDiag(
+            'rot=null orient=${_controller?.value.deviceOrientation} '
             'sensor=${_controller?.description.sensorOrientation}');
         return;
       }
@@ -253,9 +276,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       var zScore = -1.0;
       var hashOk = false;
       final hashSw = Stopwatch()..start();
+      // iOS: camera_avfoundation sets videoOrientation on the stream
+      // connection to the device orientation, so streamed buffers arrive
+      // already rotated upright — rotating again by sensorOrientation samples
+      // a sideways region and the hash can never match. Android (Camera2)
+      // streams raw sensor-orientation frames and needs the full rotation.
+      // ML Kit's InputImage still gets [rotation]: its iOS converter ignores
+      // the field, and Android needs it.
+      final hashRotation = Platform.isIOS ? 0 : rotation;
       final hashIndex = ref.read(cardHashIndexProvider).asData?.value;
       if (hashIndex != null) {
-        final hash = hashCameraFrame(image, rotation);
+        final hash = hashCameraFrame(image, hashRotation);
         hashOk = hash != null;
         if (hash != null) {
           final byId = ref.read(catalogByIdProvider);
@@ -312,10 +343,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
       final matches =
           fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
-      debugPrint(
-        '[DEBUG-scan] rot=$rotation hash=${hashOk ? 'ok' : 'null'} '
+      _recordDiag(
+        'rot=$rotation hashRot=$hashRotation '
+        'hash=${hashOk ? 'ok' : 'null'} '
         'best=$bestDist z=${zScore.toStringAsFixed(1)} '
         'vis=${visual.length} ocr=${ocr.length} ($ocrNote) '
+        '${image.width}x${image.height} '
         'hashMs=$hashMs ocrMs=$ocrMs totalMs=${frameSw.elapsedMilliseconds}',
       );
       if (matches.isEmpty) {
@@ -360,7 +393,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             'Reading ${matches.first.name}… hold steady.');
       }
     } catch (e) {
-      debugPrint('[DEBUG-scan] frame err=$e');
+      _recordDiag('frame err=$e');
     } finally {
       _processing = false;
     }
@@ -592,6 +625,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             tooltip: 'Enter name or number',
             onPressed: _manualEntry,
           ),
+          IconButton(
+            icon: Icon(
+                _showDiag ? Icons.bug_report : Icons.bug_report_outlined),
+            tooltip: 'Scan diagnostics',
+            onPressed: () => setState(() => _showDiag = !_showDiag),
+          ),
           const SettingsAction(),
         ],
       ),
@@ -645,6 +684,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                 size: 40, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 12),
             const Text('Camera unavailable'),
+            if (_cameraError != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  _cameraError!,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             Text(
               'Enter a name or collector number instead.',
@@ -691,6 +746,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             children: [
               camera,
               _ScanOverlay(scanning: _streaming && !_locked),
+              if (_showDiag)
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      [
+                        if (_cameraError != null) _cameraError!,
+                        _lastDiag ?? 'waiting for first frame…',
+                      ].join('\n'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

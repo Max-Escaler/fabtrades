@@ -54,6 +54,9 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   mocktail: ^1.0.4
+  # Used by test/core/scan/frame_hasher_test.dart to build synthetic
+  # CameraImage frames without a device.
+  camera_platform_interface: ^2.13.0
   # Used only by tool/generate_card_hashes.dart to decode catalog images.
   image: ^4.3.0
 
