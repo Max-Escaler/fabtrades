@@ -1,0 +1,92 @@
+# Codemagic CI for FAB Trades (Flutter iOS).
+# Flutter project lives at mobile/app — see working_directory below.
+#
+# Before the first signed build:
+# 1. Upload App Store Connect API key in Codemagic (Team integrations → Developer Portal).
+# 2. Add Apple Distribution cert + App Store profile (Code signing identities).
+# 3. Set APP_STORE_APPLE_ID to the numeric Apple ID from App Store Connect → App Information.
+# 4. Match integrations.app_store_connect to the exact API key name in the Codemagic UI.
+
+workflows:
+  ios-unsigned:
+    name: iOS unsigned (debug)
+    working_directory: mobile/app
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Build iOS debug without code signing
+        script: flutter build ios --debug --no-codesign
+    artifacts:
+      - build/ios/iphoneos/**/*.app
+      - /tmp/xcodebuild_logs/*.log
+
+  ios-testflight:
+    name: iOS TestFlight
+    working_directory: mobile/app
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+
+    integrations:
+      # Must match the name you give the key in Codemagic → Team integrations → Developer Portal
+      app_store_connect: Codemagic
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.fabtrades.app
+      vars:
+        # App Store Connect → your app → App Information → Apple ID (numeric)
+        APP_STORE_APPLE_ID: "REPLACE_WITH_NUMERIC_APPLE_ID"
+
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
+
+      - name: Set build number from latest TestFlight
+        script: |
+          # Falls back to pubspec build (4) + 1 if no TestFlight builds exist yet.
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 4)
+          NEW_BUILD=$((LATEST + 1))
+          echo "Using build number: $NEW_BUILD"
+          echo "NEW_BUILD=$NEW_BUILD" >> "$CM_ENV"
+
+      - name: Flutter build IPA
+        script: |
+          flutter build ipa --release \
+            --build-number="$NEW_BUILD" \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        # Upload IPA only until Internal Testing group is ready; then set true.
+        submit_to_testflight: false
+        submit_to_app_store: false
+        # After you create a group in App Store Connect:
+        # submit_to_testflight: true
+        # beta_groups:
+        #   - Internal testers
