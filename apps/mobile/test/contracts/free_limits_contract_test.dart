@@ -63,9 +63,12 @@ void main() {
       expect(FreeLimits.binderCards, limits['binderCards']);
       expect(FreeLimits.wantListCards, limits['wantListCards']);
       expect(FreeLimits.savedTrades, limits['savedTrades']);
+      expect(FreeLimits.loanedCards, limits['loanedCards']);
     });
 
-    for (final testCase in cases.where((c) => c['limit'] != 'savedTrades')) {
+    for (final testCase in cases.where(
+      (c) => c['limit'] == 'binderCards' || c['limit'] == 'wantListCards',
+    )) {
       test(testCase['name'] as String, () async {
         final container = await freeContainer();
         final binder = container.read(binderProvider.notifier);
@@ -77,6 +80,23 @@ void main() {
 
         expect(
           binder.add(buildCard(id: 'one-more'), isWanted: isWanted),
+          testCase['allowed'],
+        );
+      });
+    }
+
+    for (final testCase in cases.where((c) => c['limit'] == 'loanedCards')) {
+      test(testCase['name'] as String, () async {
+        final container = await freeContainer();
+        final lend = container.read(lendProvider.notifier);
+        final groupId = lend.createGroup(isBorrowing: false);
+
+        for (var i = 0; i < (testCase['existing'] as int); i++) {
+          expect(lend.addCard(groupId, buildCard(id: 'lent-$i')), isTrue);
+        }
+
+        expect(
+          lend.addCard(groupId, buildCard(id: 'one-more')),
           testCase['allowed'],
         );
       });

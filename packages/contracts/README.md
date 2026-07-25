@@ -53,6 +53,6 @@ with what the product should do — in which case change it and update both.
 just look inconsistent. Both clients enforce the free trade window by tombstoning
 the oldest rows, so if web kept twelve trades and mobile ten, mobile would delete
 two trades every time it synced — indistinguishable, from the customer's side, from
-the app losing their history. Its binder and want-list cases are asserted on mobile
-only, because web has no binder yet; the numbers are still checked on both sides so
-they cannot drift before it grows one.
+the app losing their history. Its binder, want-list, and loaned-card cases are asserted on mobile
+only, because web has none of those yet; the numbers are still checked on both
+sides so they cannot drift before it grows them.

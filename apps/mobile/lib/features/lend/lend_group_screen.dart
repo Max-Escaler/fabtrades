@@ -7,6 +7,7 @@ import '../../core/logic/pricing.dart';
 import '../../core/models/lend_group.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../paywall/pro_limits.dart';
 import '../search/card_picker.dart';
 import 'person_name_dialog.dart';
 
@@ -82,8 +83,8 @@ class LendGroupScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, LendGroup group) async {
     final card = await CardPickerScreen.show(context,
         title: group.isBorrowing ? 'Add borrowed card' : 'Add lent card');
-    if (card == null) return;
-    ref.read(lendProvider.notifier).addCard(group.id, card);
+    if (card == null || !context.mounted) return;
+    await addToLendOrUpsell(context, ref, groupId: group.id, card: card);
   }
 
   Future<void> _editName(
@@ -203,8 +204,13 @@ class _ItemRow extends ConsumerWidget {
                   const SizedBox(height: 4),
                   _MiniStepper(
                     qty: item.quantity,
-                    onInc: () => notifier.setCardQuantity(
-                        groupId, card.id, item.quantity + 1),
+                    onInc: () => setLendQuantityOrUpsell(
+                      context,
+                      ref,
+                      groupId: groupId,
+                      cardId: card.id,
+                      quantity: item.quantity + 1,
+                    ),
                     onDec: () => notifier.setCardQuantity(
                         groupId, card.id, item.quantity - 1),
                   ),

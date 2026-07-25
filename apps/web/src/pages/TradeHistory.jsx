@@ -291,10 +291,11 @@ const TradeHistory = () => {
                     </Box>
 
                     {/* Where the free window stands. Only once it is actually in
-                        sight — announcing a cap at two trades of ten is nagging.
+                        sight — same 70% pressure rule as mobile's FreeUsage.
                         Web cannot sell Pro (purchases live in the apps), so this
                         says where to buy rather than offering a checkout. */}
-                    {!entitlementLoading && !isPro && trades.length >= FreeLimits.savedTrades - 3 && (
+                    {!entitlementLoading && !isPro &&
+                        trades.length / FreeLimits.savedTrades >= 0.7 && (
                         <Alert severity="info" icon={false} sx={{ mb: 3 }}>
                             Free plan — your {FreeLimits.savedTrades} most recent trades are kept.
                             Subscribe in the FABTrades app to keep every trade.

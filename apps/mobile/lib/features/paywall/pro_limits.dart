@@ -34,24 +34,86 @@ Future<bool> addToBinderOrUpsell(
 
   final limit = FreeLimits.cardsFor(isWanted: isWanted);
   final listName = isWanted ? 'Want lists' : 'Binders';
+  return _offerUpgrade(
+    context,
+    ref,
+    message: '$listName hold $limit cards on the free plan.',
+    onUpgraded: () {
+      binder.add(card, quantity: quantity, isWanted: isWanted);
+      if (context.mounted) {
+        _showMessage(
+          context,
+          successMessage ??
+              'Added ${card.name} to ${isWanted ? 'Want List' : 'Binder'}',
+        );
+      }
+    },
+  );
+}
+
+/// Adds [card] to a lend group, or offers an upgrade when the free loaned-card
+/// cap is hit. Borrowing groups are uncapped and never reach this path's limit.
+Future<bool> addToLendOrUpsell(
+  BuildContext context,
+  WidgetRef ref, {
+  required String groupId,
+  required CardModel card,
+  int quantity = 1,
+}) async {
+  final lend = ref.read(lendProvider.notifier);
+  if (lend.addCard(groupId, card, quantity: quantity)) return true;
+
+  return _offerUpgrade(
+    context,
+    ref,
+    message:
+        'The free plan tracks ${FreeLimits.loanedCards} loaned card. Upgrade to lend more.',
+    onUpgraded: () {
+      lend.addCard(groupId, card, quantity: quantity);
+    },
+  );
+}
+
+/// Bumps a lent card's quantity, or offers an upgrade when that would exceed
+/// the free loaned-card cap.
+Future<bool> setLendQuantityOrUpsell(
+  BuildContext context,
+  WidgetRef ref, {
+  required String groupId,
+  required String cardId,
+  required int quantity,
+}) async {
+  final lend = ref.read(lendProvider.notifier);
+  if (lend.setCardQuantity(groupId, cardId, quantity)) return true;
+
+  return _offerUpgrade(
+    context,
+    ref,
+    message:
+        'The free plan tracks ${FreeLimits.loanedCards} loaned card. Upgrade to lend more.',
+    onUpgraded: () {
+      lend.setCardQuantity(groupId, cardId, quantity);
+    },
+  );
+}
+
+Future<bool> _offerUpgrade(
+  BuildContext context,
+  WidgetRef ref, {
+  required String message,
+  required VoidCallback onUpgraded,
+}) async {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text('$listName hold $limit cards on the free plan.'),
+        content: Text(message),
         duration: const Duration(seconds: 6),
         action: SnackBarAction(
           label: 'Upgrade',
           onPressed: () async {
             if (!await presentProPaywall(context, ref)) return;
-            binder.add(card, quantity: quantity, isWanted: isWanted);
-            if (context.mounted) {
-              _showMessage(
-                context,
-                successMessage ??
-                    'Added ${card.name} to ${isWanted ? 'Want List' : 'Binder'}',
-              );
-            }
+            onUpgraded();
           },
         ),
       ),

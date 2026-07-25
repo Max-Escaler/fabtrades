@@ -151,23 +151,76 @@ void main() {
     });
   });
 
+  group('loaned-card free-tier cap', () {
+    test('accepts cards up to the limit, then refuses', () async {
+      final c = await makeContainer(isPro: false);
+      final lend = c.read(lendProvider.notifier);
+      final groupId = lend.createGroup(isBorrowing: false);
+
+      for (var i = 0; i < FreeLimits.loanedCards; i++) {
+        expect(lend.addCard(groupId, buildCard(id: 'lent-$i')), isTrue);
+      }
+      expect(lend.addCard(groupId, buildCard(id: 'one-too-many')), isFalse);
+    });
+
+    test('does not count borrowed cards against the loaned cap', () async {
+      final c = await makeContainer(isPro: false);
+      final lend = c.read(lendProvider.notifier);
+      // createGroup keys on microsecondsSinceEpoch; space the two calls so the
+      // borrowed and lent groups cannot collide on the same id.
+      final borrowed = lend.createGroup(isBorrowing: true);
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      final lent = lend.createGroup(isBorrowing: false);
+
+      for (var i = 0; i < FreeLimits.loanedCards + 3; i++) {
+        expect(lend.addCard(borrowed, buildCard(id: 'borrowed-$i')), isTrue);
+      }
+      expect(lend.addCard(lent, buildCard(id: 'lent-0')), isTrue);
+      expect(lend.addCard(lent, buildCard(id: 'lent-1')), isFalse);
+    });
+
+    test('refuses raising quantity past the cap', () async {
+      final c = await makeContainer(isPro: false);
+      final lend = c.read(lendProvider.notifier);
+      final groupId = lend.createGroup(isBorrowing: false);
+      lend.addCard(groupId, buildCard(id: 'only'));
+
+      expect(lend.setCardQuantity(groupId, 'only', 2), isFalse);
+      expect(c.read(lendGroupProvider(groupId))!.items.single.quantity, 1);
+    });
+
+    test('lifts the cap for Pro', () async {
+      final c = await makeContainer(isPro: true);
+      final lend = c.read(lendProvider.notifier);
+      final groupId = lend.createGroup(isBorrowing: false);
+
+      for (var i = 0; i < FreeLimits.loanedCards + 3; i++) {
+        expect(lend.addCard(groupId, buildCard(id: 'lent-$i')), isTrue);
+      }
+    });
+  });
+
   group('freeUsageProvider', () {
     test('is null for Pro, since nothing is capped', () async {
       final c = await makeContainer(isPro: true);
       expect(c.read(freeUsageProvider), isNull);
     });
 
-    test('splits binder and want-list counts', () async {
+    test('splits binder, want-list, loaned, and trade counts', () async {
       final c = await makeContainer(isPro: false);
       final binder = c.read(binderProvider.notifier);
       binder.add(buildCard(id: 'a'));
       binder.add(buildCard(id: 'b'));
       binder.add(buildCard(id: 'c'), isWanted: true);
+      final lend = c.read(lendProvider.notifier);
+      final groupId = lend.createGroup(isBorrowing: false);
+      lend.addCard(groupId, buildCard(id: 'out'));
       c.read(tradeHistoryProvider.notifier).addTrade(buildTrade('t1'));
 
       final usage = c.read(freeUsageProvider)!;
       expect(usage.binderCards, 2);
       expect(usage.wantListCards, 1);
+      expect(usage.loanedCards, 1);
       expect(usage.savedTrades, 1);
     });
 

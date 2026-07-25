@@ -516,9 +516,14 @@ final proOfferingProvider = FutureProvider<Offering?>((ref) async {
 final freeUsageProvider = Provider<FreeUsage?>((ref) {
   if (ref.watch(isProProvider)) return null;
   final entries = ref.watch(binderProvider);
+  final loanedCards = ref
+      .watch(lendProvider)
+      .where((g) => !g.isBorrowing)
+      .fold<int>(0, (sum, g) => sum + g.cardCount);
   return FreeUsage(
     binderCards: entries.where((e) => !e.isWanted).length,
     wantListCards: entries.where((e) => e.isWanted).length,
+    loanedCards: loanedCards,
     savedTrades: ref.watch(tradeHistoryProvider).length,
   );
 });
@@ -795,24 +800,44 @@ class LendNotifier extends Notifier<List<LendGroup>> {
             ));
   }
 
-  void addCard(String groupId, CardModel card, {int quantity = 1}) {
+  /// Adds [card] to [groupId], or returns false when a free account is already
+  /// at the loaned-card cap. Borrowing groups are never capped.
+  bool addCard(String groupId, CardModel card, {int quantity = 1}) {
+    if (!_canLendMore(groupId, quantity)) return false;
     _updateGroup(groupId, (g) {
       final items = [...g.items];
       final idx = items.indexWhere((i) => i.card.id == card.id);
       if (idx >= 0) {
-        items[idx] = items[idx].copyWith(quantity: items[idx].quantity + quantity);
+        items[idx] =
+            items[idx].copyWith(quantity: items[idx].quantity + quantity);
       } else {
         items.add(LendItem(card: card, quantity: quantity));
       }
       return g.copyWith(items: items);
     });
+    return true;
   }
 
-  void setCardQuantity(String groupId, String cardId, int quantity) {
+  /// Sets quantity, or returns false when raising it would exceed the free
+  /// loaned-card cap. Decreases and removals always succeed.
+  bool setCardQuantity(String groupId, String cardId, int quantity) {
     if (quantity <= 0) {
       removeCard(groupId, cardId);
-      return;
+      return true;
     }
+    LendGroup? group;
+    for (final g in state) {
+      if (g.id == groupId) {
+        group = g;
+        break;
+      }
+    }
+    if (group == null) return false;
+    final current = group.items
+        .where((i) => i.card.id == cardId)
+        .fold<int>(0, (sum, i) => sum + i.quantity);
+    final delta = quantity - current;
+    if (delta > 0 && !_canLendMore(groupId, delta)) return false;
     _updateGroup(groupId, (g) {
       final items = [
         for (final i in g.items)
@@ -820,6 +845,7 @@ class LendNotifier extends Notifier<List<LendGroup>> {
       ];
       return g.copyWith(items: items);
     });
+    return true;
   }
 
   void removeCard(String groupId, String cardId) {
@@ -827,6 +853,27 @@ class LendNotifier extends Notifier<List<LendGroup>> {
       final items = g.items.where((i) => i.card.id != cardId).toList();
       return g.copyWith(items: items);
     });
+  }
+
+  /// Whether [additional] more cards can be lent out from [groupId].
+  ///
+  /// Borrowing is uncapped. Pro is uncapped. Free accounts count total
+  /// quantity across every lent-out group against [FreeLimits.loanedCards].
+  bool _canLendMore(String groupId, int additional) {
+    if (additional <= 0) return true;
+    if (ref.read(isProProvider)) return true;
+    LendGroup? group;
+    for (final g in state) {
+      if (g.id == groupId) {
+        group = g;
+        break;
+      }
+    }
+    if (group == null || group.isBorrowing) return true;
+    final loaned = state
+        .where((g) => !g.isBorrowing)
+        .fold<int>(0, (sum, g) => sum + g.cardCount);
+    return loaned + additional <= FreeLimits.loanedCards;
   }
 
   void _updateGroup(String groupId, LendGroup Function(LendGroup) update) {

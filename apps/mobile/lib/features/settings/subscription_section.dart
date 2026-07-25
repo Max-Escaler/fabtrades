@@ -210,7 +210,7 @@ class _UpgradeCardState extends ConsumerState<_UpgradeCard> {
               Text(priceLabel, style: theme.textTheme.labelLarge),
             ],
             // Only shown once a cap is actually in sight — a usage readout at
-            // 3 of 50 cards is noise, and reads as nagging.
+            // one of five cards is noise, and reads as nagging.
             ?_usageLine(context, ref.watch(freeUsageProvider)),
             const SizedBox(height: 16),
             SizedBox(
@@ -248,6 +248,7 @@ class _UpgradeCardState extends ConsumerState<_UpgradeCard> {
       child: Text(
         'Free plan · binder ${usage.binderCards}/${FreeLimits.binderCards} · '
         'want list ${usage.wantListCards}/${FreeLimits.wantListCards} · '
+        'loaned ${usage.loanedCards}/${FreeLimits.loanedCards} · '
         'trades ${usage.savedTrades}/${FreeLimits.savedTrades}',
         style: theme.textTheme.bodySmall
             ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
