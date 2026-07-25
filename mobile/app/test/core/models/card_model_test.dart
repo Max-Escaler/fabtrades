@@ -348,6 +348,45 @@ void main() {
     });
   });
 
+  group('artViewerFallbackUrl', () {
+    test('exposes TCGplayer art when CDN primary differs (new-set 404 case)', () {
+      // Omen of the Third Age codes resolve to CDN URLs that 404 today; zoom
+      // must still be able to fall back to the TCGplayer imageUrl.
+      const card = CardModel(
+        id: 'oma',
+        name: 'Arcbane Grasp (Blue)',
+        collectorNumber: 'OMA137',
+        subTypeName: 'Normal',
+        imageUrl: 'https://tcgplayer.example/oma137.jpg',
+      );
+      expect(
+        card.largeImageUrl,
+        'https://d2wlb52bya4y8z.cloudfront.net/media/cards/large/OMA137.webp',
+      );
+      expect(card.artViewerFallbackUrl, 'https://tcgplayer.example/oma137.jpg');
+    });
+
+    test('is null when largeImageUrl already is the TCGplayer url', () {
+      const card = CardModel(
+        id: 'a',
+        name: 'A',
+        collectorNumber: '147/219',
+        imageUrl: 'https://tcgplayer.example/card.jpg',
+      );
+      expect(card.largeImageUrl, 'https://tcgplayer.example/card.jpg');
+      expect(card.artViewerFallbackUrl, isNull);
+    });
+
+    test('is null when there is no TCGplayer imageUrl', () {
+      const card = CardModel(
+        id: 'a',
+        name: 'A',
+        collectorNumber: 'MON147',
+      );
+      expect(card.artViewerFallbackUrl, isNull);
+    });
+  });
+
   group('PricePoint.fromMap', () {
     test('parses a price_history row', () {
       final p = PricePoint.fromMap({

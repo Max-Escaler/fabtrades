@@ -255,6 +255,10 @@ class CardModel {
   /// Best available large art URL for full-screen preview. Prefers the official
   /// FAB CDN when [collectorNumber] looks like a set code (e.g. `MON147`);
   /// otherwise falls back to the TCGplayer [imageUrl].
+  ///
+  /// The CDN does not host every printing (brand-new sets, some heroes/tokens).
+  /// Callers that load this URL at runtime should also use
+  /// [artViewerFallbackUrl] so a missing CDN file does not show a broken image.
   String? get largeImageUrl {
     final code = _primarySetCode(collectorNumber);
     if (code != null) {
@@ -269,6 +273,16 @@ class CardModel {
     }
     final url = imageUrl?.trim();
     return (url == null || url.isEmpty) ? null : url;
+  }
+
+  /// TCGplayer art to try when [largeImageUrl] fails to load (CDN 404).
+  /// Null when there is no distinct fallback.
+  String? get artViewerFallbackUrl {
+    final primary = largeImageUrl;
+    final tcg = imageUrl?.trim();
+    if (tcg == null || tcg.isEmpty) return null;
+    if (primary == null || primary.isEmpty || primary == tcg) return null;
+    return tcg;
   }
 
   static String? _editionFrom(String? raw) {

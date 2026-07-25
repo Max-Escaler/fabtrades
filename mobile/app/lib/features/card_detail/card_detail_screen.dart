@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../app/fallback_network_image.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
@@ -167,7 +168,11 @@ void _openArtViewer(BuildContext context, CardModel card) {
       pageBuilder: (context, animation, secondaryAnimation) {
         return FadeTransition(
           opacity: animation,
-          child: _CardArtViewer(url: url, heroTag: 'card_${card.id}'),
+          child: _CardArtViewer(
+            url: url,
+            fallbackUrl: card.artViewerFallbackUrl,
+            heroTag: 'card_${card.id}',
+          ),
         );
       },
     ),
@@ -217,8 +222,13 @@ class _CardArtThumb extends StatelessWidget {
 
 /// Full-screen zoomable card art. Tap outside / close button to dismiss.
 class _CardArtViewer extends StatelessWidget {
-  const _CardArtViewer({required this.url, required this.heroTag});
+  const _CardArtViewer({
+    required this.url,
+    this.fallbackUrl,
+    required this.heroTag,
+  });
   final String url;
+  final String? fallbackUrl;
   final String heroTag;
 
   @override
@@ -241,8 +251,9 @@ class _CardArtViewer extends StatelessWidget {
               child: InteractiveViewer(
                 minScale: 1,
                 maxScale: 4,
-                child: CachedNetworkImage(
+                child: FallbackNetworkImage(
                   imageUrl: url,
+                  fallbackUrl: fallbackUrl,
                   fit: BoxFit.contain,
                   placeholder: (_, _) => const SizedBox(
                     width: 200,
