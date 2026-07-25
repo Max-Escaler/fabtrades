@@ -6,7 +6,7 @@ import '../../core/providers.dart';
 import '../auth/sign_in_sheet.dart';
 import 'settings_screen.dart' show SettingsSectionLabel;
 
-/// Account block in Settings: who is signed in, or an invitation to sign in.
+/// Account block on My Account: who is signed in, or an invitation to sign in.
 ///
 /// Sign-in is optional in FAB Trades, so this never nags. It states what an
 /// account buys you once, and otherwise stays out of the way.

@@ -54,7 +54,7 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Binder'),
-        actions: const [SettingsAction()],
+        actions: const [AppMenuAction()],
         bottom: TabBar(
           controller: _tab,
           tabs: [

@@ -694,7 +694,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             tooltip: 'Scan diagnostics',
             onPressed: _toggleDiag,
           ),
-          const SettingsAction(),
+          const AppMenuAction(),
         ],
       ),
       body: Column(

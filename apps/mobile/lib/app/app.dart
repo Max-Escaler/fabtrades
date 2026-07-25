@@ -7,6 +7,7 @@ import '../core/providers.dart';
 import '../features/binder/binder_screen.dart';
 import '../features/lend/lend_screen.dart';
 import '../features/search/search_screen.dart';
+import '../features/settings/account_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/sync/sync_host.dart';
 import '../features/trade/trade_screen.dart';
@@ -102,17 +103,65 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 }
 
-/// Shared app bar action to open settings.
-class SettingsAction extends StatelessWidget {
-  const SettingsAction({super.key});
+/// Shared app bar action that opens the account / settings menu.
+class AppMenuAction extends StatelessWidget {
+  const AppMenuAction({super.key});
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.tune),
-      tooltip: 'Settings',
-      onPressed: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+      icon: const Icon(Icons.menu),
+      tooltip: 'Menu',
+      onPressed: () => _showAppMenu(context),
+    );
+  }
+}
+
+Future<void> _showAppMenu(BuildContext context) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    // Capture the caller's navigator: the sheet's context is unmounted after pop.
+    builder: (_) => _AppMenuSheet(parentContext: context),
+  );
+}
+
+class _AppMenuSheet extends ConsumerWidget {
+  const _AppMenuSheet({required this.parentContext});
+
+  final BuildContext parentContext;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final signedIn = ref.watch(isSignedInProvider);
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(
+              signedIn ? Icons.person_outline : Icons.person_add_outlined,
+            ),
+            title: Text(signedIn ? 'My Account' : 'Sign up'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(parentContext).push(
+                MaterialPageRoute(builder: (_) => const AccountScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.tune),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(parentContext).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
