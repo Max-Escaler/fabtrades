@@ -59,7 +59,7 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
               tooltip: 'Clear trade',
               onPressed: () => _confirmClear(context, notifier),
             ),
-          const SettingsAction(),
+          const AppMenuAction(),
         ],
       ),
       // Confirm Trade lives in a Column (not Scaffold.bottomNavigationBar) so

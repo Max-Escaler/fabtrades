@@ -38,7 +38,7 @@ class _LendScreenState extends ConsumerState<LendScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lend'),
-        actions: const [SettingsAction()],
+        actions: const [AppMenuAction()],
         bottom: TabBar(
           controller: _tab,
           tabs: [

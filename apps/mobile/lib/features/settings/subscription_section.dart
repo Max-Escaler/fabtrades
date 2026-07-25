@@ -11,8 +11,8 @@ import '../paywall/pro_gate.dart';
 import '../paywall/pro_paywall.dart';
 import 'settings_screen.dart' show SettingsSectionLabel;
 
-/// Subscription block in Settings: current status, and the entry points to the
-/// paywall, the Customer Center and restore.
+/// Subscription block on My Account: current status, and the entry points to
+/// the paywall, the Customer Center and restore.
 ///
 /// Hides itself entirely on builds without a RevenueCat API key, so nothing
 /// offers a purchase that can't complete.

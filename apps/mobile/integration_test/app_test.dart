@@ -111,7 +111,9 @@ void main() {
     await tester.tap(find.text('Trade'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Price settings'));
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Settings'), findsOneWidget);
 

@@ -70,7 +70,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
               MaterialPageRoute(builder: (_) => const ScanScreen()),
             ),
           ),
-          const SettingsAction(),
+          const AppMenuAction(),
         ],
       ),
       body: Column(
@@ -410,7 +410,7 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.setName),
-        actions: const [SettingsAction()],
+        actions: const [AppMenuAction()],
       ),
       body: Column(
         children: [
