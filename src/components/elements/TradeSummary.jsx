@@ -19,12 +19,10 @@ import {
     Clear as ClearIcon,
     ContentCopy as ContentCopyIcon,
     Forum as ForumIcon,
-    Link as LinkIcon,
     BookmarkAdd as BookmarkAddIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { generateTradeOffer } from "../../utils/tradeOffer.js";
-import { encodeTradeToURL } from "../../utils/urlEncoding.js";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
@@ -101,7 +99,6 @@ const TradeSummary = ({
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [tradeName, setTradeName] = useState('');
     const [saving, setSaving] = useState(false);
-    const [shareLinkFallback, setShareLinkFallback] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     // Calculate total card count including quantities
@@ -141,20 +138,6 @@ const TradeSummary = ({
         }
     };
 
-    const handleShareLink = async () => {
-        const url = encodeTradeToURL(haveList, wantList);
-        if (!url) return;
-        try {
-            await copyTextToClipboard(url);
-            setSnackbar({ open: true, message: 'Trade link copied — anyone can open it to see this trade', severity: 'success' });
-        } catch (err) {
-            // Clipboard can be blocked (permissions, unfocused window):
-            // show the link so the user can copy it themselves.
-            console.error('Failed to copy trade link:', err);
-            setShareLinkFallback(url);
-        }
-    };
-
     const handleOpenSaveDialog = () => {
         const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         setTradeName(`Trade ${today}`);
@@ -191,7 +174,7 @@ const TradeSummary = ({
         ? (isDark ? 'linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f5f1ed 100%)')
         : (isDark ? 'linear-gradient(90deg, #1a0f0a 0%, #2c1810 50%, #1a0f0a 100%)' : 'linear-gradient(90deg, #f5f1ed 0%, #ffffff 50%, #f5f1ed 100%)');
 
-    const chipSize = isLandscape ? 'small' : 'medium';
+    const chipSize = 'small';
     const marketDiffLabel = diff > 0
         ? `+${formatCurrency(diff.toFixed(2))}`
         : formatCurrency(diff.toFixed(2));
@@ -200,11 +183,132 @@ const TradeSummary = ({
         : formatCurrency(lowDiff.toFixed(2));
     const showLowDiff = Math.abs(lowDiff) >= 0.01 || haveLowTotal > 0 || wantLowTotal > 0;
 
+    const labelSx = {
+        fontWeight: 'medium',
+        color: textColor,
+        fontSize: isLandscape ? '0.75rem' : { xs: '0.65rem', sm: '0.75rem' },
+        textAlign: 'center',
+        lineHeight: 1.2,
+        whiteSpace: 'nowrap'
+    };
+
+    const totalColumnSx = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0.35,
+        flex: isLandscape ? 'none' : 1,
+        minWidth: 0,
+        px: isLandscape ? 0 : 0.25
+    };
+
+    const haveColumn = (
+        <Box sx={totalColumnSx}>
+            <Typography variant="h6" sx={labelSx}>
+                My {haveCardCount} cards
+            </Typography>
+            <TotalStack
+                market={haveTotal}
+                low={haveLowTotal}
+                color="primary"
+                size={chipSize}
+                isDark={isDark}
+                isLandscape={isLandscape}
+            />
+        </Box>
+    );
+
+    const differenceColumn = (
+        <Box
+            sx={{
+                ...totalColumnSx,
+                ...(isLandscape ? {
+                    py: 1.5,
+                    px: 1,
+                    my: 1,
+                    background: isDark
+                        ? 'linear-gradient(135deg, #1a0f0a 0%, #2c1810 100%)'
+                        : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                    borderRadius: 2,
+                    boxShadow: isDark
+                        ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                        : '0 2px 8px rgba(139, 69, 19, 0.08)'
+                } : {}),
+                position: 'relative'
+            }}
+        >
+            <Typography variant="h6" sx={{ ...labelSx, fontWeight: 'bold' }}>
+                Difference
+            </Typography>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.15
+            }}>
+                <Chip
+                    label={marketDiffLabel}
+                    color={diff > 0 ? 'primary' : diff < 0 ? 'success' : 'default'}
+                    variant="filled"
+                    size={chipSize}
+                />
+                {showLowDiff && (
+                    <Typography
+                        component="span"
+                        sx={{
+                            fontSize: isLandscape ? '0.6rem' : { xs: '0.55rem', sm: '0.65rem' },
+                            color: mutedColor,
+                            lineHeight: 1.1,
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        Low {lowDiffLabel}
+                    </Typography>
+                )}
+            </Box>
+            {hasLoadedFromURL && urlTradeData && (
+                <Tooltip title="Clear loaded trade data from URL">
+                    <IconButton
+                        size="small"
+                        onClick={() => setShowClearConfirm(true)}
+                        sx={{
+                            color: 'warning.main',
+                            p: 0.25,
+                            position: isLandscape ? 'static' : 'absolute',
+                            top: isLandscape ? 'auto' : -2,
+                            right: isLandscape ? 'auto' : -4,
+                            mt: isLandscape ? 0.5 : 0
+                        }}
+                    >
+                        <ClearIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
+        </Box>
+    );
+
+    const wantColumn = (
+        <Box sx={totalColumnSx}>
+            <Typography variant="h6" sx={labelSx}>
+                Their {wantCardCount} cards
+            </Typography>
+            <TotalStack
+                market={wantTotal}
+                low={wantLowTotal}
+                color="success"
+                size={chipSize}
+                isDark={isDark}
+                isLandscape={isLandscape}
+            />
+        </Box>
+    );
+
     return (
         <>
         <Box sx={{
             display: 'flex',
-            flexDirection: isLandscape ? 'column' : 'column',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
             gap: 0,
@@ -222,146 +326,20 @@ const TradeSummary = ({
                 ? (isDark ? '0 8px 24px rgba(0, 0, 0, 0.3)' : '0 8px 24px rgba(139, 69, 19, 0.15)')
                 : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(139, 69, 19, 0.08)')
         }}>
+            {/* Totals: horizontal on mobile, stacked in landscape sidebar */}
             <Box sx={{
                 display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: isLandscape ? 1 : 2,
-                px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
-                py: isLandscape ? 1 : { xs: 0.25, sm: 0.5, md: 0.75 },
-                flexDirection: isLandscape ? 'column' : 'row'
-            }}>
-                <Typography variant="h6" sx={{ 
-                    fontWeight: 'medium', 
-                    color: textColor, 
-                    fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem', sm: '0.9rem' },
-                    textAlign: 'center'
-                }}>
-                    My {haveCardCount} cards
-                </Typography>
-                <TotalStack
-                    market={haveTotal}
-                    low={haveLowTotal}
-                    color="primary"
-                    size={chipSize}
-                    isDark={isDark}
-                    isLandscape={isLandscape}
-                />
-            </Box>
-
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: isLandscape ? 1 : 1,
-                px: isLandscape ? 2 : { xs: 1 },
-                py: isLandscape ? 2 : { xs: 0.75 },
-                background: isDark 
-                    ? 'linear-gradient(135deg, #1a0f0a 0%, #2c1810 100%)' 
-                    : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                borderTop: isLandscape ? 'none' : `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
-                borderBottom: isLandscape ? 'none' : `2px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.1)'}`,
-                borderRadius: isLandscape ? 2 : 0,
-                mx: isLandscape ? 0 : 0,
-                my: isLandscape ? 1 : 0,
                 flexDirection: isLandscape ? 'column' : 'row',
-                flexWrap: 'wrap',
-                boxShadow: isLandscape ? (isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(139, 69, 19, 0.08)') : 'none'
+                justifyContent: 'space-between',
+                alignItems: isLandscape ? 'stretch' : 'center',
+                width: '100%',
+                gap: isLandscape ? 0 : 0.5,
+                px: isLandscape ? 1 : { xs: 0.75, sm: 1 },
+                py: isLandscape ? 0 : { xs: 0.5, sm: 0.65 }
             }}>
-                {/* Difference section - centered */}
-                <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: isLandscape ? 1 : 2,
-                    flexDirection: isLandscape ? 'column' : 'row',
-                    justifyContent: 'center',
-                    flexGrow: !isLandscape ? 1 : 'none',
-                    flexWrap: 'wrap'
-                }}>
-                    <Typography variant="h6" sx={{ 
-                        fontWeight: 'bold', 
-                        color: textColor, 
-                        fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem' },
-                        textAlign: 'center'
-                    }}>
-                        Difference
-                    </Typography>
-                    <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 0.15
-                    }}>
-                        <Chip
-                            label={marketDiffLabel}
-                            color={diff > 0 ? 'primary' : diff < 0 ? 'success' : 'default'}
-                            variant="filled"
-                            size={chipSize}
-                        />
-                        {showLowDiff && (
-                            <Typography
-                                component="span"
-                                sx={{
-                                    fontSize: isLandscape ? '0.6rem' : { xs: '0.55rem', sm: '0.65rem' },
-                                    color: mutedColor,
-                                    lineHeight: 1.1,
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                Low {lowDiffLabel}
-                            </Typography>
-                        )}
-                    </Box>
-                </Box>
-
-                {/* Clear loaded-from-URL trade data */}
-                {hasLoadedFromURL && urlTradeData && (
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        ml: isLandscape ? 0 : 1,
-                        mt: isLandscape ? 1 : 0
-                    }}>
-                        <Tooltip title="Clear loaded trade data from URL">
-                            <IconButton
-                                size="small"
-                                onClick={() => setShowClearConfirm(true)}
-                                sx={{ color: 'warning.main', p: 0.5 }}
-                            >
-                                <ClearIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                )}
-            </Box>
-
-            {/* Their Cards Summary */}
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: isLandscape ? 1 : 2,
-                px: isLandscape ? 1 : { xs: 0.5, sm: 0.75, md: 1 },
-                py: isLandscape ? 1 : { xs: 0.25, sm: 0.5, md: 0.75 },
-                flexDirection: isLandscape ? 'column' : 'row'
-            }}>
-                <Typography variant="h6" sx={{ 
-                    fontWeight: 'medium', 
-                    color: textColor, 
-                    fontSize: isLandscape ? '0.75rem' : { xs: '0.8rem', sm: '0.9rem' },
-                    textAlign: 'center'
-                }}>
-                    Their {wantCardCount} cards
-                </Typography>
-                <TotalStack
-                    market={wantTotal}
-                    low={wantLowTotal}
-                    color="success"
-                    size={chipSize}
-                    isDark={isDark}
-                    isLandscape={isLandscape}
-                />
+                {haveColumn}
+                {differenceColumn}
+                {wantColumn}
             </Box>
 
             {/* URL Age Warning */}
@@ -383,44 +361,19 @@ const TradeSummary = ({
                 </Box>
             )}
 
-            {/* Share / save actions */}
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 1,
-                px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
-                py: isLandscape ? 1.25 : { xs: 0.75, sm: 1 },
-                width: '100%',
-                boxSizing: 'border-box',
-                borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
-            }}>
-                <Tooltip title="Copy a link that opens this trade">
-                    <span>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<LinkIcon />}
-                            onClick={handleShareLink}
-                            disabled={!canGenerateTradeOffer}
-                            sx={{
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                px: 1.5,
-                                py: 0.5,
-                                color: isDark ? '#e4c09c' : '#8b4513',
-                                borderColor: isDark ? 'rgba(212, 165, 116, 0.4)' : 'rgba(139, 69, 19, 0.35)',
-                                '&:hover': {
-                                    borderColor: isDark ? '#d4a574' : '#8b4513',
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.06)'
-                                }
-                            }}
-                        >
-                            Share Link
-                        </Button>
-                    </span>
-                </Tooltip>
-                {user && (
+            {/* Save (logged-in only) */}
+            {user && (
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
+                    py: isLandscape ? 1 : { xs: 0.4, sm: 0.6 },
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
+                }}>
                     <Tooltip title="Save this trade to your history">
                         <span>
                             <Button
@@ -433,7 +386,8 @@ const TradeSummary = ({
                                     textTransform: 'none',
                                     fontWeight: 600,
                                     px: 1.5,
-                                    py: 0.5,
+                                    py: 0.25,
+                                    minHeight: 28,
                                     color: isDark ? '#e4c09c' : '#8b4513',
                                     borderColor: isDark ? 'rgba(212, 165, 116, 0.4)' : 'rgba(139, 69, 19, 0.35)',
                                     '&:hover': {
@@ -446,17 +400,18 @@ const TradeSummary = ({
                             </Button>
                         </span>
                     </Tooltip>
-                )}
-            </Box>
+                </Box>
+            )}
 
             {/* Purple Discord trade offer */}
             <Box sx={{
                 display: 'flex',
-                flexDirection: 'column',
+                flexDirection: isLandscape ? 'column' : 'row',
                 alignItems: 'center',
-                gap: 0.5,
+                justifyContent: 'center',
+                gap: isLandscape ? 0.5 : 1,
                 px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
-                py: isLandscape ? 1.5 : { xs: 1, sm: 1.25 },
+                py: isLandscape ? 1.25 : { xs: 0.5, sm: 0.65 },
                 width: '100%',
                 boxSizing: 'border-box',
                 borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
@@ -465,27 +420,32 @@ const TradeSummary = ({
                     variant="caption"
                     sx={{
                         color: mutedColor,
-                        fontSize: isLandscape ? '0.7rem' : { xs: '0.7rem', sm: '0.75rem' },
-                        textAlign: 'center',
-                        lineHeight: 1.3
+                        fontSize: isLandscape ? '0.7rem' : { xs: '0.65rem', sm: '0.7rem' },
+                        textAlign: isLandscape ? 'center' : 'left',
+                        lineHeight: 1.2,
+                        flexShrink: 1
                     }}
                 >
                     Replying to a Purple Discord trade?
                 </Typography>
                 <Button
                     variant="contained"
-                    size={isLandscape ? 'small' : 'medium'}
-                    startIcon={<ForumIcon />}
+                    size="small"
+                    startIcon={<ForumIcon sx={{ fontSize: '1rem !important' }} />}
                     onClick={handleGenerateTradeOffer}
                     disabled={!canGenerateTradeOffer}
                     sx={{
                         textTransform: 'none',
                         fontWeight: 600,
-                        px: isLandscape ? 1.5 : 2,
+                        fontSize: '0.75rem',
+                        px: 1.25,
+                        py: 0.25,
+                        minHeight: 28,
+                        flexShrink: 0,
                         background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
                         boxShadow: isDark
-                            ? '0 2px 8px rgba(0, 0, 0, 0.35)'
-                            : '0 2px 8px rgba(139, 69, 19, 0.25)',
+                            ? '0 1px 4px rgba(0, 0, 0, 0.35)'
+                            : '0 1px 4px rgba(139, 69, 19, 0.25)',
                         '&:hover': {
                             background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
                         },
@@ -562,31 +522,6 @@ const TradeSummary = ({
                 >
                     Copy to Clipboard
                 </Button>
-            </DialogActions>
-        </Dialog>
-
-        {/* Share link fallback when the clipboard is unavailable */}
-        <Dialog
-            open={Boolean(shareLinkFallback)}
-            onClose={() => setShareLinkFallback(null)}
-            fullWidth
-            maxWidth="sm"
-        >
-            <DialogTitle sx={{ pb: 1 }}>Share Trade Link</DialogTitle>
-            <DialogContent>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                    Copying automatically didn't work — select the link below and copy it.
-                </Typography>
-                <TextField
-                    value={shareLinkFallback || ''}
-                    fullWidth
-                    InputProps={{ readOnly: true }}
-                    onFocus={(e) => e.target.select()}
-                    autoFocus
-                />
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={() => setShareLinkFallback(null)}>Close</Button>
             </DialogActions>
         </Dialog>
 
