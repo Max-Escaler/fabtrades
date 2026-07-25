@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../support/sync_stub.dart';
+
 class _MockAuthRepository extends Mock implements AuthRepository {}
 
 const _account = Account(
@@ -29,6 +31,7 @@ Future<_MockAuthRepository> _pumpAccount(
   ],
   // The loading placeholder spins forever, so pumpAndSettle would never return.
   bool settle = true,
+  StubSyncNotifier? sync,
 }) async {
   final auth = _MockAuthRepository();
   when(() => auth.availableProviders()).thenAnswer((_) async => providers);
@@ -39,6 +42,7 @@ Future<_MockAuthRepository> _pumpAccount(
       overrides: [
         authRepositoryProvider.overrideWithValue(auth),
         accountProvider.overrideWith((ref) => accounts),
+        syncProvider.overrideWith(() => sync ?? StubSyncNotifier()),
       ],
       child: const MaterialApp(
         home: Scaffold(
@@ -178,6 +182,67 @@ void main() {
     controller.add(null);
     await tester.pumpAndSettle();
     expect(find.text('Sign in'), findsOneWidget);
+  });
+
+  testWidgets('reports when this device last reached the account',
+      (tester) async {
+    await _pumpAccount(
+      tester,
+      accounts: Stream.value(_account),
+      sync: StubSyncNotifier(
+        SyncStatus(lastSyncedAt: DateTime.now().subtract(Duration(minutes: 5))),
+      ),
+    );
+
+    expect(find.text('Last synced 5m ago.'), findsOneWidget);
+  });
+
+  testWidgets('says so plainly when nothing has synced yet', (tester) async {
+    await _pumpAccount(tester, accounts: Stream.value(_account));
+
+    expect(find.text('Not synced yet on this device.'), findsOneWidget);
+  });
+
+  testWidgets('shows a sync failure beside the account, not in place of it',
+      (tester) async {
+    await _pumpAccount(
+      tester,
+      accounts: Stream.value(_account),
+      sync: StubSyncNotifier(const SyncStatus(error: 'Offline right now.')),
+    );
+
+    // The account itself is still fully usable: a failed sync is not a failed screen.
+    expect(find.text('Offline right now.'), findsOneWidget);
+    expect(find.text('Rhinar Hothead'), findsOneWidget);
+    expect(find.text('Sign out'), findsOneWidget);
+  });
+
+  testWidgets('lets the customer retry a sync without restarting the app',
+      (tester) async {
+    final sync = StubSyncNotifier(const SyncStatus(error: 'Offline right now.'));
+    await _pumpAccount(tester, accounts: Stream.value(_account), sync: sync);
+
+    await tester.tap(find.text('Sync now'));
+    await tester.pumpAndSettle();
+
+    expect(sync.requested, [_account.id]);
+  });
+
+  testWidgets('will not stack a second sync on top of one in flight',
+      (tester) async {
+    final sync = StubSyncNotifier(const SyncStatus(isSyncing: true));
+    await _pumpAccount(
+      tester,
+      accounts: Stream.value(_account),
+      sync: sync,
+      // The in-progress spinner never settles.
+      settle: false,
+    );
+
+    await tester.tap(find.text('Syncing…'));
+    await tester.pump();
+
+    expect(sync.requested, isEmpty);
   });
 
   testWidgets('treats an auth stream error as signed out', (tester) async {

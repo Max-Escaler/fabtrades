@@ -20,7 +20,7 @@ const makeChain = (result) => {
   const chain = {
     then: (resolve) => resolve(result),
   };
-  for (const method of ['insert', 'select', 'single', 'eq', 'order', 'update', 'delete']) {
+  for (const method of ['insert', 'select', 'single', 'eq', 'is', 'order', 'update', 'delete']) {
     chain[method] = jest.fn(() => chain);
   }
   return chain;
@@ -70,6 +70,18 @@ describe('saveTradeToHistory', () => {
     ]);
   });
 
+  test('mints a client_id so mobile can address the row', async () => {
+    asUser();
+    const chain = makeChain({ data: { id: 't1' }, error: null });
+    supabase.from.mockReturnValue(chain);
+
+    await saveTradeToHistory('My Trade', [], [], totals);
+
+    const [[[inserted]]] = chain.insert.mock.calls;
+    expect(inserted.client_id).toEqual(expect.any(String));
+    expect(inserted.client_id).not.toHaveLength(0);
+  });
+
   test('propagates a database error', async () => {
     asUser();
     supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'boom' } }));
@@ -99,6 +111,16 @@ describe('getUserTrades', () => {
     expect(data).toEqual(trades);
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-9');
     expect(chain.order).toHaveBeenCalledWith('created_at', { ascending: false });
+  });
+
+  test('hides trades tombstoned by another device', async () => {
+    asUser();
+    const chain = makeChain({ data: [], error: null });
+    supabase.from.mockReturnValue(chain);
+
+    await getUserTrades();
+
+    expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
   });
 });
 
@@ -133,7 +155,7 @@ describe('updateTrade', () => {
 });
 
 describe('deleteTrade', () => {
-  test('deletes the trade and reports success', async () => {
+  test('tombstones the trade rather than removing it', async () => {
     asUser('user-7');
     const chain = makeChain({ error: null });
     supabase.from.mockReturnValue(chain);
@@ -142,7 +164,10 @@ describe('deleteTrade', () => {
 
     expect(error).toBeNull();
     expect(data).toEqual({ success: true });
-    expect(chain.delete).toHaveBeenCalled();
+    expect(chain.delete).not.toHaveBeenCalled();
+    expect(chain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ deleted_at: expect.any(String), updated_at: expect.any(String) })
+    );
     expect(chain.eq).toHaveBeenCalledWith('id', 'd1');
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-7');
   });

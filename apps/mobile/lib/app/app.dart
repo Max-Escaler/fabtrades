@@ -8,6 +8,7 @@ import '../features/binder/binder_screen.dart';
 import '../features/lend/lend_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/sync/sync_host.dart';
 import '../features/trade/trade_screen.dart';
 import '../features/update/update_prompt.dart';
 import 'theme.dart';
@@ -26,7 +27,7 @@ class FabTradesApp extends ConsumerWidget {
       themeMode: settings.themeMode == AppThemeMode.dark
           ? ThemeMode.dark
           : ThemeMode.light,
-      home: const UpdatePromptHost(child: HomeShell()),
+      home: const SyncHost(child: UpdatePromptHost(child: HomeShell())),
     );
   }
 }

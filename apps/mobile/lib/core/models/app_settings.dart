@@ -51,4 +51,13 @@ class AppSettings {
           orElse: () => AppThemeMode.dark,
         ),
       );
+
+  @override
+  bool operator ==(Object other) =>
+      other is AppSettings &&
+      other.source == source &&
+      other.themeMode == themeMode;
+
+  @override
+  int get hashCode => Object.hash(source, themeMode);
 }

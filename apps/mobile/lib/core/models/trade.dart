@@ -35,6 +35,32 @@ class TradeItem {
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         priceEach: (json['price_each'] as num?)?.toDouble() ?? 0,
       );
+
+  /// Reads an item out of the shared `trades.have_list` / `want_list` columns,
+  /// which hold lines written by either client.
+  ///
+  /// Mobile writes [toJson]. Web writes a flatter object keyed on camelCase
+  /// (`uniqueId`, `subTypeName`, `imageUrl`, `price`) with the card fields inlined
+  /// rather than nested. Rather than migrate web's format and break trades already
+  /// saved there, this reads both — the nested `card` object is what distinguishes
+  /// them.
+  factory TradeItem.fromSharedJson(Map<String, dynamic> json) {
+    final nested = json['card'];
+    if (nested is Map) {
+      return TradeItem.fromJson(json);
+    }
+
+    return TradeItem(
+      card: CardModel.fromStub({
+        'id': json['uniqueId'] ?? json['card_id'] ?? '',
+        'name': json['name'] ?? '',
+        'sub_type_name': json['subTypeName'],
+        'image_url': json['imageUrl'],
+      }),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      priceEach: (json['price'] as num?)?.toDouble() ?? 0,
+    );
+  }
 }
 
 /// A trade draft (live, being edited) or a saved historical trade.

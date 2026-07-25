@@ -39,15 +39,19 @@ export async function saveTradeToHistory(name, haveList, wantList, totals) {
             return { data: null, error: { message: 'Trade name is required' } };
         }
 
-        // Prepare trade data
+        // `client_id` is how the mobile app addresses a row it has not yet seen a
+        // server id for. Web has no such need, but the column is NOT NULL and shared,
+        // so it mints one here too.
         const tradeData = {
             user_id: user.id,
+            client_id: crypto.randomUUID(),
             name: name.trim(),
             have_list: haveList,
             want_list: wantList,
             have_total: totals.haveTotal,
             want_total: totals.wantTotal,
             diff: totals.diff,
+            updated_at: new Date().toISOString(),
         };
 
         // Insert trade into database
@@ -77,11 +81,14 @@ export async function getUserTrades() {
             return { data: null, error: authError };
         }
 
-        // Fetch trades ordered by most recent first
+        // Deleted trades are tombstoned rather than removed, so that a mobile device
+        // that is offline when the delete happens learns about it on its next sync.
+        // Those rows must not surface here.
         const { data, error } = await supabase
             .from('trades')
             .select('*')
             .eq('user_id', user.id)
+            .is('deleted_at', null)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -111,6 +118,7 @@ export async function getTradeById(id) {
             .select('*')
             .eq('id', id)
             .eq('user_id', user.id)
+            .is('deleted_at', null)
             .single();
 
         if (error) throw error;
@@ -158,6 +166,11 @@ export async function updateTrade(id, updates) {
 
 /**
  * Delete a trade from history
+ *
+ * Tombstoned rather than removed. A hard delete is invisible to a mobile device that
+ * was offline at the time, which would re-upload the trade from its local copy on the
+ * next sync and resurrect it.
+ *
  * @param {string} id - The trade ID
  * @returns {Object} - { data, error }
  */
@@ -168,10 +181,10 @@ export async function deleteTrade(id) {
             return { data: null, error: authError };
         }
 
-        // Delete trade
+        const now = new Date().toISOString();
         const { error } = await supabase
             .from('trades')
-            .delete()
+            .update({ deleted_at: now, updated_at: now })
             .eq('id', id)
             .eq('user_id', user.id);
 

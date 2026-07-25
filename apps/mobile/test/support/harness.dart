@@ -8,6 +8,8 @@ import 'package:fabtrades/core/models/card_model.dart';
 import 'package:fabtrades/core/providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'sync_stub.dart';
+
 class MockCardRepository extends Mock implements CardRepository {}
 
 /// Pumps [child] inside a [MaterialApp] with a real (mock-backed) provider
@@ -37,6 +39,7 @@ Future<ProviderContainer> pumpApp(
       sharedPreferencesProvider.overrideWithValue(prefs),
       cardRepositoryProvider.overrideWithValue(mockRepo),
       accountProvider.overrideWith((ref) => Stream.value(account)),
+      syncProvider.overrideWith(StubSyncNotifier.new),
     ],
   );
   addTearDown(container.dispose);

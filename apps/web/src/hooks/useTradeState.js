@@ -6,6 +6,7 @@ import {
     hasTradeDataInURL,
     clearTradeFromURL
 } from "../utils/urlEncoding.js";
+import { normalizeTradeList } from "../utils/tradeItems.js";
 
 export function useTradeState(cardGroups, cardIdLookup = {}) {
     const [haveList, setHaveList] = useState([]);
@@ -157,9 +158,9 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
 
         // Helper function to reconstruct cards from history data
         const reconstructFromHistory = (cardList) => {
-            if (!cardList || !Array.isArray(cardList)) return [];
-            
-            return cardList.map(savedCard => {
+            // Normalized first because the same column holds lines written by web and
+            // by the mobile app, which use different key names.
+            return normalizeTradeList(cardList).map(savedCard => {
                 // Find the current card group to get latest pricing
                 const cardGroup = getCardGroup(savedCard.name);
                 

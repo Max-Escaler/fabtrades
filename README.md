@@ -103,6 +103,14 @@ Discord-specific walkthrough remains at
 **Note:** Both clients work fully without an account. Signing in adds cloud-synced
 collection data and trade history.
 
+### Cloud Sync
+
+Binder, want list, lend groups, trades, and settings sync per account. Local storage
+stays the source of truth for reads, so both clients work offline and signed out, and a
+device's existing data uploads on first sign-in without the customer doing anything.
+The reconciliation rules — last write wins per record, tombstoned deletes, and what
+happens when a device changes hands — are in [docs/CLOUD_SYNC.md](./docs/CLOUD_SYNC.md).
+
 ## License
 
 [Add your license here]

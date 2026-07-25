@@ -80,6 +80,8 @@ class _SignedInCard extends ConsumerWidget {
             ),
           ),
           const Divider(height: 1),
+          const _SyncTile(),
+          const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Sign out'),
@@ -99,6 +101,68 @@ class _SignedInCard extends ConsumerWidget {
       return provider == null ? email : '$email · $provider';
     }
     return provider == null ? 'Signed in' : 'Signed in with $provider';
+  }
+}
+
+/// Sync state, and a way to ask for one now.
+///
+/// Sync is automatic on sign-in, so this exists mostly to answer "did it work?".
+/// The manual retry matters on a flaky connection, where waiting for the next
+/// automatic attempt would mean waiting for a restart.
+class _SyncTile extends ConsumerWidget {
+  const _SyncTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final status = ref.watch(syncProvider);
+    final account = ref.watch(accountProvider).value;
+
+    return ListTile(
+      leading: status.isSyncing
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          : Icon(
+              status.error == null ? Icons.cloud_done_outlined : Icons.cloud_off,
+              color: status.error == null ? null : theme.colorScheme.error,
+            ),
+      title: Text(status.isSyncing ? 'Syncing…' : 'Sync now'),
+      subtitle: Text(
+        _subtitle(status),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: status.error == null
+              ? theme.colorScheme.onSurfaceVariant
+              : theme.colorScheme.error,
+        ),
+      ),
+      onTap: status.isSyncing || account == null
+          ? null
+          : () => ref.read(syncProvider.notifier).sync(account.id),
+    );
+  }
+
+  static String _subtitle(SyncStatus status) {
+    if (status.error != null) return status.error!;
+    if (status.isSyncing) return 'Bringing this device up to date.';
+    final at = status.lastSyncedAt;
+    if (at == null) return 'Not synced yet on this device.';
+    return 'Last synced ${_ago(DateTime.now().difference(at))}.';
+  }
+
+  static String _ago(Duration d) {
+    if (d.inMinutes < 1) return 'just now';
+    if (d.inMinutes < 60) return '${d.inMinutes}m ago';
+    if (d.inHours < 24) return '${d.inHours}h ago';
+    return '${d.inDays}d ago';
   }
 }
 

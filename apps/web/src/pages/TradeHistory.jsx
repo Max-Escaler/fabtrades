@@ -32,6 +32,7 @@ import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
 import { fetchLastUpdatedTimestamp } from '../services/api';
 import { formatCurrency } from '../utils/helpers.js';
+import { normalizeTradeList, tradeDisplayName } from '../utils/tradeItems.js';
 import Header from '../components/elements/Header.jsx';
 
 const TradeHistory = () => {
@@ -127,12 +128,12 @@ const TradeHistory = () => {
         const allCards = [];
 
         // Have side (cards you give) prefixed with −, want side (cards you get) with +
-        haveList.forEach(card => {
-            allCards.push(`-${card.quantity} ${card.name || 'Unknown'}`);
+        normalizeTradeList(haveList).forEach(card => {
+            allCards.push(`-${card.quantity} ${card.name}`);
         });
 
-        wantList.forEach(card => {
-            allCards.push(`+${card.quantity} ${card.name || 'Unknown'}`);
+        normalizeTradeList(wantList).forEach(card => {
+            allCards.push(`+${card.quantity} ${card.name}`);
         });
 
         // Show first maxCards, then indicate if there are more
@@ -147,7 +148,7 @@ const TradeHistory = () => {
     };
 
     const filteredTrades = trades.filter(trade =>
-        trade.name.toLowerCase().includes(searchQuery.toLowerCase())
+        tradeDisplayName(trade).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     // Theme-aware colors matching the rest of the app
@@ -377,7 +378,7 @@ const TradeHistory = () => {
                                                         whiteSpace: 'nowrap'
                                                     }}
                                                 >
-                                                    {trade.name}
+                                                    {tradeDisplayName(trade)}
                                                 </Typography>
 
                                                 <Typography variant="caption" sx={{ color: mutedColor, display: 'block', mb: 2 }}>

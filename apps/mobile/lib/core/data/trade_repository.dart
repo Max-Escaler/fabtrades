@@ -1,27 +1,19 @@
-import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/trade.dart';
+import '../sync/trade_sync.dart';
+import 'cached_collection.dart';
 
-class TradeRepository {
-  TradeRepository(this._prefs);
-  final SharedPreferences _prefs;
-  static const _key = 'saved_trades';
+class TradeRepository extends CachedCollection<Trade> {
+  TradeRepository(super.prefs, super.journal);
 
-  List<Trade> load() {
-    final raw = _prefs.getString(_key);
-    if (raw == null) return [];
-    try {
-      final list = jsonDecode(raw) as List;
-      return list
-          .map((e) => Trade.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
+  @override
+  String get storageKey => 'saved_trades';
 
-  Future<void> save(List<Trade> trades) => _prefs.setString(
-      _key, jsonEncode(trades.map((e) => e.toJson()).toList()));
+  @override
+  TradeSyncAdapter get adapter => const TradeSyncAdapter();
+
+  @override
+  Map<String, dynamic> encode(Trade value) => value.toJson();
+
+  @override
+  Trade decode(Map<String, dynamic> json) => Trade.fromJson(json);
 }

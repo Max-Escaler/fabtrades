@@ -8,6 +8,7 @@ import 'package:fabtrades/core/models/app_settings.dart';
 import 'package:fabtrades/core/models/binder_entry.dart';
 import 'package:fabtrades/core/models/lend_group.dart';
 import 'package:fabtrades/core/models/trade.dart';
+import 'package:fabtrades/core/sync/sync_journal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../support/fixtures.dart';
@@ -20,14 +21,34 @@ void main() {
     return SharedPreferences.getInstance();
   }
 
+  Future<BinderRepository> binderRepo([Map<String, Object> seed = const {}]) async {
+    final prefs = await freshPrefs(seed);
+    return BinderRepository(prefs, SyncJournal(prefs));
+  }
+
+  Future<TradeRepository> tradeRepo([Map<String, Object> seed = const {}]) async {
+    final prefs = await freshPrefs(seed);
+    return TradeRepository(prefs, SyncJournal(prefs));
+  }
+
+  Future<LendRepository> lendRepo([Map<String, Object> seed = const {}]) async {
+    final prefs = await freshPrefs(seed);
+    return LendRepository(prefs, SyncJournal(prefs));
+  }
+
+  Future<SettingsRepository> settingsRepo(
+      [Map<String, Object> seed = const {}]) async {
+    final prefs = await freshPrefs(seed);
+    return SettingsRepository(prefs, SyncJournal(prefs));
+  }
+
   group('BinderRepository', () {
     test('returns empty when nothing stored', () async {
-      final repo = BinderRepository(await freshPrefs());
-      expect(repo.load(), isEmpty);
+      expect((await binderRepo()).load(), isEmpty);
     });
 
     test('save then load round-trips entries', () async {
-      final repo = BinderRepository(await freshPrefs());
+      final repo = await binderRepo();
       final entries = [
         BinderEntry(
           card: buildCard(id: 'c1', name: 'Vex'),
@@ -47,21 +68,19 @@ void main() {
     });
 
     test('returns empty on corrupt json', () async {
-      final repo = BinderRepository(
-          await freshPrefs({'collection_entries': 'not json'}));
+      final repo = await binderRepo({'collection_entries': 'not json'});
       expect(repo.load(), isEmpty);
     });
 
     test('reads legacy collection_entries key payloads', () async {
-      final prefs = await freshPrefs();
       // Simulate a pre-rename payload written under the legacy key.
-      await prefs.setString(
-        'collection_entries',
-        '[{"card":{"id":"legacy","name":"Old","is_foil":false},'
-        '"quantity":4,"condition":"NM","is_wanted":false,'
-        '"added_at":"2026-01-01T00:00:00.000Z"}]',
-      );
-      final loaded = BinderRepository(prefs).load();
+      final repo = await binderRepo({
+        'collection_entries':
+            '[{"card":{"id":"legacy","name":"Old","is_foil":false},'
+                '"quantity":4,"condition":"NM","is_wanted":false,'
+                '"added_at":"2026-01-01T00:00:00.000Z"}]',
+      });
+      final loaded = repo.load();
       expect(loaded.single.card.id, 'legacy');
       expect(loaded.single.quantity, 4);
       expect(loaded.single.isWanted, isFalse);
@@ -70,7 +89,7 @@ void main() {
 
   group('TradeRepository', () {
     test('save then load round-trips trades', () async {
-      final repo = TradeRepository(await freshPrefs());
+      final repo = await tradeRepo();
       final trade = Trade(
         id: 't1',
         createdAt: DateTime.utc(2026, 2, 2),
@@ -86,15 +105,13 @@ void main() {
     });
 
     test('returns empty on corrupt json', () async {
-      final repo =
-          TradeRepository(await freshPrefs({'saved_trades': '{bad'}));
-      expect(repo.load(), isEmpty);
+      expect((await tradeRepo({'saved_trades': '{bad'})).load(), isEmpty);
     });
   });
 
   group('LendRepository', () {
     test('save then load round-trips groups', () async {
-      final repo = LendRepository(await freshPrefs());
+      final repo = await lendRepo();
       final group = LendGroup(
         id: 'g1',
         personName: 'Sam',
@@ -110,21 +127,19 @@ void main() {
     });
 
     test('returns empty on corrupt json', () async {
-      final repo = LendRepository(await freshPrefs({'lend_groups': 'x'}));
-      expect(repo.load(), isEmpty);
+      expect((await lendRepo({'lend_groups': 'x'})).load(), isEmpty);
     });
   });
 
   group('SettingsRepository', () {
     test('defaults when nothing stored', () async {
-      final repo = SettingsRepository(await freshPrefs());
-      final s = repo.load();
+      final s = (await settingsRepo()).load();
       expect(s.source, PriceSource.tcgplayer);
       expect(s.themeMode, AppThemeMode.dark);
     });
 
     test('save then load round-trips settings', () async {
-      final repo = SettingsRepository(await freshPrefs());
+      final repo = await settingsRepo();
       await repo.save(const AppSettings(
         source: PriceSource.cardmarket,
         themeMode: AppThemeMode.dark,
@@ -135,9 +150,88 @@ void main() {
     });
 
     test('defaults on corrupt json', () async {
-      final repo =
-          SettingsRepository(await freshPrefs({'app_settings': 'nope'}));
+      final repo = await settingsRepo({'app_settings': 'nope'});
       expect(repo.load().source, PriceSource.tcgplayer);
+    });
+  });
+
+  group('journal bookkeeping', () {
+    test('a save marks only the records that actually changed', () async {
+      final prefs = await freshPrefs();
+      final journal = SyncJournal(prefs);
+      final repo = BinderRepository(prefs, journal);
+
+      final first = BinderEntry(
+        card: buildCard(id: 'a'),
+        addedAt: DateTime.utc(2026, 1, 1),
+      );
+      final second = BinderEntry(
+        card: buildCard(id: 'b'),
+        addedAt: DateTime.utc(2026, 1, 2),
+      );
+      await repo.save([first, second]);
+
+      final afterFirstSave = journal.localTimestamps(SyncDomain.binder);
+      expect(afterFirstSave.keys, hasLength(2));
+
+      await repo.save([first, second.copyWith(quantity: 3)]);
+      final afterEdit = journal.localTimestamps(SyncDomain.binder);
+
+      // Restamping every record on every save would make this device win every
+      // merge, so an untouched entry must keep its original timestamp.
+      expect(afterEdit['binder|a'], afterFirstSave['binder|a']);
+      expect(
+        afterEdit['binder|b']!.isAfter(afterFirstSave['binder|b']!) ||
+            afterEdit['binder|b'] == afterFirstSave['binder|b'],
+        isTrue,
+      );
+    });
+
+    test('removing a record leaves a tombstone', () async {
+      final prefs = await freshPrefs();
+      final journal = SyncJournal(prefs);
+      final repo = BinderRepository(prefs, journal);
+
+      final entry = BinderEntry(
+        card: buildCard(id: 'a'),
+        addedAt: DateTime.utc(2026, 1, 1),
+      );
+      await repo.save([entry]);
+      await repo.save(const []);
+
+      expect(journal.localTimestamps(SyncDomain.binder), isEmpty);
+      expect(journal.tombstones(SyncDomain.binder).keys, ['binder|a']);
+    });
+
+    test('re-adding a deleted record clears its tombstone', () async {
+      final prefs = await freshPrefs();
+      final journal = SyncJournal(prefs);
+      final repo = BinderRepository(prefs, journal);
+
+      final entry = BinderEntry(
+        card: buildCard(id: 'a'),
+        addedAt: DateTime.utc(2026, 1, 1),
+      );
+      await repo.save([entry]);
+      await repo.save(const []);
+      await repo.save([entry]);
+
+      expect(journal.tombstones(SyncDomain.binder), isEmpty);
+      expect(journal.localTimestamps(SyncDomain.binder).keys, ['binder|a']);
+    });
+
+    test('settings are only stamped once a choice is actually made', () async {
+      final prefs = await freshPrefs();
+      final journal = SyncJournal(prefs);
+      final repo = SettingsRepository(prefs, journal);
+
+      // Saving the values already in effect is not a preference; without this a
+      // fresh install would push its defaults over a real choice made elsewhere.
+      await repo.save(const AppSettings());
+      expect(journal.localTimestamps(SyncDomain.settings), isEmpty);
+
+      await repo.save(const AppSettings(source: PriceSource.cardmarket));
+      expect(journal.localTimestamps(SyncDomain.settings).keys, ['settings']);
     });
   });
 

@@ -4,10 +4,17 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { randomUUID } from 'crypto';
 
 // jsdom does not expose TextEncoder/TextDecoder globally; provide Node's.
 if (typeof globalThis.TextDecoder === 'undefined') globalThis.TextDecoder = TextDecoder;
 if (typeof globalThis.TextEncoder === 'undefined') globalThis.TextEncoder = TextEncoder;
+
+// jsdom's crypto stub omits randomUUID, which browsers provide in secure contexts.
+if (typeof globalThis.crypto === 'undefined') globalThis.crypto = {};
+if (typeof globalThis.crypto.randomUUID !== 'function') {
+  globalThis.crypto.randomUUID = randomUUID;
+}
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

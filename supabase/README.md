@@ -22,6 +22,14 @@ versions belong to RiftTrades. Two consequences worth knowing:
 Before adding a table, prefix it `fab_` unless it is genuinely shared. `trades`
 predates this convention and is FAB-only despite the bare name.
 
+## User data and sync
+
+`binder_entries`, `lend_groups`, `user_settings`, and `trades` are the synced
+per-account tables. They are keyed on `(user_id, client_id)` rather than `id`, and
+deletes are tombstones (`deleted_at`) rather than row removals — both for reasons
+that only make sense in the context of the reconciliation model, which is written
+up in [docs/CLOUD_SYNC.md](../docs/CLOUD_SYNC.md). Read that before changing them.
+
 ## Layout
 
 ```
@@ -68,8 +76,8 @@ Every table has RLS enabled. The rules are:
   public information and both clients read them without signing in.
 - **`fab_pipeline_runs`** — RLS enabled with no policy at all, so only the service
   role can see it. Ingest logs are operational data, not user data.
-- **`trades`** — `select`/`insert`/`update`/`delete` restricted to
-  `auth.uid() = user_id`.
+- **User data** (`trades`, `binder_entries`, `lend_groups`, `user_settings`) —
+  `select`/`insert`/`update`/`delete` restricted to `auth.uid() = user_id`.
 
 The price pipeline writes with the service role, which bypasses RLS. That is why
 no catalog table needs an insert or update policy.
