@@ -100,9 +100,24 @@ describe('getUserTrades', () => {
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-9');
     expect(chain.order).toHaveBeenCalledWith('created_at', { ascending: false });
   });
+
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'read-fail' } }));
+    const { data, error } = await getUserTrades();
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'read-fail' });
+  });
 });
 
 describe('getTradeById', () => {
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await getTradeById('xyz');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+  });
+
   test('fetches a single trade by id and user', async () => {
     asUser('user-3');
     const chain = makeChain({ data: { id: 'xyz' }, error: null });
@@ -114,9 +129,24 @@ describe('getTradeById', () => {
     expect(chain.eq).toHaveBeenCalledWith('id', 'xyz');
     expect(chain.eq).toHaveBeenCalledWith('user_id', 'user-3');
   });
+
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'missing' } }));
+    const { data, error } = await getTradeById('nope');
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'missing' });
+  });
 });
 
 describe('updateTrade', () => {
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+  });
+
   test('applies updates and stamps updated_at', async () => {
     asUser();
     const chain = makeChain({ data: { id: 'u1', name: 'New' }, error: null });
@@ -130,9 +160,24 @@ describe('updateTrade', () => {
       expect.objectContaining({ name: 'New', updated_at: expect.any(String) })
     );
   });
+
+  test('propagates a database error', async () => {
+    asUser();
+    supabase.from.mockReturnValue(makeChain({ data: null, error: { message: 'update-fail' } }));
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'update-fail' });
+  });
 });
 
 describe('deleteTrade', () => {
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await deleteTrade('d1');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+  });
+
   test('deletes the trade and reports success', async () => {
     asUser('user-7');
     const chain = makeChain({ error: null });
