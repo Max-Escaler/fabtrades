@@ -46,6 +46,11 @@ dependencies:
   package_info_plus: ^10.2.1
   url_launcher: ^6.3.2
   camera_android: ^0.10.11
+  # RevenueCat: FABTrades Pro subscriptions. purchases_ui_flutter provides the
+  # remotely-configured Paywall and Customer Center; keep both on the same
+  # version, they ship in lockstep.
+  purchases_flutter: ^10.4.3
+  purchases_ui_flutter: ^10.4.3
 
 dev_dependencies:
   flutter_test:

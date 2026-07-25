@@ -1,5 +1,7 @@
 package com.fabtrades.fabtrades
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// FlutterFragmentActivity (rather than FlutterActivity) is required by
+// RevenueCat Paywalls / Customer Center, which are hosted in native fragments.
+class MainActivity : FlutterFragmentActivity()

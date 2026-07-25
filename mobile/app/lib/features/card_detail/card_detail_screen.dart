@@ -11,6 +11,7 @@ import '../../core/models/app_settings.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
+import '../paywall/pro_limits.dart';
 
 class CardDetailScreen extends ConsumerStatefulWidget {
   const CardDetailScreen({super.key, required this.card});
@@ -611,10 +612,13 @@ class _ActionBar extends ConsumerWidget {
                     foregroundColor: AppTheme.wantAccent),
                 icon: const Icon(Icons.favorite_border),
                 label: const Text('Want List'),
-                onPressed: () {
-                  ref.read(binderProvider.notifier).add(card, isWanted: true);
-                  snack('Added to Want List');
-                },
+                onPressed: () => addToBinderOrUpsell(
+                  context,
+                  ref,
+                  card,
+                  isWanted: true,
+                  successMessage: 'Added to Want List',
+                ),
               ),
             ),
             const SizedBox(width: 12),

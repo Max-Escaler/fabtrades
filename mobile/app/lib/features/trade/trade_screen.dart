@@ -7,11 +7,13 @@ import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
+import '../../core/logic/free_limits.dart';
 import '../../core/logic/pricing.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
+import '../paywall/pro_gate.dart';
 import '../scan/scan_screen.dart';
 import '../search/card_picker.dart';
 import 'trade_filler_sheet.dart';
@@ -89,7 +91,12 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
                       trade: trade,
                       settings: settings,
                       pricing: pricing,
-                      onFindFiller: () => showTradeFillerSheet(context, ref),
+                      fillerLocked: !ref.watch(isProProvider),
+                      onFindFiller: () async {
+                        if (!await ensurePro(context, ref)) return;
+                        if (!context.mounted) return;
+                        await showTradeFillerSheet(context, ref);
+                      },
                       onDrag: (dy) {
                         setState(() {
                           _topFraction = (frac + dy / avail)
@@ -218,7 +225,7 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
       wantCash: draft.wantCash,
       currencySymbol: draft.currencySymbol,
     );
-    ref.read(tradeHistoryProvider.notifier).addTrade(saved);
+    final rolledOff = ref.read(tradeHistoryProvider.notifier).addTrade(saved);
     ref.read(binderProvider.notifier).applyTradeConfirm(
           saved,
           removeGivenFromBinder: removeGiven && given > 0,
@@ -228,9 +235,12 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trade confirmed'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(rolledOff > 0
+            ? 'Trade confirmed. The free plan keeps your last '
+                '${FreeLimits.savedTrades} trades.'
+            : 'Trade confirmed'),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -337,6 +347,7 @@ class _DragBar extends StatelessWidget {
     required this.pricing,
     required this.onDrag,
     required this.onFindFiller,
+    required this.fillerLocked,
   });
 
   final Trade trade;
@@ -344,6 +355,10 @@ class _DragBar extends StatelessWidget {
   final Pricing pricing;
   final ValueChanged<double> onDrag;
   final VoidCallback onFindFiller;
+
+  /// Marks Find Trade Filler as a Pro feature so the badge is visible before
+  /// the tap, rather than the paywall arriving as a surprise.
+  final bool fillerLocked;
 
   double _lowTotal(List<TradeItem> items, double cash) =>
       items.fold<double>(
@@ -427,7 +442,7 @@ class _DragBar extends StatelessWidget {
                   // When the sides don't match, offer a shortcut to find cards
                   // that fill the value gap; it lives in the bar's empty middle.
                   if (!balanced) ...[
-                    _FindFillerButton(onTap: onFindFiller),
+                    _FindFillerButton(onTap: onFindFiller, locked: fillerLocked),
                     const Spacer(),
                   ],
                   Column(
@@ -513,8 +528,9 @@ class _DragBar extends StatelessWidget {
 /// Compact "Find Trade Filler" pill shown in the drag bar's empty middle space
 /// whenever the two sides are not of equal value.
 class _FindFillerButton extends StatelessWidget {
-  const _FindFillerButton({required this.onTap});
+  const _FindFillerButton({required this.onTap, this.locked = false});
   final VoidCallback onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -530,7 +546,7 @@ class _FindFillerButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.auto_fix_high,
+              Icon(locked ? Icons.lock_outline : Icons.auto_fix_high,
                   size: 14, color: scheme.onPrimaryContainer),
               const SizedBox(width: 5),
               Text(
@@ -541,6 +557,10 @@ class _FindFillerButton extends StatelessWidget {
                   color: scheme.onPrimaryContainer,
                 ),
               ),
+              if (locked) ...[
+                const SizedBox(width: 6),
+                const ProBadge(),
+              ],
             ],
           ),
         ),

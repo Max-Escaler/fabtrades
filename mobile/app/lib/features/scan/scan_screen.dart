@@ -18,6 +18,7 @@ import '../../core/models/trade.dart';
 import '../../core/providers.dart';
 import '../../core/scan/frame_hasher.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../paywall/pro_limits.dart';
 
 /// Where a locked scan match goes when the user taps it.
 enum ScanDestination {
@@ -557,7 +558,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           ),
         );
       case ScanDestination.binder:
-        ref.read(binderProvider.notifier).add(card);
+        // Stop scanning if the free binder is full — continuing to rack up
+        // rejected scans would be worse than surfacing the limit once.
+        if (!await addToBinderOrUpsell(context, ref, card)) return;
         messenger.showSnackBar(
           SnackBar(
             content: Text('Added ${card.name} to Binder'),

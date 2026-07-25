@@ -8,6 +8,7 @@ import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../paywall/pro_limits.dart';
 import '../search/card_picker.dart';
 
 /// Show-mode collage of Want List cards — embedded as the Want List tab inside
@@ -70,8 +71,8 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
   Future<void> _defaultAdd(BuildContext context) async {
     final card =
         await CardPickerScreen.show(context, title: 'Add to Want List');
-    if (card == null) return;
-    ref.read(binderProvider.notifier).add(card, isWanted: true);
+    if (card == null || !context.mounted) return;
+    await addToBinderOrUpsell(context, ref, card, isWanted: true);
   }
 }
 

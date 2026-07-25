@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models/card_model.dart';
 import '../core/models/trade.dart';
 import '../core/providers.dart';
+import '../features/paywall/pro_limits.dart';
 import 'widgets.dart';
 
 /// Bottom sheet offering the common "add this card to…" actions.
@@ -20,6 +21,17 @@ Future<void> showCardActions(
         Navigator.of(ctx).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+        );
+      }
+
+      void addToList({required bool isWanted}) {
+        Navigator.of(ctx).pop();
+        addToBinderOrUpsell(
+          context,
+          ref,
+          card,
+          isWanted: isWanted,
+          successMessage: isWanted ? 'Added to Want List' : 'Added to Binder',
         );
       }
 
@@ -73,18 +85,14 @@ Future<void> showCardActions(
             ListTile(
               leading: const Icon(Icons.menu_book_outlined),
               title: const Text('Add to Binder'),
-              onTap: () {
-                ref.read(binderProvider.notifier).add(card);
-                done('Added to Binder');
-              },
+              // Close the sheet first: hitting a free-tier cap surfaces an
+              // upgrade prompt, which shouldn't appear behind this sheet.
+              onTap: () => addToList(isWanted: false),
             ),
             ListTile(
               leading: const Icon(Icons.favorite_border),
               title: const Text('Add to Want List'),
-              onTap: () {
-                ref.read(binderProvider.notifier).add(card, isWanted: true);
-                done('Added to Want List');
-              },
+              onTap: () => addToList(isWanted: true),
             ),
           ],
         ),

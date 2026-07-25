@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -10,17 +11,21 @@ import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
 import 'data/binder_repository.dart';
 import 'data/lend_repository.dart';
+import 'data/purchases_repository.dart';
 import 'data/set_logo_cache.dart';
 import 'data/set_logos.dart';
 import 'data/set_published_on.dart';
 import 'data/settings_repository.dart';
 import 'data/trade_repository.dart';
 import 'logic/confirm_trade.dart';
+import 'logic/free_limits.dart';
 import 'logic/pricing.dart';
 import 'models/app_settings.dart';
 import 'models/binder_entry.dart';
 import 'models/card_model.dart';
 import 'models/lend_group.dart';
+import 'models/purchase_outcome.dart';
+import 'models/subscription_status.dart';
 import 'models/trade.dart';
 import 'scan/card_hash_index.dart';
 
@@ -189,6 +194,113 @@ final pricingProvider =
     Provider<Pricing>((ref) => Pricing(ref.watch(settingsProvider)));
 
 // ---------------------------------------------------------------------------
+// FABTrades Pro subscription (RevenueCat)
+// ---------------------------------------------------------------------------
+
+/// Overridden in main() with the instance configured at startup.
+///
+/// The default is a deliberately unconfigured repository: widget tests get a
+/// safe no-op (no plugin channels, no network) that resolves to the free tier.
+final purchasesRepositoryProvider =
+    Provider<PurchasesRepository>((ref) => PurchasesRepository());
+
+/// Live `FABTrades Pro` entitlement state.
+///
+/// Seeded from RevenueCat's cached customer info, then kept current by the
+/// SDK's customer info listener — so renewals, expirations, cancellations and
+/// deferred payments all land here without polling.
+class SubscriptionNotifier extends AsyncNotifier<SubscriptionStatus> {
+  @override
+  Future<SubscriptionStatus> build() async {
+    final purchases = ref.watch(purchasesRepositoryProvider);
+    if (!purchases.isConfigured) return SubscriptionStatus.free;
+
+    void onCustomerInfo(CustomerInfo info) {
+      state = AsyncData(SubscriptionStatus.fromCustomerInfo(info));
+    }
+
+    // Fetch first, then subscribe: writing to `state` while this build is
+    // still in flight would be discarded by the returned value anyway.
+    final info = await purchases.customerInfo();
+    purchases.addCustomerInfoListener(onCustomerInfo);
+    ref.onDispose(() => purchases.removeCustomerInfoListener(onCustomerInfo));
+
+    return info == null
+        ? SubscriptionStatus.free
+        : SubscriptionStatus.fromCustomerInfo(info);
+  }
+
+  /// Re-reads entitlements. Purchases and restores update this notifier on
+  /// their own; this is for after a RevenueCat Paywall or the Customer Center
+  /// hands control back, where the change happened in native UI.
+  Future<void> refresh() async {
+    final info = await ref.read(purchasesRepositoryProvider).customerInfo();
+    if (info == null) return;
+    state = AsyncData(SubscriptionStatus.fromCustomerInfo(info));
+  }
+
+  /// Buys [package] directly, for custom paywall UI. The RevenueCat Paywall
+  /// runs its own purchase flow — use [refresh] after that instead.
+  Future<PurchaseOutcome> purchase(Package package) async {
+    final outcome =
+        await ref.read(purchasesRepositoryProvider).purchasePackage(package);
+    if (outcome is PurchaseSuccess) {
+      state = AsyncData(SubscriptionStatus.fromCustomerInfo(
+        outcome.customerInfo,
+      ));
+    }
+    return outcome;
+  }
+
+  Future<RestoreOutcome> restore() async {
+    final outcome =
+        await ref.read(purchasesRepositoryProvider).restorePurchases();
+    if (outcome is RestoreSuccess) {
+      state = AsyncData(SubscriptionStatus.fromCustomerInfo(
+        outcome.customerInfo,
+      ));
+    }
+    return outcome;
+  }
+}
+
+final subscriptionProvider =
+    AsyncNotifierProvider<SubscriptionNotifier, SubscriptionStatus>(
+        SubscriptionNotifier.new);
+
+/// The single check to gate a Pro feature on. Defaults to locked while the
+/// entitlement is still loading or couldn't be read.
+final isProProvider = Provider<bool>(
+    (ref) => ref.watch(subscriptionProvider).asData?.value.isPro ?? false);
+
+/// Whether to show subscription UI at all — false on builds without a
+/// RevenueCat API key, where nothing could be purchased anyway.
+final purchasesAvailableProvider = Provider<bool>(
+    (ref) => ref.watch(purchasesRepositoryProvider).isConfigured);
+
+/// The offering marked **Current** in the dashboard, holding the `yearly` and
+/// `monthly` packages. Prices come from the store, already localized.
+///
+/// The RevenueCat Paywall fetches this itself; this provider is for showing
+/// prices in your own UI (like the Settings upgrade tile).
+final proOfferingProvider = FutureProvider<Offering?>((ref) async {
+  final offerings = await ref.watch(purchasesRepositoryProvider).offerings();
+  return offerings?.current;
+});
+
+/// Free-tier usage for upsell copy, or null for Pro customers (nothing is
+/// capped for them, so there is nothing to report).
+final freeUsageProvider = Provider<FreeUsage?>((ref) {
+  if (ref.watch(isProProvider)) return null;
+  final entries = ref.watch(binderProvider);
+  return FreeUsage(
+    binderCards: entries.where((e) => !e.isWanted).length,
+    wantListCards: entries.where((e) => e.isWanted).length,
+    savedTrades: ref.watch(tradeHistoryProvider).length,
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Search
 // ---------------------------------------------------------------------------
 final searchFiltersProvider =
@@ -284,7 +396,13 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
 
   void _persist() => ref.read(binderRepositoryProvider).save(state);
 
-  void add(CardModel card,
+  /// Adds [card], returning false when the free-tier cap is reached and
+  /// nothing changed — callers should offer an upgrade rather than appear to
+  /// do nothing. See `addToBinderOrUpsell`.
+  ///
+  /// Only distinct cards count against the cap, so topping up the quantity of
+  /// something already listed always works.
+  bool add(CardModel card,
       {int quantity = 1, String condition = 'NM', bool isWanted = false}) {
     final idx = state.indexWhere(
         (e) => e.card.id == card.id && e.isWanted == isWanted);
@@ -294,6 +412,7 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
       updated[idx] = existing.copyWith(quantity: existing.quantity + quantity);
       state = updated;
     } else {
+      if (!_canAddNewCard(isWanted: isWanted)) return false;
       state = [
         BinderEntry(
           card: card,
@@ -306,6 +425,13 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
       ];
     }
     _persist();
+    return true;
+  }
+
+  bool _canAddNewCard({required bool isWanted}) {
+    if (ref.read(isProProvider)) return true;
+    final listed = state.where((e) => e.isWanted == isWanted).length;
+    return listed < FreeLimits.cardsFor(isWanted: isWanted);
   }
 
   void setQuantity(String cardId, bool isWanted, int quantity) {
@@ -379,6 +505,9 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
 
   /// Applies Confirm Trade binder side-effects (given leave / received enter /
   /// want-list clear). Does not touch trade history or the draft.
+  ///
+  /// Intentionally exempt from the free-tier cap: these cards were just traded
+  /// for, and dropping them to enforce a limit would lose real information.
   void applyTradeConfirm(
     Trade trade, {
     required bool removeGivenFromBinder,
@@ -509,9 +638,21 @@ class TradeHistoryNotifier extends Notifier<List<Trade>> {
 
   void _persist() => ref.read(tradeRepositoryProvider).save(state);
 
-  void addTrade(Trade trade) {
-    state = [trade, ...state];
+  /// Saves [trade], returning how many older trades rolled off to stay inside
+  /// the free-tier window (always 0 for Pro).
+  ///
+  /// Never refuses: confirming a trade also reconciles the binder, so blocking
+  /// it would be destructive. The window trims the oldest instead.
+  int addTrade(Trade trade) {
+    final all = [trade, ...state];
+    if (ref.read(isProProvider) || all.length <= FreeLimits.savedTrades) {
+      state = all;
+      _persist();
+      return 0;
+    }
+    state = all.take(FreeLimits.savedTrades).toList();
     _persist();
+    return all.length - FreeLimits.savedTrades;
   }
 
   void remove(String id) {

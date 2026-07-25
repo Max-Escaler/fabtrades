@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/app_settings.dart';
 import '../../core/providers.dart';
+import 'subscription_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -18,7 +19,8 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SectionLabel('Price source'),
+          const SubscriptionSection(),
+          const SettingsSectionLabel('Price source'),
           const SizedBox(height: 8),
           SegmentedButton<PriceSource>(
             segments: const [
@@ -45,7 +47,7 @@ class SettingsScreen extends ConsumerWidget {
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 28),
-          _SectionLabel('Appearance'),
+          const SettingsSectionLabel('Appearance'),
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -87,7 +89,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _SectionLabel('About'),
+          const SettingsSectionLabel('About'),
           const SizedBox(height: 8),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -109,8 +111,8 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+class SettingsSectionLabel extends StatelessWidget {
+  const SettingsSectionLabel(this.text, {super.key});
   final String text;
   @override
   Widget build(BuildContext context) {

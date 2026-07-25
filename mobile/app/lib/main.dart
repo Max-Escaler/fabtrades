@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'core/config/supabase_config.dart';
+import 'core/data/purchases_repository.dart';
 import 'core/providers.dart';
 
 Future<void> main() async {
@@ -16,10 +17,16 @@ Future<void> main() async {
   );
   final prefs = await SharedPreferences.getInstance();
 
+  // RevenueCat must be configured before any entitlement is read. This never
+  // throws: a build without a usable API key just runs without subscriptions.
+  final purchases = PurchasesRepository();
+  await purchases.configure();
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        purchasesRepositoryProvider.overrideWithValue(purchases),
       ],
       child: const FabTradesApp(),
     ),
