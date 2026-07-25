@@ -1,7 +1,9 @@
 // Shared browse-order helpers for Flesh and Blood product groups.
 // Used by the React set browser (useSets) and the SEO page generator so both
 // surfaces stay in sync. Dependency-free — safe for Node scripts.
-// Keep in sync with `mobile/app/lib/core/logic/set_sort.dart`.
+// Reimplemented in Dart at `apps/mobile/lib/core/logic/set_sort.dart`. Both are
+// pinned to `packages/contracts/set_sort.json`, so changing behaviour here without
+// changing it there fails the mobile suite.
 
 /**
  * Browse-list tiers (lower sorts first). Categories are inferred from the set

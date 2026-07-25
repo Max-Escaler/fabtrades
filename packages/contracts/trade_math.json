@@ -1,0 +1,69 @@
+{
+  "$comment": "Line-item totals and the have/want difference. Cash is excluded on purpose; see README.md.",
+  "tolerance": 1e-9,
+  "cases": [
+    {
+      "name": "empty trade is even",
+      "have": [],
+      "want": [],
+      "haveTotal": 0,
+      "wantTotal": 0,
+      "diff": 0
+    },
+    {
+      "name": "one card each side",
+      "have": [{ "price": 12.5, "quantity": 1 }],
+      "want": [{ "price": 10.0, "quantity": 1 }],
+      "haveTotal": 12.5,
+      "wantTotal": 10.0,
+      "diff": 2.5
+    },
+    {
+      "name": "quantity multiplies the line",
+      "have": [{ "price": 1.25, "quantity": 4 }],
+      "want": [],
+      "haveTotal": 5.0,
+      "wantTotal": 0,
+      "diff": 5.0
+    },
+    {
+      "name": "multiple lines sum",
+      "have": [
+        { "price": 2.5, "quantity": 2 },
+        { "price": 0.75, "quantity": 4 }
+      ],
+      "want": [{ "price": 8.0, "quantity": 1 }],
+      "haveTotal": 8.0,
+      "wantTotal": 8.0,
+      "diff": 0
+    },
+    {
+      "name": "wanting more than you give is a negative difference",
+      "have": [{ "price": 1.0, "quantity": 1 }],
+      "want": [{ "price": 3.5, "quantity": 2 }],
+      "haveTotal": 1.0,
+      "wantTotal": 7.0,
+      "diff": -6.0
+    },
+    {
+      "name": "priceless cards contribute nothing",
+      "have": [{ "price": 0, "quantity": 3 }],
+      "want": [],
+      "haveTotal": 0,
+      "wantTotal": 0,
+      "diff": 0
+    },
+    {
+      "name": "a single side can hold many lines",
+      "have": [
+        { "price": 0.25, "quantity": 8 },
+        { "price": 1.5, "quantity": 2 },
+        { "price": 10.0, "quantity": 1 }
+      ],
+      "want": [{ "price": 7.5, "quantity": 2 }],
+      "haveTotal": 15.0,
+      "wantTotal": 15.0,
+      "diff": 0
+    }
+  ]
+}

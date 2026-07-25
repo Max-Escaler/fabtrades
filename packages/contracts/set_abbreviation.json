@@ -1,0 +1,97 @@
+{
+  "$comment": "Set-code resolution when the catalog omits an abbreviation. See README.md.",
+  "primaryCollectorNumber": [
+    { "input": null, "expected": "" },
+    { "input": "", "expected": "" },
+    { "input": "SEA004", "expected": "SEA004" },
+    {
+      "$comment": "Dual-identity cards list both numbers; the first one wins.",
+      "input": "SEA004 // SEA005",
+      "expected": "SEA004"
+    },
+    { "input": "SEA004//SEA005", "expected": "SEA004" },
+    { "input": "WTR001 / WTR002", "expected": "WTR001" },
+    { "input": "  SEA004  ", "expected": "SEA004" },
+    {
+      "$comment": "A leading separator yields no first number rather than a guess.",
+      "input": " / SEA004",
+      "expected": ""
+    }
+  ],
+  "collectorNumberPrefix": [
+    { "input": null, "expected": "" },
+    { "input": "SEA004", "expected": "SEA" },
+    { "input": "sea004", "expected": "SEA" },
+    { "input": "WTR001 // WTR002", "expected": "WTR" },
+    {
+      "$comment": "Numbers with no letter prefix have no code.",
+      "input": "004",
+      "expected": ""
+    },
+    { "input": "S1", "expected": "S" },
+    { "input": "ABCDE1", "expected": "ABCDE" },
+    {
+      "$comment": "Prefixes longer than five letters are not codes.",
+      "input": "ABCDEF1",
+      "expected": ""
+    },
+    { "input": "PROMO", "expected": "" }
+  ],
+  "deriveSetAbbreviation": [
+    {
+      "$comment": "Too few cards to infer anything.",
+      "collectorNumbers": ["SEA1", "SEA2", "SEA3", "SEA4"],
+      "expected": ""
+    },
+    {
+      "collectorNumbers": ["SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "SEA"
+    },
+    {
+      "$comment": "The generic FAB prefix is never a set code.",
+      "collectorNumbers": ["FAB1", "FAB2", "SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "SEA"
+    },
+    {
+      "collectorNumbers": ["FAB1", "FAB2", "FAB3", "FAB4", "FAB5", "FAB6"],
+      "expected": ""
+    },
+    {
+      "$comment": "Unprefixed numbers are skipped, not counted against the majority.",
+      "collectorNumbers": ["001", "002", "SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "SEA"
+    },
+    {
+      "collectorNumbers": [null, "SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "SEA"
+    },
+    {
+      "$comment": "Mixed product lines stay blank instead of guessing a winner.",
+      "collectorNumbers": ["AAA1", "AAA2", "BBB1", "BBB2", "CCC1", "CCC2"],
+      "expected": ""
+    },
+    {
+      "$comment": "Exactly half is enough; the threshold is not a strict majority.",
+      "collectorNumbers": ["AAA1", "AAA2", "AAA3", "BBB1", "BBB2", "CCC1"],
+      "expected": "AAA"
+    },
+    { "collectorNumbers": [], "expected": "" }
+  ],
+  "resolveSetAbbreviation": [
+    { "provided": "SEA", "collectorNumbers": [], "expected": "SEA" },
+    { "provided": "  SEA  ", "collectorNumbers": [], "expected": "SEA" },
+    {
+      "$comment": "A provided code always wins over an inferred one.",
+      "provided": "WTR",
+      "collectorNumbers": ["SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "WTR"
+    },
+    {
+      "provided": "",
+      "collectorNumbers": ["SEA1", "SEA2", "SEA3", "SEA4", "SEA5"],
+      "expected": "SEA"
+    },
+    { "provided": null, "collectorNumbers": [], "expected": "" },
+    { "provided": "", "collectorNumbers": [], "expected": "" }
+  ]
+}

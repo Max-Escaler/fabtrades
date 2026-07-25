@@ -9,7 +9,11 @@
 //   5 — Other
 //
 // Categories are inferred from the set name; the catalog does not expose a
-// product-line enum for these buckets. Keep in sync with `src/utils/setSort.js`.
+// product-line enum for these buckets.
+//
+// Reimplemented in JavaScript at `apps/web/src/utils/setSort.js`. Both are pinned
+// to `packages/contracts/set_sort.json`, so changing behaviour here without
+// changing it there fails the web suite.
 
 class BrowseTier {
   static const main = 0;

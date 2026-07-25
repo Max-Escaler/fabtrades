@@ -1,7 +1,9 @@
 // Resolve display set codes for Browse Sets / SEO.
 // TCGCSV often leaves `abbreviation` blank even when cards use a stable
 // collector-number prefix (e.g. High Seas cards are SEA### but group.abbreviation is "").
-// Keep in sync with `mobile/app/lib/core/logic/set_abbreviation.dart`.
+// Reimplemented in Dart at `apps/mobile/lib/core/logic/set_abbreviation.dart`.
+// Both are pinned to `packages/contracts/set_abbreviation.json`, so changing
+// behaviour here without changing it there fails the mobile suite.
 
 const COLLECTOR_PREFIX_RE = /^([A-Z]{1,5})\d/;
 

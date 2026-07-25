@@ -1,7 +1,9 @@
 // Resolve display set codes for Browse Sets.
 // TCGCSV often leaves abbreviation blank even when cards use a stable
 // collector-number prefix (e.g. High Seas cards are SEA###).
-// Keep in sync with `src/utils/setAbbreviation.js`.
+// Reimplemented in JavaScript at `apps/web/src/utils/setAbbreviation.js`. Both are
+// pinned to `packages/contracts/set_abbreviation.json`, so changing behaviour here
+// without changing it there fails the web suite.
 
 final _collectorPrefixRe = RegExp(r'^([A-Z]{1,5})\d');
 

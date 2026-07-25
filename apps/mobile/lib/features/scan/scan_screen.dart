@@ -841,7 +841,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                         Expanded(
                           child: Text(
                             [
-                              if (_cameraError != null) _cameraError!,
+                              ?_cameraError,
                               _lastDiag ?? 'waiting for first frame…',
                               'rx=$_framesReceived proc=$_framesProcessed'
                                   '${_lastDiagAt == null ? '' : ' last=${DateTime.now().difference(_lastDiagAt!).inSeconds}s ago'}',
