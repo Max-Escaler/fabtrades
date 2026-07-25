@@ -1,3 +1,4 @@
+import 'package:fabtrades/core/models/entitlement.dart';
 import 'package:fabtrades/core/models/subscription_status.dart';
 import 'package:fabtrades/core/providers.dart';
 import 'package:fabtrades/features/paywall/pro_gate.dart';
@@ -21,9 +22,17 @@ class _FakeSubscription extends SubscriptionNotifier {
   Future<SubscriptionStatus> build() async => status;
 }
 
+/// A device whose store lookup fails outright — no network, or an SDK error.
+class _UnreadableSubscription extends SubscriptionNotifier {
+  @override
+  Future<SubscriptionStatus> build() async =>
+      throw StateError('the store is unreachable');
+}
+
 Future<ProviderContainer> _pumpSettings(
   WidgetTester tester, {
-  required SubscriptionStatus status,
+  SubscriptionStatus? status,
+  ServerEntitlement? server,
   bool purchasesAvailable = true,
 }) async {
   SharedPreferences.setMockInitialValues({});
@@ -36,10 +45,17 @@ Future<ProviderContainer> _pumpSettings(
       sharedPreferencesProvider.overrideWithValue(prefs),
       cardRepositoryProvider.overrideWithValue(cards),
       purchasesAvailableProvider.overrideWithValue(purchasesAvailable),
-      subscriptionProvider.overrideWith(() => _FakeSubscription(status)),
+      subscriptionProvider.overrideWith(
+        status == null
+            ? _UnreadableSubscription.new
+            : () => _FakeSubscription(status),
+      ),
       // Prices would otherwise come from the store.
       proOfferingProvider.overrideWith((ref) async => null),
-      // Settings now renders an account block; keep it signed out so this test
+      // Overridden rather than left to read Supabase, which has no client under
+      // `flutter test`.
+      serverEntitlementProvider.overrideWith((ref) async => server),
+      // Settings also renders an account block; keep it signed out so this test
       // stays about subscriptions.
       accountProvider.overrideWith((ref) => Stream.value(null)),
     ],
@@ -117,6 +133,47 @@ void main() {
     );
 
     expect(find.text('Access ends Mar 14, 2027.'), findsOneWidget);
+  });
+
+  testWidgets('honours a subscription bought on the other platform',
+      (tester) async {
+    final container = await _pumpSettings(
+      tester,
+      status: SubscriptionStatus.free,
+      server: ServerEntitlement(
+        isActive: true,
+        source: 'play_store',
+        productId: 'yearly',
+        expiresAt: DateTime(2027, 3, 14),
+      ),
+    );
+
+    // The whole point of a server-owned entitlements row: buy on Android, get
+    // Pro on iOS.
+    expect(container.read(isProProvider), isTrue);
+    expect(find.text('Active until Mar 14, 2027.'), findsOneWidget);
+    expect(find.textContaining('Purchased through Google Play'), findsOneWidget);
+    // StoreKit cannot manage a Play subscription, so offering the link would
+    // dead-end.
+    expect(find.text('Manage subscription'), findsNothing);
+    expect(find.text('See plans'), findsNothing);
+  });
+
+  testWidgets('keeps Pro when the store is unreachable but the server says yes',
+      (tester) async {
+    final container = await _pumpSettings(
+      tester,
+      server: ServerEntitlement(
+        isActive: true,
+        source: 'app_store',
+        expiresAt: DateTime(2027, 3, 14),
+      ),
+    );
+
+    // Losing Pro because a store lookup timed out would be the worst possible
+    // failure mode for someone who has paid.
+    expect(container.read(isProProvider), isTrue);
+    expect(find.text('See plans'), findsNothing);
   });
 
   testWidgets('hides subscription UI entirely when RevenueCat is unconfigured',

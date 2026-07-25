@@ -121,9 +121,13 @@ happens when a device changes hands — are in [docs/CLOUD_SYNC.md](./docs/CLOUD
 FABTrades Pro is bought through the App Store or Play Store, but access itself is a row
 in Postgres keyed by Supabase user — so a purchase on one platform grants Pro on all
 three. A RevenueCat webhook is the only writer of that row, with a nightly job to catch
-missed deliveries and lapses. The design and its setup are in
-[docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md); the store-side product and notification
-configuration is in [docs/STORE_SETUP.md](./docs/STORE_SETUP.md).
+missed deliveries and lapses. Each client reads that row through one accessor —
+`entitlementProvider` on mobile, `useEntitlement()` on web — so premium features flip in
+a single place, and the free-tier caps both clients enforce live in
+[packages/contracts/free_limits.json](./packages/contracts/free_limits.json). The design
+and its setup are in [docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md); the store-side
+product and notification configuration is in
+[docs/STORE_SETUP.md](./docs/STORE_SETUP.md).
 
 ## License
 

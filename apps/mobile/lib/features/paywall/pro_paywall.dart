@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -6,6 +8,7 @@ import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../../core/config/revenuecat_config.dart';
 import '../../core/models/purchase_outcome.dart';
 import '../../core/providers.dart';
+import '../auth/sign_in_sheet.dart';
 
 /// Presentation helpers for RevenueCat's remotely-configured UI.
 ///
@@ -35,6 +38,8 @@ Future<bool> presentProPaywall(
     return ref.read(isProProvider);
   }
 
+  if (!await _ensureSignedIn(context, ref)) return ref.read(isProProvider);
+
   final PaywallResult result;
   try {
     result = onlyIfNeeded
@@ -55,6 +60,13 @@ Future<bool> presentProPaywall(
   // into Riverpod. The customer info listener usually beats us to it; this
   // makes the state correct before we return either way.
   await ref.read(subscriptionProvider.notifier).refresh();
+  if (result == PaywallResult.purchased || result == PaywallResult.restored) {
+    // Ask the server for its row too. It is written by a webhook, so it may not
+    // exist yet — access is already granted by the device's answer, and this
+    // only fills in what the server knows. If it loses the race, the next launch
+    // reads it.
+    ref.invalidate(serverEntitlementProvider);
+  }
   final isPro = ref.read(isProProvider);
 
   if (!context.mounted) return isPro;
@@ -140,6 +152,78 @@ Future<bool> restoreProPurchases(BuildContext context, WidgetRef ref) async {
       _showMessage(context, message);
   }
   return isPro;
+}
+
+/// Makes sure there is an account before money changes hands.
+///
+/// Not a policy choice — it is what makes the entitlement addressable. A purchase
+/// made while signed out is attributed to an anonymous RevenueCat id, so the
+/// webhook has no Supabase user to write a row for, and the customer ends up
+/// having paid for access the server cannot grant them. Reattaching it later is
+/// manual support work.
+///
+/// The prompt is the same dismissable sheet as everywhere else. Backing out just
+/// means no purchase.
+Future<bool> _ensureSignedIn(BuildContext context, WidgetRef ref) async {
+  if (!ref.read(isSignedInProvider)) {
+    if (!await presentSignIn(context)) return false;
+
+    // A redirect-based provider finishes in a browser, so `presentSignIn` can
+    // return true before the session lands.
+    if (!await _waitForAccount(ref)) return false;
+  }
+
+  if (await _bindPurchasesIdentity(ref)) return true;
+
+  if (context.mounted) {
+    _showMessage(context, "Couldn't reach the store. Please try again.");
+  }
+  return false;
+}
+
+/// Binds RevenueCat to the signed-in user, and waits for it.
+///
+/// `purchasesIdentityProvider` does this too, but as a side effect of a rebuild,
+/// which is not ordered against opening a paywall. `Purchases.logIn` is idempotent,
+/// so doing it again here costs nothing and removes the race: whichever one gets
+/// there first, the purchase is attributed to the Supabase user rather than to the
+/// anonymous id the SDK starts with.
+///
+/// A failure blocks the purchase. Letting it through would take the customer's money
+/// against an identity the webhook cannot resolve, which is the one outcome here that
+/// needs a human to unpick.
+Future<bool> _bindPurchasesIdentity(WidgetRef ref) async {
+  final account = ref.read(accountProvider).value;
+  if (account == null) return false;
+
+  final info = await ref.read(purchasesRepositoryProvider).logIn(account.id);
+  // The SDK is known to be configured by this point — the caller checked — so the
+  // only reason for no customer info is that the call failed.
+  if (info == null) return false;
+
+  // Signing in can grant Pro outright, if this account already had it.
+  ref.read(subscriptionProvider.notifier).adopt(info);
+  return true;
+}
+
+/// Waits for [accountProvider] to produce an account, giving up after a few
+/// seconds so a failed browser handoff cannot hang the purchase flow.
+Future<bool> _waitForAccount(WidgetRef ref) async {
+  if (ref.read(isSignedInProvider)) return true;
+
+  final completer = Completer<bool>();
+  final subscription = ref.listenManual(accountProvider, (_, next) {
+    if (next.value != null && !completer.isCompleted) completer.complete(true);
+  });
+
+  try {
+    return await completer.future.timeout(
+      const Duration(seconds: 20),
+      onTimeout: () => false,
+    );
+  } finally {
+    subscription.close();
+  }
 }
 
 void _showMessage(BuildContext context, String message) {

@@ -12,6 +12,7 @@ import 'data/auth_repository.dart';
 import 'data/card_repository.dart';
 import 'data/catalog_repository.dart';
 import 'data/binder_repository.dart';
+import 'data/entitlement_repository.dart';
 import 'data/lend_repository.dart';
 import 'data/purchases_repository.dart';
 import 'data/set_logo_cache.dart';
@@ -26,6 +27,7 @@ import 'models/account.dart';
 import 'models/app_settings.dart';
 import 'models/binder_entry.dart';
 import 'models/card_model.dart';
+import 'models/entitlement.dart';
 import 'models/lend_group.dart';
 import 'models/purchase_outcome.dart';
 import 'models/subscription_status.dart';
@@ -367,6 +369,12 @@ class SubscriptionNotifier extends AsyncNotifier<SubscriptionStatus> {
   Future<void> refresh() async {
     final info = await ref.read(purchasesRepositoryProvider).customerInfo();
     if (info == null) return;
+    adopt(info);
+  }
+
+  /// Takes customer info the caller already has, avoiding a second round trip.
+  /// Used after `logIn`/`logOut`, which both return it.
+  void adopt(CustomerInfo info) {
     state = AsyncData(SubscriptionStatus.fromCustomerInfo(info));
   }
 
@@ -399,10 +407,94 @@ final subscriptionProvider =
     AsyncNotifierProvider<SubscriptionNotifier, SubscriptionStatus>(
         SubscriptionNotifier.new);
 
+/// Keeps RevenueCat's `app_user_id` equal to the Supabase user id.
+///
+/// Exposes the id currently bound, which is only useful for tests and debugging —
+/// the value is a side effect of the binding, not the point of it. The point is
+/// that every webhook names an id the server can write an entitlement row for.
+///
+/// Nobody reads this for behaviour, so something has to watch it or it never
+/// builds; `SyncHost` does, above the tabs.
+class PurchasesIdentityNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    final session = ref.watch(accountProvider);
+    final purchases = ref.watch(purchasesRepositoryProvider);
+    if (!purchases.isConfigured) return null;
+
+    // Wait for a real answer. Supabase restores the stored session
+    // asynchronously, so an unresolved stream is not "signed out" — acting on it
+    // would log out of the previous identity on every single launch, and an auth
+    // error would do the same. Both cases leave the existing binding alone.
+    if (!session.hasValue) return null;
+    final account = session.value;
+
+    // Deferred so the notifier finishes building before the entitlement
+    // providers it invalidates start rebuilding.
+    Future.microtask(() async {
+      final info = account == null
+          ? await purchases.logOut()
+          : await purchases.logIn(account.id);
+      // Switching identity can change entitlements outright — signing in to an
+      // account that already has Pro, or signing out of one that did.
+      if (info != null) {
+        ref.read(subscriptionProvider.notifier).adopt(info);
+      }
+    });
+
+    return account?.id;
+  }
+}
+
+final purchasesIdentityProvider =
+    NotifierProvider<PurchasesIdentityNotifier, String?>(
+        PurchasesIdentityNotifier.new);
+
+// ---------------------------------------------------------------------------
+// Entitlements (the server's answer, and the one the app gates on)
+// ---------------------------------------------------------------------------
+
+final entitlementRepositoryProvider = Provider<EntitlementRepository>(
+  (ref) => EntitlementRepository(ref.watch(supabaseClientProvider)),
+);
+
+/// This account's `entitlements` row, or null when signed out or absent.
+///
+/// Errors resolve to null rather than propagating: an unreachable server must
+/// leave the device's own answer standing, not replace it with a failure.
+final serverEntitlementProvider = FutureProvider<ServerEntitlement?>((ref) async {
+  final account = ref.watch(accountProvider).value;
+  if (account == null) return null;
+  try {
+    return await ref.watch(entitlementRepositoryProvider).fetch(account.id);
+  } catch (e) {
+    debugPrint('Entitlement: could not read the server row — $e');
+    return null;
+  }
+});
+
+/// **The** entitlement. Every Pro decision in the app resolves through here.
+///
+/// Merges the device's view with the server's; see [Entitlement] for why both are
+/// needed and why access is granted when either says so.
+final entitlementProvider = Provider<Entitlement>((ref) {
+  // A missing device answer — still loading, or the SDK threw — becomes "this
+  // device knows of no purchase" rather than short-circuiting to free. Otherwise
+  // one failed store lookup would revoke Pro from somebody the server has
+  // confirmed as a subscriber, which is the worst outcome available here.
+  final device =
+      ref.watch(subscriptionProvider).asData?.value ?? SubscriptionStatus.free;
+  return Entitlement.resolve(
+    device: device,
+    server: ref.watch(serverEntitlementProvider).asData?.value,
+  );
+});
+
 /// The single check to gate a Pro feature on. Defaults to locked while the
 /// entitlement is still loading or couldn't be read.
 final isProProvider = Provider<bool>(
-    (ref) => ref.watch(subscriptionProvider).asData?.value.isPro ?? false);
+  (ref) => ref.watch(entitlementProvider).isPro,
+);
 
 /// Whether to show subscription UI at all — false on builds without a
 /// RevenueCat API key, where nothing could be purchased anyway.

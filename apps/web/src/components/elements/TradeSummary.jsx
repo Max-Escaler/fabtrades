@@ -24,6 +24,7 @@ import {
 import {formatCurrency} from "../../utils/helpers.js";
 import { generateTradeOffer } from "../../utils/tradeOffer.js";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
+import { FreeLimits } from "../../utils/freeLimits.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 
@@ -146,7 +147,7 @@ const TradeSummary = ({
 
     const handleSaveTrade = async () => {
         setSaving(true);
-        const { error } = await saveTradeToHistory(tradeName, haveList, wantList, {
+        const { error, trimmed } = await saveTradeToHistory(tradeName, haveList, wantList, {
             haveTotal,
             wantTotal,
             diff
@@ -157,7 +158,18 @@ const TradeSummary = ({
             return;
         }
         setShowSaveDialog(false);
-        setSnackbar({ open: true, message: 'Trade saved — find it under Trade History', severity: 'success' });
+        // Say so when older trades rolled off. A history that silently shortens is
+        // indistinguishable from a bug.
+        setSnackbar(
+            trimmed > 0
+                ? {
+                    open: true,
+                    message: `Trade saved — your ${trimmed === 1 ? 'oldest trade' : `${trimmed} oldest trades`} `
+                        + `rolled off the free ${FreeLimits.savedTrades}-trade history`,
+                    severity: 'info',
+                }
+                : { open: true, message: 'Trade saved — find it under Trade History', severity: 'success' },
+        );
     };
 
     const formatAge = (ageInDays) => {

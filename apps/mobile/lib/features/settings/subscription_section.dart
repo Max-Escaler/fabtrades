@@ -5,7 +5,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../../core/logic/free_limits.dart';
 import '../../core/logic/pro_packages.dart';
-import '../../core/models/subscription_status.dart';
+import '../../core/models/entitlement.dart';
 import '../../core/providers.dart';
 import '../paywall/pro_gate.dart';
 import '../paywall/pro_paywall.dart';
@@ -23,18 +23,26 @@ class SubscriptionSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (!ref.watch(purchasesAvailableProvider)) return const SizedBox.shrink();
 
+    final entitlement = ref.watch(entitlementProvider);
+    final device = ref.watch(subscriptionProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SettingsSectionLabel('Subscription'),
         const SizedBox(height: 8),
-        ref.watch(subscriptionProvider).when(
-              data: (status) => status.isPro
-                  ? _ProStatusCard(status: status)
-                  : const _UpgradeCard(),
-              loading: () => const _StatusPlaceholder(),
-              error: (_, _) => const _StatusUnavailable(),
-            ),
+        // Access first, device state second. Somebody whose subscription the
+        // server has confirmed should see it even if this device's store lookup
+        // is still loading or failed outright — which is the whole reason the two
+        // sources are merged.
+        if (entitlement.isPro)
+          _ProStatusCard(entitlement: entitlement)
+        else
+          switch (device) {
+            AsyncLoading() => const _StatusPlaceholder(),
+            AsyncError() => const _StatusUnavailable(),
+            _ => const _UpgradeCard(),
+          },
         const SizedBox(height: 28),
       ],
     );
@@ -44,9 +52,9 @@ class SubscriptionSection extends ConsumerWidget {
 /// Active subscriber: what they're on, when it renews, and one button into the
 /// Customer Center for everything else.
 class _ProStatusCard extends ConsumerWidget {
-  const _ProStatusCard({required this.status});
+  const _ProStatusCard({required this.entitlement});
 
-  final SubscriptionStatus status;
+  final Entitlement entitlement;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,11 +82,11 @@ class _ProStatusCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _renewalLabel(status),
+                  _renewalLabel(entitlement),
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
-                if (status.hasBillingIssue) ...[
+                if (entitlement.hasBillingIssue) ...[
                   const SizedBox(height: 10),
                   _Notice(
                     icon: Icons.error_outline,
@@ -87,7 +95,7 @@ class _ProStatusCard extends ConsumerWidget {
                         'your payment method to keep Pro.',
                   ),
                 ],
-                if (status.isSandbox) ...[
+                if (entitlement.isSandbox) ...[
                   const SizedBox(height: 10),
                   _Notice(
                     icon: Icons.science_outlined,
@@ -95,31 +103,53 @@ class _ProStatusCard extends ConsumerWidget {
                     text: 'Test purchase — this subscription is not real.',
                   ),
                 ],
+                // Only when the purchase was made elsewhere. Managing it has to
+                // happen where it was bought, and saying so up front is kinder
+                // than a Customer Center that cannot help.
+                if (!entitlement.knowsRenewalIntent) ...[
+                  const SizedBox(height: 10),
+                  _Notice(
+                    icon: Icons.devices_outlined,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    text: entitlement.purchasedFrom == null
+                        ? 'Purchased on another platform. Manage it there.'
+                        : 'Purchased through ${entitlement.purchasedFrom}. '
+                            'Manage it there.',
+                  ),
+                ],
               ],
             ),
           ),
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.manage_accounts_outlined),
-            title: const Text('Manage subscription'),
-            subtitle: const Text('Change plan, cancel, or get help'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => presentProCustomerCenter(context, ref),
-          ),
+          // The Customer Center works on the store account that bought the
+          // subscription. Offering it for a purchase made on the other platform
+          // would open a screen with nothing in it.
+          if (entitlement.knowsRenewalIntent) ...[
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.manage_accounts_outlined),
+              title: const Text('Manage subscription'),
+              subtitle: const Text('Change plan, cancel, or get help'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => presentProCustomerCenter(context, ref),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  static String _renewalLabel(SubscriptionStatus status) {
-    if (status.isLifetime) return 'Lifetime access.';
-    final date = DateFormat.yMMMd().format(status.expiresAt!);
-    if (status.isInTrial) {
-      return status.willRenew
+  static String _renewalLabel(Entitlement entitlement) {
+    if (entitlement.isLifetime) return 'Lifetime access.';
+    final date = DateFormat.yMMMd().format(entitlement.expiresAt!);
+    if (entitlement.isInTrial) {
+      return entitlement.willRenew
           ? 'Free trial — first payment on $date.'
           : 'Free trial — ends $date.';
     }
-    return status.willRenew ? 'Renews $date.' : 'Access ends $date.';
+    // Renewal intent is unknown for a subscription bought on the other platform,
+    // and "access ends" would be a bad guess to get wrong.
+    if (!entitlement.knowsRenewalIntent) return 'Active until $date.';
+    return entitlement.willRenew ? 'Renews $date.' : 'Access ends $date.';
   }
 }
 

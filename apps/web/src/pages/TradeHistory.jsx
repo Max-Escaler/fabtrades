@@ -28,9 +28,11 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useEntitlement } from '../contexts/EntitlementContext.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
 import { fetchLastUpdatedTimestamp } from '../services/api';
+import { FreeLimits } from '../utils/freeLimits.js';
 import { formatCurrency } from '../utils/helpers.js';
 import { normalizeTradeList, tradeDisplayName } from '../utils/tradeItems.js';
 import Header from '../components/elements/Header.jsx';
@@ -38,6 +40,7 @@ import Header from '../components/elements/Header.jsx';
 const TradeHistory = () => {
     const navigate = useNavigate();
     const { user, signInWithDiscord } = useAuth();
+    const { isPro, loading: entitlementLoading } = useEntitlement();
     const { isDark } = useThemeMode();
     const [trades, setTrades] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -252,9 +255,23 @@ const TradeHistory = () => {
                         pb: 2,
                         borderBottom: '2px solid #d4a574'
                     }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: accentColor }}>
-                            Trade History
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: accentColor }}>
+                                Trade History
+                            </Typography>
+                            {isPro && (
+                                <Chip
+                                    size="small"
+                                    label="PRO"
+                                    sx={{
+                                        fontWeight: 700,
+                                        letterSpacing: 0.5,
+                                        color: isDark ? '#1a0f0a' : '#ffffff',
+                                        backgroundColor: accentColor,
+                                    }}
+                                />
+                            )}
+                        </Box>
                         <Button
                             variant="outlined"
                             size="small"
@@ -272,6 +289,17 @@ const TradeHistory = () => {
                             Back to Trading
                         </Button>
                     </Box>
+
+                    {/* Where the free window stands. Only once it is actually in
+                        sight — announcing a cap at two trades of ten is nagging.
+                        Web cannot sell Pro (purchases live in the apps), so this
+                        says where to buy rather than offering a checkout. */}
+                    {!entitlementLoading && !isPro && trades.length >= FreeLimits.savedTrades - 3 && (
+                        <Alert severity="info" icon={false} sx={{ mb: 3 }}>
+                            Free plan — your {FreeLimits.savedTrades} most recent trades are kept.
+                            Subscribe in the FABTrades app to keep every trade.
+                        </Alert>
+                    )}
 
                     {/* Search Bar */}
                     <TextField

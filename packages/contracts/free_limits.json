@@ -1,0 +1,60 @@
+{
+  "description": "Free-tier ceilings, and what happens at each one. FABTrades Pro removes all of them. Both clients read the same numbers because a cap that differs between web and mobile is worse than no cap: mobile's rolling trade window would silently delete trades a free customer saved on web.",
+  "limits": {
+    "binderCards": 50,
+    "wantListCards": 25,
+    "savedTrades": 10
+  },
+  "behaviour": {
+    "binderCards": "refuse",
+    "wantListCards": "refuse",
+    "savedTrades": "trim-oldest"
+  },
+  "cases": [
+    {
+      "name": "a free binder accepts the fiftieth distinct card",
+      "limit": "binderCards",
+      "existing": 49,
+      "allowed": true
+    },
+    {
+      "name": "a free binder refuses the fifty-first",
+      "limit": "binderCards",
+      "existing": 50,
+      "allowed": false
+    },
+    {
+      "name": "a free want list accepts the twenty-fifth distinct card",
+      "limit": "wantListCards",
+      "existing": 24,
+      "allowed": true
+    },
+    {
+      "name": "a free want list refuses the twenty-sixth",
+      "limit": "wantListCards",
+      "existing": 25,
+      "allowed": false
+    },
+    {
+      "name": "the tenth trade is kept whole",
+      "limit": "savedTrades",
+      "existing": 9,
+      "allowed": true,
+      "trimmed": 0
+    },
+    {
+      "name": "an eleventh trade is saved and the oldest rolls off",
+      "limit": "savedTrades",
+      "existing": 10,
+      "allowed": true,
+      "trimmed": 1
+    },
+    {
+      "name": "saving into an already overfull history trims back to the window",
+      "limit": "savedTrades",
+      "existing": 14,
+      "allowed": true,
+      "trimmed": 5
+    }
+  ]
+}

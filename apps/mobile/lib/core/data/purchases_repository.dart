@@ -28,12 +28,10 @@ class PurchasesRepository {
   /// failure here must not stop the app from launching, since browsing cards
   /// works fine without subscriptions.
   ///
-  /// FABTrades has no accounts, so no `appUserID` is supplied and RevenueCat
-  /// generates an anonymous one per install. Purchases are tied to the store
-  /// account, which is why "Restore purchases" is the recovery path after a
-  /// reinstall or a new device. If accounts are added later, call
-  /// `Purchases.logIn(userId)` after sign-in and `Purchases.logOut()` on
-  /// sign-out instead of changing this method.
+  /// No `appUserID` is supplied, so RevenueCat starts with an anonymous id per
+  /// install. That is correct at startup: the app is usable signed out, and the
+  /// Supabase session is restored asynchronously. [logIn] takes over the moment
+  /// an account appears — see `purchasesIdentityProvider`.
   Future<bool> configure() async {
     if (_configured) return true;
 
@@ -66,6 +64,46 @@ class PurchasesRepository {
     } catch (e) {
       debugPrint('RevenueCat: configure failed — $e');
       return false;
+    }
+  }
+
+  /// Binds this install to a Supabase user, so every webhook RevenueCat sends
+  /// names an id the server can key an entitlement row on.
+  ///
+  /// This is the linchpin of the whole design. Without it a purchase arrives
+  /// attributed to an anonymous `$RCAnonymousID:…` that means nothing to
+  /// Supabase, and reattaching it afterwards is manual support work.
+  ///
+  /// RevenueCat aliases the anonymous id to [userId], which is what lets a
+  /// purchase made before signing in survive signing in.
+  ///
+  /// Returns the customer info RevenueCat had after the switch, so a caller can
+  /// use it without a second round trip. Null if unconfigured or the call failed.
+  Future<CustomerInfo?> logIn(String userId) async {
+    if (!_configured) return null;
+    try {
+      final result = await Purchases.logIn(userId);
+      return result.customerInfo;
+    } catch (e) {
+      // Not fatal: entitlements already bought still read correctly from the
+      // store, and the next sign-in or app launch retries the binding.
+      debugPrint('RevenueCat: logIn failed — $e');
+      return null;
+    }
+  }
+
+  /// Returns the SDK to an anonymous id on sign-out.
+  ///
+  /// Necessary rather than tidy: leaving the previous user's id in place would
+  /// attribute the *next* account's purchases to them.
+  Future<CustomerInfo?> logOut() async {
+    if (!_configured) return null;
+    try {
+      return await Purchases.logOut();
+    } catch (e) {
+      // Throws when already anonymous, which is not a problem worth reporting.
+      debugPrint('RevenueCat: logOut skipped — $e');
+      return null;
     }
   }
 

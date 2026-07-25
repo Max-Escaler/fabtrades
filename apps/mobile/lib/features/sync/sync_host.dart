@@ -3,15 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 
-/// Keeps cloud sync running for as long as the app is on screen.
+/// Keeps the account's background work running for as long as the app is on
+/// screen: cloud sync, and binding RevenueCat's identity to the Supabase user.
 ///
-/// [syncProvider] starts a sync when an account appears, but a provider nobody
-/// watches is never built. This host is that watcher, mounted above the tabs so
-/// sync does not depend on the customer visiting a particular screen.
+/// Both start themselves when an account appears, but a provider nobody watches
+/// is never built. This host is that watcher, mounted above the tabs so neither
+/// depends on the customer visiting a particular screen.
 ///
-/// It also surfaces failures, once each, as a snack bar. A sync failure is not an
-/// error state: every screen still renders from the local cache, so this is a note
-/// beside the data rather than in place of it.
+/// It also surfaces sync failures, once each, as a snack bar. A sync failure is
+/// not an error state: every screen still renders from the local cache, so this is
+/// a note beside the data rather than in place of it.
 class SyncHost extends ConsumerStatefulWidget {
   const SyncHost({super.key, required this.child});
 
@@ -26,6 +27,10 @@ class _SyncHostState extends ConsumerState<SyncHost> {
 
   @override
   Widget build(BuildContext context) {
+    // Watched for its side effect only. Purchases made before this binding lands
+    // are attributed to an anonymous id the server cannot key a row on.
+    ref.watch(purchasesIdentityProvider);
+
     final status = ref.watch(syncProvider);
     final error = status.error;
 

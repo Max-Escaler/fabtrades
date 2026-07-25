@@ -47,3 +47,12 @@ with what the product should do — in which case change it and update both.
 | `set_sort.json` | `apps/web/src/utils/setSort.js` | `apps/mobile/lib/core/logic/set_sort.dart` |
 | `set_abbreviation.json` | `apps/web/src/utils/setAbbreviation.js` | `apps/mobile/lib/core/logic/set_abbreviation.dart` |
 | `trade_math.json` | `apps/web/src/utils/trade.js` | `apps/mobile/lib/core/models/trade.dart` |
+| `free_limits.json` | `apps/web/src/utils/freeLimits.js` | `apps/mobile/lib/core/logic/free_limits.dart` |
+
+`free_limits.json` is the one fixture where drift would destroy data rather than
+just look inconsistent. Both clients enforce the free trade window by tombstoning
+the oldest rows, so if web kept twelve trades and mobile ten, mobile would delete
+two trades every time it synced — indistinguishable, from the customer's side, from
+the app losing their history. Its binder and want-list cases are asserted on mobile
+only, because web has no binder yet; the numbers are still checked on both sides so
+they cannot drift before it grows one.

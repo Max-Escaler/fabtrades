@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import { fetchEntitlement } from './entitlements';
+import { tradesOverFreeLimit } from '../utils/freeLimits';
 
 /**
  * Ensure Supabase is configured and a user is authenticated.
@@ -20,23 +22,74 @@ async function requireAuthenticatedUser(unauthedMessage) {
 }
 
 /**
+ * Roll the oldest trades off a free account's history.
+ *
+ * The window is enforced after the insert rather than in place of it, because a
+ * save is never refused — see `tradesOverFreeLimit`. Mobile does the same thing
+ * to the same rows, so the two clients agree on which ten trades survive; if only
+ * one of them trimmed, the other would keep re-uploading what it had kept.
+ *
+ * The entitlement is read from the database rather than taken from the caller.
+ * A limit decided by whatever the UI last rendered is not a limit.
+ *
+ * @param {string} userId - Supabase user id
+ * @returns {Promise<number>} Trades tombstoned
+ */
+async function trimToFreeWindow(userId) {
+    const { entitlement } = await fetchEntitlement(userId);
+    if (entitlement.isPro) return 0;
+
+    const { data, error } = await supabase
+        .from('trades')
+        .select('id')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const rows = data || [];
+    const overLimit = tradesOverFreeLimit(rows.length);
+    if (overLimit === 0) return 0;
+
+    // Newest first, so the tail is the oldest.
+    const surplus = rows.slice(-overLimit).map((row) => row.id);
+
+    // Tombstoned, like every other delete here, so an offline mobile device learns
+    // the trade is gone instead of re-uploading it on its next sync.
+    const now = new Date().toISOString();
+    const { error: trimError } = await supabase
+        .from('trades')
+        .update({ deleted_at: now, updated_at: now })
+        .in('id', surplus);
+
+    if (trimError) throw trimError;
+
+    return surplus.length;
+}
+
+/**
  * Save a trade to the user's trade history
+ *
+ * Free accounts keep a rolling window of the most recent trades; `trimmed` says
+ * how many rolled off, so the UI can say so rather than let them vanish quietly.
+ *
  * @param {string} name - The name/title of the trade
  * @param {Array} haveList - Array of cards the user has
  * @param {Array} wantList - Array of cards the user wants
  * @param {Object} totals - Object containing haveTotal, wantTotal, and diff
- * @returns {Object} - { data, error }
+ * @returns {Object} - { data, error, trimmed }
  */
 export async function saveTradeToHistory(name, haveList, wantList, totals) {
     try {
         const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to save trades');
         if (authError) {
-            return { data: null, error: authError };
+            return { data: null, error: authError, trimmed: 0 };
         }
 
         // Validate input
         if (!name || name.trim() === '') {
-            return { data: null, error: { message: 'Trade name is required' } };
+            return { data: null, error: { message: 'Trade name is required' }, trimmed: 0 };
         }
 
         // `client_id` is how the mobile app addresses a row it has not yet seen a
@@ -63,10 +116,20 @@ export async function saveTradeToHistory(name, haveList, wantList, totals) {
 
         if (error) throw error;
 
-        return { data, error: null };
+        // After the insert, and deliberately outside its failure path: the trade is
+        // saved either way, and a trim that fails is worth a log, not an error the
+        // customer sees about a save that worked.
+        let trimmed = 0;
+        try {
+            trimmed = await trimToFreeWindow(user.id);
+        } catch (trimError) {
+            console.error('Error trimming trade history:', trimError);
+        }
+
+        return { data, error: null, trimmed };
     } catch (error) {
         console.error('Error saving trade:', error);
-        return { data: null, error };
+        return { data: null, error, trimmed: 0 };
     }
 }
 

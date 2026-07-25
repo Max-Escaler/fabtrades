@@ -101,6 +101,18 @@ support work. Events whose `app_user_id` is not a UUID (RevenueCat's
 `$RCAnonymousID:…`) fall back to `original_app_user_id`, and if that is not one of
 ours either, the event is recorded and ignored.
 
+The binding happens in two places, deliberately. `purchasesIdentityProvider` keeps it
+current as sessions come and go, and the paywall **awaits** it before presenting —
+because the provider does its work as a side effect of a rebuild, which is not ordered
+against opening a paywall. `Purchases.logIn` is idempotent, so the second call costs
+nothing; a purchase attributed to an anonymous id costs a support conversation. If the
+binding cannot be made, the paywall does not open.
+
+Sign-out matters just as much: leaving the previous user's id in place would attribute
+the next account's purchases to them. The provider does nothing at all while the
+session is still being restored, since treating "not yet known" as "signed out" would
+unbind the real identity on every launch.
+
 ### Sandbox
 
 Sandbox purchases are indistinguishable from real ones in every other field, so
@@ -208,15 +220,62 @@ a refund revokes access before `expires_date` says it should, and an absent
 
 ## Reading entitlements from a client
 
-Not yet wired up — that is the `client-billing` step. When it is, both clients read
-this table through a single accessor (`entitlementProvider` on mobile,
-`useEntitlement()` on web) so premium features flip in one place.
+Each client has exactly one accessor, and every Pro decision goes through it:
 
-The intended pattern is two layers: RevenueCat's `CustomerInfo` for instant
-post-purchase UI, and `entitlements` as the server-side source of truth. The first
-avoids a spinner while a webhook lands; the second is what actually decides.
+| Client | Accessor | Sources |
+| --- | --- | --- |
+| Mobile | `entitlementProvider` → `isProProvider` | `CustomerInfo` + `entitlements` |
+| Web | `useEntitlement()` | `entitlements` |
 
-Web stays read-only premium at launch: it reads the same row and points at the app to
-subscribe. Do **not** put a purchase link in the iOS build without the StoreKit
-External Purchase Link entitlement, which carries US-storefront-only gating and
-15-day transaction reporting.
+Nothing reads `CustomerInfo` or the row directly. One accessor is the whole point: a
+second place that decides what "Pro" means is a second place to forget to update.
+
+### Why mobile merges two sources
+
+Each is wrong on its own.
+
+`CustomerInfo` is correct the instant a purchase completes and readable offline from
+the SDK's cache, but it only knows what *this* store account bought — a subscription
+purchased on the other platform is invisible to it. The `entitlements` row is
+platform-independent and authoritative, but it lags a purchase by a webhook round trip
+and needs a network.
+
+So mobile grants access when **either** says so. The asymmetry is deliberate:
+withholding Pro from somebody who paid produces a support ticket and a refund, while
+briefly granting it to somebody whose refund has not propagated costs nothing, and the
+two converge within seconds. For the same reason, a device answer that is missing —
+still loading, or the SDK threw — is treated as "this device knows of no purchase"
+rather than as an answer, so one failed store lookup cannot revoke a confirmed
+subscriber's access.
+
+Two things only one source knows:
+
+- **`willRenew` and the store management link** come from `CustomerInfo`. The row
+  records an expiry but not renewal intent, so for a subscription bought on the other
+  platform the UI says "Active until the 14th" rather than guessing at "Renews" or
+  "Access ends", and hides the Customer Center — StoreKit cannot manage a Play
+  subscription.
+- **Where it was bought** comes only from the row, which is what lets the app say
+  "Purchased through Google Play. Manage it there."
+
+### Web reads and never writes
+
+Web has no device-side source — a browser cannot hold a store receipt — so
+`useEntitlement()` is the row and nothing else. It starts `loading`, and gates stay
+closed until the row is read, so a subscriber never sees a flash of the free tier.
+
+Web cannot sell Pro either: purchases live in the apps, so a free customer is told
+where to buy rather than offered a checkout that does not exist. Do **not** put a
+purchase link in the iOS build without the StoreKit External Purchase Link
+entitlement, which carries US-storefront-only gating and 15-day transaction reporting.
+
+### The free tier is enforced twice, on purpose
+
+Both clients apply the caps in `packages/contracts/free_limits.json`, and both enforce
+the trade window by tombstoning the oldest rows. That is why the numbers are a shared
+contract rather than a constant in each codebase: if web kept twelve trades and mobile
+ten, every sync would delete two, which from the customer's side is the app losing
+their history.
+
+Web reads the entitlement from the database when it trims, not from whatever the UI
+last rendered. A limit decided by client state is not a limit.
