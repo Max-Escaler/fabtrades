@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app.dart';
+import '../../app/card_filter_bar.dart';
 import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
@@ -62,7 +65,7 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
       body: TabBarView(
         controller: _tab,
         children: [
-          _BinderList(entries: binder, pricing: pricing),
+          _BinderList(allEntries: binder, pricing: pricing),
           WantListPane(
             onAdd: () => _addBySearch(isWanted: true),
           ),
@@ -127,15 +130,55 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
   }
 }
 
-class _BinderList extends ConsumerWidget {
-  const _BinderList({required this.entries, required this.pricing});
+class _BinderList extends ConsumerStatefulWidget {
+  const _BinderList({required this.allEntries, required this.pricing});
 
-  final List<BinderEntry> entries;
+  final List<BinderEntry> allEntries;
   final Pricing pricing;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (entries.isEmpty) {
+  ConsumerState<_BinderList> createState() => _BinderListState();
+}
+
+class _BinderListState extends ConsumerState<_BinderList> {
+  final _controller = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String value) {
+    setState(() {}); // refresh clear button
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref.read(binderFiltersProvider.notifier).setQuery(value);
+    });
+  }
+
+  void _clearQuery() {
+    _debounce?.cancel();
+    _controller.clear();
+    ref.read(binderFiltersProvider.notifier).setQuery('');
+    setState(() {});
+  }
+
+  void _clearFilters() {
+    _debounce?.cancel();
+    _controller.clear();
+    ref.read(binderFiltersProvider.notifier).clear();
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final all = widget.allEntries;
+    final pricing = widget.pricing;
+
+    if (all.isEmpty) {
       return _BinderEmptyState(
         onScan: () {
           if (context.mounted) ScanScreen.forBinder(context);
@@ -150,25 +193,93 @@ class _BinderList extends ConsumerWidget {
       );
     }
 
-    final total = entries.fold<double>(
+    final filters = ref.watch(binderFiltersProvider);
+    final visible = ref.watch(filteredBinderProvider);
+    final total = all.fold<double>(
         0, (s, e) => s + (pricing.value(e.card) ?? 0) * e.quantity);
+    final hasQuery = filters.query.trim().isNotEmpty;
 
     return Column(
       children: [
         _TotalHeader(
-          count: entries.fold<int>(0, (s, e) => s + e.quantity),
+          count: all.fold<int>(0, (s, e) => s + e.quantity),
           total: pricing.formatValue(total),
         ),
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.only(bottom: 96),
-            itemCount: entries.length,
-            separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
-            itemBuilder: (context, i) =>
-                _EntryRow(entry: entries[i], pricing: pricing),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          child: TextField(
+            controller: _controller,
+            onChanged: _onChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Search binder…',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: _clearQuery,
+                    ),
+            ),
           ),
         ),
+        CardFilterBar(
+          filters: filters,
+          onFoilOnly: (v) =>
+              ref.read(binderFiltersProvider.notifier).setFoilOnly(v),
+          onSort: (s) => ref.read(binderFiltersProvider.notifier).setSort(s),
+          onClear: _clearFilters,
+        ),
+        const SizedBox(height: 4),
+        Expanded(
+          child: visible.isEmpty
+              ? _BinderNoMatches(
+                  hasQuery: hasQuery || filters.hasActiveFilters,
+                  onClear: _clearFilters,
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 96),
+                  itemCount: visible.length,
+                  separatorBuilder: (_, _) =>
+                      const Divider(height: 1, indent: 72),
+                  itemBuilder: (context, i) =>
+                      _EntryRow(entry: visible[i], pricing: pricing),
+                ),
+        ),
       ],
+    );
+  }
+}
+
+class _BinderNoMatches extends StatelessWidget {
+  const _BinderNoMatches({required this.hasQuery, required this.onClear});
+  final bool hasQuery;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.search_off, size: 48, color: scheme.outline),
+            const SizedBox(height: 12),
+            Text(
+              hasQuery
+                  ? 'No cards match your filters.'
+                  : 'No cards in binder.',
+              textAlign: TextAlign.center,
+            ),
+            if (hasQuery) ...[
+              const SizedBox(height: 16),
+              TextButton(onPressed: onClear, child: const Text('Clear filters')),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
