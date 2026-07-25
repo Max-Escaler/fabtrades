@@ -94,6 +94,21 @@ class SyncJournal {
     return raw is String ? DateTime.tryParse(raw) : null;
   }
 
+  /// The instant a sync starting now should treat as the present, for [domain].
+  ///
+  /// Never earlier than [highWaterMark], because local stamps are logical rather
+  /// than wall-clock: two edits in the same millisecond are ordered by pushing the
+  /// second one into the future, so an edit made a moment ago can carry a timestamp
+  /// the wall clock has not reached. Comparing that against `DateTime.now()` would
+  /// read it as concurrent with the sync and protect it from being reconciled — and
+  /// a tombstone protected that way is never dropped, so the deletion is re-applied
+  /// on every sync forever.
+  DateTime syncStart(SyncDomain domain) {
+    final now = DateTime.now().toUtc();
+    final mark = highWaterMark(domain);
+    return mark == null || now.isAfter(mark) ? now : mark;
+  }
+
   /// Records deleted on this device and not yet known to have reached the server.
   Map<String, DateTime> tombstones(SyncDomain domain) {
     final records = _domain(_read(), domain)['records'];

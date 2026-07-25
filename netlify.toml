@@ -11,3 +11,32 @@
   # These are Supabase public keys that are safe to expose in client-side code
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
+# Which Supabase project a deploy talks to is decided here, per context, rather
+# than in code, and the app throws if it is not told. Nothing is secret: these are
+# publishable keys, gated by RLS.
+
+[context.production.environment]
+  VITE_APP_ENV = "production"
+  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+
+# Previews still read production, which is what they did before this file said so
+# out loud. Web is read-only premium — it has no purchase flow to keep out of
+# production — so the isolation that matters today is mobile's.
+#
+# Once the persistent Supabase branch exists (docs/ENVIRONMENTS.md), swap both
+# blocks below to the staging project and previews stop touching production at all:
+#
+#   VITE_APP_ENV = "staging"
+#   VITE_SUPABASE_URL = "https://<branch-ref>.supabase.co"
+#   VITE_SUPABASE_ANON_KEY = "<branch publishable key>"
+
+[context.deploy-preview.environment]
+  VITE_APP_ENV = "production"
+  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+
+[context.branch-deploy.environment]
+  VITE_APP_ENV = "production"
+  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"

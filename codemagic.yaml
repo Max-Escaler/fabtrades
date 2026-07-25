@@ -18,6 +18,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      vars:
+        APP_ENVIRONMENT: production
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
@@ -25,7 +27,9 @@ workflows:
         script: |
           find . -name "Podfile" -execdir pod install \;
       - name: Build iOS debug without code signing
-        script: flutter build ios --debug --no-codesign
+        script: |
+          flutter build ios --debug --no-codesign \
+            --dart-define-from-file="env/${APP_ENVIRONMENT}.json"
     artifacts:
       - build/ios/iphoneos/**/*.app
       - /tmp/xcodebuild_logs/*.log
@@ -50,6 +54,15 @@ workflows:
       vars:
         # App Store Connect → App Information → Apple ID
         APP_STORE_APPLE_ID: "6794308687"
+        # Which Supabase project the build talks to (apps/mobile/env/*.json).
+        # Override per build in the Codemagic UI to ship a staging TestFlight
+        # build; sandbox purchases must never write real entitlements.
+        APP_ENVIRONMENT: production
+      groups:
+        # Codemagic → Team/App settings → Environment variables. Holds
+        # REVENUECAT_APPLE_API_KEY. Without it the build still succeeds and simply
+        # runs with subscriptions switched off, never with the test-store key.
+        - revenuecat
 
     scripts:
       - name: Get Flutter packages
@@ -73,9 +86,23 @@ workflows:
 
       - name: Flutter build IPA
         script: |
-          flutter build ipa --release \
-            --build-number="$NEW_BUILD" \
-            --export-options-plist=/Users/builder/export_options.plist
+          set -e
+          env_file="env/${APP_ENVIRONMENT}.json"
+          # The app refuses to start without this, so catch an unfilled env file here
+          # rather than in a tester's crash report.
+          grep -q '"SUPABASE_URL": *"http' "$env_file" || {
+            echo "$env_file has no SUPABASE_URL — see docs/ENVIRONMENTS.md"
+            exit 1
+          }
+          args=(build ipa --release
+            --build-number="$NEW_BUILD"
+            --dart-define-from-file="$env_file"
+            --export-options-plist=/Users/builder/export_options.plist)
+          if [ -n "$REVENUECAT_APPLE_API_KEY" ]; then
+            args+=(--dart-define=REVENUECAT_APPLE_API_KEY="$REVENUECAT_APPLE_API_KEY")
+          fi
+          echo "Building $APP_ENVIRONMENT"
+          flutter "${args[@]}"
 
     artifacts:
       - build/ios/ipa/*.ipa

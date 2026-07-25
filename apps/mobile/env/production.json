@@ -1,0 +1,5 @@
+{
+  "APP_ENV": "production",
+  "SUPABASE_URL": "https://tenrvaghaspwdvnwvgrh.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+}

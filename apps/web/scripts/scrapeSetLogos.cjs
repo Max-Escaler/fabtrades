@@ -164,11 +164,18 @@ function pageUrlFromSlug(slugOrPath) {
 }
 
 // Set list comes from the shared Supabase card database (public read-only;
-// see docs/mobile/DATABASE.md).
-const FAB_DB_URL = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
-const FAB_DB_KEY = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
+// see docs/mobile/DATABASE.md). CommonJS, so it reads the environment directly
+// rather than through src/config/env.js.
+const FAB_DB_URL = process.env.VITE_SUPABASE_URL;
+const FAB_DB_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
 async function fetchGroups() {
+    if (!FAB_DB_URL || !FAB_DB_KEY) {
+        throw new Error(
+            'Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. Run this with the ' +
+            'variables from apps/web/.env exported. See docs/ENVIRONMENTS.md.'
+        );
+    }
     const r = await fetch(
         `${FAB_DB_URL}/rest/v1/fab_sets?select=group_id,name&order=group_id.asc`,
         { headers: { apikey: FAB_DB_KEY, Authorization: `Bearer ${FAB_DB_KEY}` } }

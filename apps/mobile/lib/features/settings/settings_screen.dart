@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/supabase_config.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/providers.dart';
 import 'account_section.dart';
@@ -107,6 +108,21 @@ class SettingsScreen extends ConsumerWidget {
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
           ),
+          // Only outside production. A tester who cannot tell which project a build
+          // is pointed at will eventually report staging data as a production bug.
+          if (!SupabaseConfig.isProduction)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.science_outlined,
+                  color: theme.colorScheme.tertiary),
+              title: const Text('Test build'),
+              subtitle: Text(
+                'Signed in to the ${SupabaseConfig.environment} database. '
+                'Nothing here affects your real account.',
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
         ],
       ),
     );

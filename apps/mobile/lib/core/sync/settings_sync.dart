@@ -24,7 +24,7 @@ class SettingsSync {
   static const _recordId = 'settings';
 
   Future<bool> run({required String userId}) async {
-    final startedAt = DateTime.now().toUtc();
+    final startedAt = journal.syncStart(SyncDomain.settings);
     final local = repository.load();
     final localUpdatedAt = journal.localTimestamps(SyncDomain.settings)[_recordId];
 

@@ -55,6 +55,16 @@ export default defineConfig([
         },
     },
     {
+        // The one module that runs in both the browser bundle and Node build
+        // scripts, so it legitimately feature-detects `process`.
+        files: ['src/config/env.js'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
+    {
         // Context and hook modules intentionally export a provider component
         // alongside its hook. Splitting them to satisfy Fast Refresh would spread
         // one concept across two files for no runtime benefit; the cost is losing

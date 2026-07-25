@@ -34,6 +34,8 @@ import 'package:fabtrades/core/scan/card_hash_index.dart';
 import 'package:fabtrades/core/scan/phash.dart';
 import 'package:fabtrades/core/scan/rectify.dart';
 
+// Pinned to production for the same reason as generate_card_hashes.dart: this
+// scores the committed hash asset against the real catalog. Public read-only.
 const _supabaseUrl = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
 const _supabaseKey = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
 const _hashAssetPath = 'assets/scan/card_hashes.json';

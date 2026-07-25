@@ -1,16 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-
-// Supabase configuration
-// These values come from your Supabase project settings:
-// Project Settings > API
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { supabaseCredentials } from '../config/env.js';
 
 // Only create client if credentials are provided
 let supabaseClient = null;
 
-if (supabaseUrl && supabaseAnonKey) {
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+const credentials = supabaseCredentials();
+if (credentials) {
+    supabaseClient = createClient(credentials.url, credentials.key, {
         auth: {
             redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
             autoRefreshToken: true,

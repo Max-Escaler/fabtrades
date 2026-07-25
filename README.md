@@ -62,6 +62,7 @@ repository.
 
 ```bash
 cd apps/web
+cp .env.example .env
 npm install
 npm run dev      # development server
 npm run build    # production build + SEO prerender
@@ -74,10 +75,14 @@ npm run lint
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run
+flutter run --dart-define-from-file=env/production.json
 flutter test
 flutter analyze
 ```
+
+Both clients are told which Supabase project to use at build time and refuse to start
+without it, so that a test build cannot write to production. The environments, and how
+to stand up staging, are in [docs/ENVIRONMENTS.md](./docs/ENVIRONMENTS.md).
 
 Subscription builds need their RevenueCat key passed in; debug builds fall back to the
 Test Store automatically. See

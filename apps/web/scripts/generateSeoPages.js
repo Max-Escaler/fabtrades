@@ -23,6 +23,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { loadEnv } from 'vite';
 import { buildSetSlugMap } from '../src/utils/setSlug.js';
 import { resolveSetAbbreviation } from '../src/utils/setAbbreviation.js';
 import { compareSetsByBrowseOrder } from '../src/utils/setSort.js';
@@ -39,6 +40,14 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
+
+// `vite build` reads .env itself; this script is plain Node and does not, so the
+// same file is loaded here. On Netlify there is no .env and the variables are
+// already in the environment, which is why existing values win.
+Object.assign(process.env, {
+    ...loadEnv('production', ROOT, 'VITE_'),
+    ...process.env
+});
 
 // Netlify exposes the primary site URL as `URL` during builds; allow an
 // explicit override via SITE_URL. Trailing slash is stripped for consistency.

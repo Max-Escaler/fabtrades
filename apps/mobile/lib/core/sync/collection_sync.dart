@@ -28,7 +28,7 @@ class CollectionSync<T> {
   /// Reconciles local and remote. Returns true when the local cache changed, so
   /// the caller knows whether any UI needs rebuilding.
   Future<bool> run({required String userId}) async {
-    final startedAt = DateTime.now().toUtc();
+    final startedAt = journal.syncStart(adapter.domain);
     final localRecords = _localRecords();
     final remoteRecords = await _pull(userId);
     final remoteById = {for (final r in remoteRecords) r.id: r};

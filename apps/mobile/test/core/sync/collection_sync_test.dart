@@ -321,6 +321,30 @@ void main() {
       expect(local.load().single.quantity, 5);
     });
 
+    test('drops a tombstone stamped ahead of the wall clock', () async {
+      // Two edits inside one millisecond push the second's stamp into the future.
+      // A sync that treated `DateTime.now()` as the present would read that
+      // tombstone as concurrent with itself, keep it, and re-delete the record on
+      // every sync from then on. Forced here rather than raced for.
+      await local.save([entry('a')]);
+      final remote = FakeRemoteCollection();
+      await syncWith(remote).run(userId: _userId);
+
+      await local.save(const []);
+      await journal.noteLocalWrite(
+        SyncDomain.binder,
+        before: {'binder|a': 'live'},
+        after: const {},
+        at: DateTime.now().toUtc().add(const Duration(seconds: 30)),
+      );
+      expect(journal.tombstones(SyncDomain.binder), isNotEmpty);
+
+      await syncWith(remote).run(userId: _userId);
+
+      expect(journal.tombstones(SyncDomain.binder), isEmpty);
+      expect(local.load(), isEmpty);
+    });
+
     test('re-adding after a delete wins over the tombstone', () async {
       await local.save([entry('a')]);
       final remote = FakeRemoteCollection();

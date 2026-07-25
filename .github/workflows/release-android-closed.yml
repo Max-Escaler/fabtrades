@@ -29,6 +29,16 @@ on:
           highest versionCode already uploaded to Play (recommended).
         required: false
         type: string
+      environment:
+        description: >
+          Which Supabase project the build talks to (apps/mobile/env/*.json).
+          Use staging for anything exercising sandbox purchases.
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
 
 concurrency:
   group: release-android-closed
@@ -168,16 +178,34 @@ jobs:
         env:
           BUILD_NAME: ${{ inputs.build_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.version_code }}
+          APP_ENVIRONMENT: ${{ inputs.environment }}
+          REVENUECAT_GOOGLE_API_KEY: ${{ secrets.REVENUECAT_GOOGLE_API_KEY }}
         run: |
           if [ -z "$BUILD_NUMBER" ]; then
             echo "Resolved versionCode is empty"
             exit 1
           fi
-          args=(build appbundle --release --build-number="$BUILD_NUMBER")
+          # The app refuses to start without this, so a missing or empty env file is
+          # worth catching here rather than in a tester's crash report.
+          env_file="env/${APP_ENVIRONMENT}.json"
+          if ! grep -q '"SUPABASE_URL": *"http' "$env_file"; then
+            echo "$env_file has no SUPABASE_URL — see docs/ENVIRONMENTS.md"
+            exit 1
+          fi
+          args=(
+            build appbundle --release
+            --build-number="$BUILD_NUMBER"
+            --dart-define-from-file="$env_file"
+          )
           if [ -n "$BUILD_NAME" ]; then
             args+=(--build-name="$BUILD_NAME")
           fi
-          echo "Building with versionCode=$BUILD_NUMBER${BUILD_NAME:+ versionName=$BUILD_NAME}"
+          # Absent, the app runs with subscriptions switched off rather than with the
+          # test-store key, so an unset secret degrades instead of faking purchases.
+          if [ -n "$REVENUECAT_GOOGLE_API_KEY" ]; then
+            args+=(--dart-define=REVENUECAT_GOOGLE_API_KEY="$REVENUECAT_GOOGLE_API_KEY")
+          fi
+          echo "Building $APP_ENVIRONMENT with versionCode=$BUILD_NUMBER${BUILD_NAME:+ versionName=$BUILD_NAME}"
           flutter "${args[@]}"
 
       - name: Upload to Google Play

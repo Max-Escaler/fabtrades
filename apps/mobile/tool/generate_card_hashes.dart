@@ -22,6 +22,9 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:fabtrades/core/scan/phash.dart';
 
+// Pinned to production, unlike the app: this generates a committed asset from the
+// real catalog, and a staging branch's card list would be the wrong input. Public
+// read-only either way. See docs/ENVIRONMENTS.md.
 const _supabaseUrl = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
 const _supabaseKey = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
 const _outputPath = 'assets/scan/card_hashes.json';

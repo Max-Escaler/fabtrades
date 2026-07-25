@@ -10,17 +10,20 @@
  */
 
 // The publishable key is safe to ship in clients: all card/price tables are
-// public read-only via RLS. Only the pipeline's service_role key can write.
-const FAB_DB_URL = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
-const FAB_DB_KEY = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
+// public read-only via RLS. Only the pipeline's service_role key can write. Which
+// project it points at is what matters, so it comes from the environment.
+import { requireSupabaseConfig } from '../config/env.js';
 
 const PAGE_SIZE = 1000; // PostgREST caps a single response at 1000 rows.
 
 const restGet = async (pathAndQuery) => {
-    const response = await fetch(`${FAB_DB_URL}/rest/v1/${pathAndQuery}`, {
+    // Resolved per request rather than at import, so a misconfigured deploy reports
+    // the missing variable instead of failing to load the module.
+    const { url, key } = requireSupabaseConfig();
+    const response = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
         headers: {
-            apikey: FAB_DB_KEY,
-            Authorization: `Bearer ${FAB_DB_KEY}`
+            apikey: key,
+            Authorization: `Bearer ${key}`
         }
     });
     if (!response.ok) {
