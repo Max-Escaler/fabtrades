@@ -244,30 +244,3 @@ class AppTheme {
     );
   }
 }
-
-/// Flesh and Blood rarity → accent color for badges.
-Color rarityColor(String? rarity, ColorScheme scheme) {
-  switch (rarity?.toLowerCase()) {
-    case 'token':
-    case 'basic':
-      return scheme.outline;
-    case 'common':
-      return scheme.onSurfaceVariant;
-    case 'rare':
-      return const Color(0xFF0277BD); // blue
-    case 'super rare':
-      return const Color(0xFF2E7D32); // green
-    case 'majestic':
-      return const Color(0xFFF57C00); // orange
-    case 'legendary':
-      return const Color(0xFF7E57C2); // purple
-    case 'fabled':
-      return const Color(0xFFC2185B); // magenta
-    case 'marvel':
-      return AppTheme.tanBright;
-    case 'promo':
-      return AppTheme.brownBright;
-    default:
-      return scheme.outline;
-  }
-}

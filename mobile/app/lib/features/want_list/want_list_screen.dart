@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/printing_picker.dart';
+import '../../core/data/card_repository.dart';
 import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
@@ -102,7 +104,7 @@ class _WantGrid extends ConsumerWidget {
   }
 }
 
-class _WantCard extends StatelessWidget {
+class _WantCard extends ConsumerWidget {
   const _WantCard({
     required this.entry,
     required this.editing,
@@ -113,17 +115,31 @@ class _WantCard extends StatelessWidget {
   final bool editing;
   final VoidCallback onRemove;
 
+  Future<void> _pickVersion(BuildContext context, WidgetRef ref) async {
+    final card = entry.card;
+    final catalog = ref.read(catalogProvider).asData?.value ?? const [];
+    final printings = printingsForCard(catalog, card);
+    final picked = await showPrintingPicker(
+      context: context,
+      current: card,
+      printings: printings,
+    );
+    if (picked == null) return;
+    ref.read(binderProvider.notifier).replaceCard(card.id, true, picked);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final card = entry.card;
+    final version = card.setVersionLabel;
 
     return Stack(
       children: [
         Positioned.fill(
           child: GestureDetector(
             onTap: editing
-                ? null
+                ? () => _pickVersion(context, ref)
                 : () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => CardDetailScreen(card: card))),
             child: Container(
@@ -158,6 +174,34 @@ class _WantCard extends StatelessWidget {
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                       fontSize: 13)),
+            ),
+          ),
+        if (version != null)
+          Positioned(
+            left: 6,
+            right: 6,
+            bottom: 6,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.62),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  version,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+              ),
             ),
           ),
         if (editing)

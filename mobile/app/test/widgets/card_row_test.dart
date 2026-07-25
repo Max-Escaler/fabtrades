@@ -90,24 +90,26 @@ void main() {
     });
   });
 
-  group('RarityBadge', () {
-    testWidgets('renders the rarity label', (tester) async {
-      await tester.pumpWidget(wrap(const RarityBadge(rarity: 'Rare')));
-      expect(find.text('Rare'), findsOneWidget);
-    });
-
-    testWidgets('renders nothing for None/empty rarity', (tester) async {
-      await tester.pumpWidget(wrap(const RarityBadge(rarity: 'None')));
-      expect(find.byType(PillBadge), findsNothing);
-    });
-  });
-
   group('CardMetaLine', () {
-    testWidgets('joins set name and collector number', (tester) async {
+    testWidgets('joins set version and collector number', (tester) async {
       await tester.pumpWidget(wrap(CardMetaLine(
         card: buildCard(setName: 'Origins', collectorNumber: '015/219'),
       )));
       expect(find.text('Origins  •  #015/219'), findsOneWidget);
+    });
+
+    testWidgets('includes edition from subtype', (tester) async {
+      await tester.pumpWidget(wrap(CardMetaLine(
+        card: buildCard(
+          setName: 'Monarch',
+          subTypeName: '1st Edition Normal',
+          collectorNumber: 'MON147',
+        ),
+      )));
+      expect(
+        find.text('Monarch First Edition  •  #MON147'),
+        findsOneWidget,
+      );
     });
   });
 

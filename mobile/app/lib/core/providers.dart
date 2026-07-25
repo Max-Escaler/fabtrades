@@ -277,6 +277,29 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
     _persist();
   }
 
+  /// Swaps the printing of an existing binder/want entry (e.g. First Edition →
+  /// Unlimited), keeping quantity and condition. Merges if the target printing
+  /// is already present on the same list.
+  void replaceCard(String oldCardId, bool isWanted, CardModel newCard) {
+    if (oldCardId == newCard.id) return;
+    final idx =
+        state.indexWhere((e) => e.card.id == oldCardId && e.isWanted == isWanted);
+    if (idx < 0) return;
+    final existing = state[idx];
+    final mergeIdx = state.indexWhere(
+        (e) => e.card.id == newCard.id && e.isWanted == isWanted);
+    final updated = [...state];
+    if (mergeIdx >= 0 && mergeIdx != idx) {
+      updated[mergeIdx] = updated[mergeIdx]
+          .copyWith(quantity: updated[mergeIdx].quantity + existing.quantity);
+      updated.removeAt(idx);
+    } else {
+      updated[idx] = existing.copyWith(card: newCard);
+    }
+    state = updated;
+    _persist();
+  }
+
   void remove(String cardId, bool isWanted) {
     state = state
         .where((e) => !(e.card.id == cardId && e.isWanted == isWanted))

@@ -18,12 +18,13 @@ class BinderEntry {
   });
 
   BinderEntry copyWith({
+    CardModel? card,
     int? quantity,
     String? condition,
     bool? isWanted,
   }) =>
       BinderEntry(
-        card: card,
+        card: card ?? this.card,
         quantity: quantity ?? this.quantity,
         condition: condition ?? this.condition,
         isWanted: isWanted ?? this.isWanted,

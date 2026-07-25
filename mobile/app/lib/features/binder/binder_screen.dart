@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app.dart';
+import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
+import '../../core/data/card_repository.dart';
 import '../../core/logic/pricing.dart';
 import '../../core/models/binder_entry.dart';
+import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../scan/scan_screen.dart';
@@ -258,12 +261,38 @@ class _EntryRow extends ConsumerWidget {
   final BinderEntry entry;
   final Pricing pricing;
 
+  void _openDetail(BuildContext context, CardModel card) {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => CardDetailScreen(card: card)));
+  }
+
+  Future<void> _pickVersion(
+    BuildContext context,
+    WidgetRef ref,
+    List<CardModel> catalog,
+  ) async {
+    final card = entry.card;
+    final printings = printingsForCard(catalog, card);
+    final picked = await showPrintingPicker(
+      context: context,
+      current: card,
+      printings: printings,
+      priceLabel: pricing.priceLabel,
+    );
+    if (picked == null) return;
+    ref
+        .read(binderProvider.notifier)
+        .replaceCard(card.id, entry.isWanted, picked);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final notifier = ref.read(binderProvider.notifier);
     final card = entry.card;
     final lineValue = (pricing.value(card) ?? 0) * entry.quantity;
+    final catalog = ref.watch(catalogProvider).asData?.value ?? const [];
+    final printings = printingsForCard(catalog, card);
 
     return Dismissible(
       key: ValueKey('${card.id}_${entry.isWanted}'),
@@ -275,67 +304,80 @@ class _EntryRow extends ConsumerWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) => notifier.remove(card.id, entry.isWanted),
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => CardDetailScreen(card: card))),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            children: [
-              CardThumbnail(url: card.imageUrl, foil: card.isFoil),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(card.name,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => _openDetail(context, card),
+              child: CardThumbnail(url: card.imageUrl, foil: card.isFoil),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => _openDetail(context, card),
+                    child: Text(card.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 3),
-                    CardMetaLine(card: card),
-                    const SizedBox(height: 5),
-                    Row(
+                  ),
+                  const SizedBox(height: 3),
+                  GestureDetector(
+                    onTap: printings.length >= 2
+                        ? () => _pickVersion(context, ref, catalog)
+                        : () => _openDetail(context, card),
+                    child: Row(
                       children: [
-                        RarityBadge(rarity: card.rarity),
-                        if (card.finishBadgeLabel != null) ...[
-                          const SizedBox(width: 5),
-                          FinishBadge(card: card),
-                        ],
-                        const SizedBox(width: 5),
-                        _ConditionChip(
-                          condition: entry.condition,
-                          onChanged: (c) => notifier.setCondition(
-                              card.id, entry.isWanted, c),
-                        ),
+                        Expanded(child: CardMetaLine(card: card)),
+                        if (printings.length >= 2)
+                          Icon(Icons.unfold_more,
+                              size: 16,
+                              color: theme.colorScheme.onSurfaceVariant),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(pricing.formatValue(lineValue),
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w800)),
-                  if (pricing.lowPriceLabel(card) != null)
-                    Text(pricing.lowPriceLabel(card)!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant)),
-                  const SizedBox(height: 4),
-                  _MiniStepper(
-                    qty: entry.quantity,
-                    onInc: () => notifier.setQuantity(
-                        card.id, entry.isWanted, entry.quantity + 1),
-                    onDec: () => notifier.setQuantity(
-                        card.id, entry.isWanted, entry.quantity - 1),
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      if (card.finishBadgeLabel != null) ...[
+                        FinishBadge(card: card),
+                        const SizedBox(width: 5),
+                      ],
+                      _ConditionChip(
+                        condition: entry.condition,
+                        onChanged: (c) => notifier.setCondition(
+                            card.id, entry.isWanted, c),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(pricing.formatValue(lineValue),
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w800)),
+                if (pricing.lowPriceLabel(card) != null)
+                  Text(pricing.lowPriceLabel(card)!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 4),
+                _MiniStepper(
+                  qty: entry.quantity,
+                  onInc: () => notifier.setQuantity(
+                      card.id, entry.isWanted, entry.quantity + 1),
+                  onDec: () => notifier.setQuantity(
+                      card.id, entry.isWanted, entry.quantity - 1),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

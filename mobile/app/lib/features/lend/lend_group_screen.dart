@@ -183,16 +183,10 @@ class _ItemRow extends ConsumerWidget {
                             fontSize: 15, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 3),
                     CardMetaLine(card: card),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        RarityBadge(rarity: card.rarity),
-                        if (card.finishBadgeLabel != null) ...[
-                          const SizedBox(width: 5),
-                          FinishBadge(card: card),
-                        ],
-                      ],
-                    ),
+                    if (card.finishBadgeLabel != null) ...[
+                      const SizedBox(height: 5),
+                      FinishBadge(card: card),
+                    ],
                   ],
                 ),
               ),

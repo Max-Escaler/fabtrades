@@ -119,6 +119,31 @@ void main() {
       expect(c.read(binderProvider).single.condition, 'HP');
     });
 
+    test('replaceCard swaps printing and keeps quantity/condition', () async {
+      final c = await makeContainer();
+      final n = c.read(binderProvider.notifier);
+      n.add(buildCard(id: 'first', setName: 'Monarch'), quantity: 2);
+      n.setCondition('first', false, 'LP');
+      n.replaceCard(
+          'first', false, buildCard(id: 'unltd', setName: 'Monarch Unlimited'));
+      final entry = c.read(binderProvider).single;
+      expect(entry.card.id, 'unltd');
+      expect(entry.quantity, 2);
+      expect(entry.condition, 'LP');
+    });
+
+    test('replaceCard merges when target printing already present', () async {
+      final c = await makeContainer();
+      final n = c.read(binderProvider.notifier);
+      n.add(buildCard(id: 'a'), quantity: 2);
+      n.add(buildCard(id: 'b'), quantity: 1);
+      n.replaceCard('a', false, buildCard(id: 'b'));
+      final entries = c.read(binderProvider);
+      expect(entries.length, 1);
+      expect(entries.single.card.id, 'b');
+      expect(entries.single.quantity, 3);
+    });
+
     test('state persists across a rebuilt container', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

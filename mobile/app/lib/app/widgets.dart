@@ -414,21 +414,6 @@ class PillBadge extends StatelessWidget {
   }
 }
 
-/// Rarity badge convenience.
-class RarityBadge extends StatelessWidget {
-  const RarityBadge({super.key, required this.rarity});
-  final String? rarity;
-
-  @override
-  Widget build(BuildContext context) {
-    if (rarity == null || rarity!.isEmpty || rarity == 'None') {
-      return const SizedBox.shrink();
-    }
-    final scheme = Theme.of(context).colorScheme;
-    return PillBadge(label: rarity!, color: rarityColor(rarity, scheme));
-  }
-}
-
 /// Foil finish badge that distinguishes Cold / Rainbow / Gold foil (instead of
 /// a generic "FOIL" label). Hidden for Normal printings.
 class FinishBadge extends StatelessWidget {
@@ -485,8 +470,8 @@ class CardRow extends ConsumerWidget {
   /// card detail page.
   final bool showThumbnail;
 
-  /// When true, the rarity/foil chips sit inline with the set • #number meta
-  /// line instead of on their own row below it (used by the browse list).
+  /// When true, the foil chip sits inline with the set-version meta line
+  /// instead of on its own row below it (used by the browse list).
   final bool inlineBadges;
 
   /// Shows "Own N" / "Wanted" pills from the Binder store when true.
@@ -547,25 +532,25 @@ class CardRow extends ConsumerWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         CardMetaLine(card: card),
-                        RarityBadge(rarity: card.rarity),
                         FinishBadge(card: card),
                         ...ownership,
                       ],
                     )
                   else ...[
                     CardMetaLine(card: card),
-                    const SizedBox(height: 5),
-                    Wrap(
-                      spacing: 5,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        RarityBadge(rarity: card.rarity),
-                        if (card.finishBadgeLabel != null)
-                          FinishBadge(card: card),
-                        ...ownership,
-                      ],
-                    ),
+                    if (card.finishBadgeLabel != null || ownership.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Wrap(
+                        spacing: 5,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (card.finishBadgeLabel != null)
+                            FinishBadge(card: card),
+                          ...ownership,
+                        ],
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -685,11 +670,13 @@ class PriceSourceBadge extends StatelessWidget {
   }
 }
 
-/// Compact metadata row (set • #number) used under card names.
+/// Compact metadata row (set version • #number) used under card names.
+/// Prefers [CardModel.setVersionLabel] so First Edition vs Unlimited is visible.
 class CardMetaLine extends StatelessWidget {
-  const CardMetaLine({super.key, required this.card, this.style});
+  const CardMetaLine({super.key, required this.card, this.style, this.maxLines = 1});
   final CardModel card;
   final TextStyle? style;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -698,10 +685,10 @@ class CardMetaLine extends StatelessWidget {
         theme.textTheme.bodySmall
             ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
     final parts = <String>[
-      if (card.setName != null) card.setName!,
+      if (card.setVersionLabel != null) card.setVersionLabel!,
       if (card.collectorNumber != null) '#${card.collectorNumber}',
     ];
     return Text(parts.join('  •  '),
-        maxLines: 1, overflow: TextOverflow.ellipsis, style: s);
+        maxLines: maxLines, overflow: TextOverflow.ellipsis, style: s);
   }
 }

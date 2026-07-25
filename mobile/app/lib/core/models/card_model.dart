@@ -225,6 +225,74 @@ class CardModel {
     return null;
   }
 
+  /// Edition token for classic Flesh and Blood print runs, e.g. "First Edition"
+  /// or "Unlimited". Pulled from [subTypeName], a trailing name qualifier, or
+  /// [setName] when the set itself encodes the edition.
+  String? get editionLabel {
+    for (final raw in [subTypeName, name, setName]) {
+      final parsed = _editionFrom(raw);
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  /// Set + edition for list rows, e.g. "Monarch First Edition" vs
+  /// "Monarch Unlimited". Falls back to [setName] when no edition is known.
+  String? get setVersionLabel {
+    final set = setName?.trim();
+    final edition = editionLabel;
+    if (set == null || set.isEmpty) return edition;
+    if (edition == null) return set;
+    final setLower = set.toLowerCase();
+    if (setLower.contains('unlimited') ||
+        setLower.contains('1st edition') ||
+        setLower.contains('first edition')) {
+      return set;
+    }
+    return '$set $edition';
+  }
+
+  /// Best available large art URL for full-screen preview. Prefers the official
+  /// FAB CDN when [collectorNumber] looks like a set code (e.g. `MON147`);
+  /// otherwise falls back to the TCGplayer [imageUrl].
+  String? get largeImageUrl {
+    final code = _primarySetCode(collectorNumber);
+    if (code != null) {
+      final sub = (subTypeName ?? '').toLowerCase();
+      var suffix = '';
+      if (sub.contains('cold foil')) {
+        suffix = '-CF';
+      } else if (sub.contains('rainbow foil')) {
+        suffix = '-RF';
+      }
+      return 'https://d2wlb52bya4y8z.cloudfront.net/media/cards/large/$code$suffix.webp';
+    }
+    final url = imageUrl?.trim();
+    return (url == null || url.isEmpty) ? null : url;
+  }
+
+  static String? _editionFrom(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final lower = raw.toLowerCase();
+    if (lower.contains('1st edition') || lower.contains('first edition')) {
+      return 'First Edition';
+    }
+    if (lower.contains('unlimited')) return 'Unlimited';
+    return null;
+  }
+
+  /// First usable set-code collector number (`MON147`, `WTR001`). Fractional
+  /// numbers like `147/219` are not CDN keys and return null.
+  static String? _primarySetCode(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final cleaned = raw.split(RegExp(r'\s*//\s*|\s*/\s*')).first.trim();
+    if (cleaned.isEmpty) return null;
+    // Pure digits (or digits with a trailing *) are fractional indexes, not codes.
+    if (RegExp(r'^\d+\*?$').hasMatch(cleaned)) return null;
+    if (!RegExp(r'^[A-Za-z0-9]{3,}').hasMatch(cleaned)) return null;
+    return cleaned.toUpperCase();
+  }
+
   // PostgREST can return numeric columns as num or String; handle both.
   static double? _toDouble(dynamic v) {
     if (v == null) return null;

@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -22,23 +21,9 @@ class CardDetailScreen extends ConsumerStatefulWidget {
 
 class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   late CardModel _selected = widget.card;
-  late Future<List<PricePoint>> _history;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHistory();
-  }
-
-  void _loadHistory() {
-    _history = ref.read(cardRepositoryProvider).priceHistory(_selected.id);
-  }
 
   void _select(CardModel c) {
-    setState(() {
-      _selected = c;
-      _loadHistory();
-    });
+    setState(() => _selected = c);
   }
 
   @override
@@ -65,28 +50,9 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Hero(
-                tag: 'card_${_selected.id}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: _selected.imageUrl ?? '',
-                    height: 176,
-                    width: 126,
-                    fit: BoxFit.cover,
-                    placeholder: (_, _) => const SizedBox(
-                      height: 176,
-                      width: 126,
-                      child: Center(child: CircularProgressIndicator.adaptive()),
-                    ),
-                    errorWidget: (_, _, _) => Container(
-                      height: 176,
-                      width: 126,
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      child: const Icon(Icons.broken_image_outlined, size: 40),
-                    ),
-                  ),
-                ),
+              _CardArtThumb(
+                card: _selected,
+                onTap: () => _openArtViewer(context, _selected),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -98,13 +64,14 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                             ?.copyWith(fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
                     CardMetaLine(
-                        card: _selected, style: theme.textTheme.bodyMedium),
+                        card: _selected,
+                        style: theme.textTheme.bodyMedium,
+                        maxLines: 2),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        RarityBadge(rarity: _selected.rarity),
                         FinishBadge(card: _selected),
                         if (owned > 0)
                           GestureDetector(
@@ -136,8 +103,6 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
           ),
           const SizedBox(height: 14),
           _PriceCard(card: _selected, settings: settings, pricing: pricing),
-          const SizedBox(height: 14),
-          _HistorySection(history: _history, settings: settings),
         ],
       ),
       bottomNavigationBar: _ActionBar(card: _selected),
@@ -188,6 +153,124 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
     ref
         .read(binderProvider.notifier)
         .setQuantity(_selected.id, false, saved);
+  }
+}
+
+void _openArtViewer(BuildContext context, CardModel card) {
+  final url = card.largeImageUrl ?? card.imageUrl;
+  if (url == null || url.isEmpty) return;
+  Navigator.of(context).push(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierColor: Colors.black87,
+      barrierDismissible: true,
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: _CardArtViewer(url: url, heroTag: 'card_${card.id}'),
+        );
+      },
+    ),
+  );
+}
+
+class _CardArtThumb extends StatelessWidget {
+  const _CardArtThumb({required this.card, required this.onTap});
+  final CardModel card;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Hero(
+      tag: 'card_${card.id}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: CachedNetworkImage(
+              imageUrl: card.imageUrl ?? '',
+              height: 176,
+              width: 126,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => const SizedBox(
+                height: 176,
+                width: 126,
+                child: Center(child: CircularProgressIndicator.adaptive()),
+              ),
+              errorWidget: (_, _, _) => Container(
+                height: 176,
+                width: 126,
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: const Icon(Icons.broken_image_outlined, size: 40),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen zoomable card art. Tap outside / close button to dismiss.
+class _CardArtViewer extends StatelessWidget {
+  const _CardArtViewer({required this.url, required this.heroTag});
+  final String url;
+  final String heroTag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Tap empty space to dismiss.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).pop(),
+              child: const SizedBox.expand(),
+            ),
+          ),
+          Center(
+            child: Hero(
+              tag: heroTag,
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.contain,
+                  placeholder: (_, _) => const SizedBox(
+                    width: 200,
+                    height: 280,
+                    child: Center(child: CircularProgressIndicator.adaptive()),
+                  ),
+                  errorWidget: (_, _, _) => const Icon(
+                    Icons.broken_image_outlined,
+                    color: Colors.white70,
+                    size: 64,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                tooltip: 'Close',
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -251,7 +334,9 @@ class _PrintingSelector extends StatelessWidget {
     final bySet = <String, List<CardModel>>{};
     final order = <String>[];
     for (final c in printings) {
-      final raw = c.setName?.trim();
+      // Prefer set+edition so First Edition / Unlimited group separately when
+      // they share a bare set name but differ in subtype.
+      final raw = c.setVersionLabel?.trim() ?? c.setName?.trim();
       final set = (raw != null && raw.isNotEmpty) ? raw : 'Other';
       final list = bySet[set];
       if (list == null) {
@@ -485,121 +570,6 @@ class _PriceGroup extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _HistorySection extends StatelessWidget {
-  const _HistorySection({required this.history, required this.settings});
-  final Future<List<PricePoint>> history;
-  final AppSettings settings;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return FutureBuilder<List<PricePoint>>(
-      future: history,
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-              height: 60,
-              child: Center(child: CircularProgressIndicator.adaptive()));
-        }
-        final points = snap.data ?? const [];
-        final values = points
-            .map((p) => settings.source == PriceSource.tcgplayer
-                ? p.tcgMarket
-                : p.cmTrend)
-            .toList();
-        final hasSeries = values.where((v) => v != null).length >= 2;
-
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.show_chart,
-                        size: 18, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text('Price history',
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                if (!hasSeries)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Center(
-                      child: Text(
-                        'Not enough history yet.\nDaily snapshots build the chart over time.',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  )
-                else
-                  SizedBox(
-                    height: 120,
-                    child: _Sparkline(
-                      points: points,
-                      values: values,
-                      color: theme.colorScheme.primary,
-                      symbol: settings.source.symbol,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Sparkline extends StatelessWidget {
-  const _Sparkline({
-    required this.points,
-    required this.values,
-    required this.color,
-    required this.symbol,
-  });
-  final List<PricePoint> points;
-  final List<double?> values;
-  final Color color;
-  final String symbol;
-
-  @override
-  Widget build(BuildContext context) {
-    final spots = <FlSpot>[];
-    for (var i = 0; i < values.length; i++) {
-      final v = values[i];
-      if (v != null) spots.add(FlSpot(i.toDouble(), v));
-    }
-    return LineChart(
-      LineChartData(
-        gridData: const FlGridData(show: false),
-        titlesData: const FlTitlesData(show: false),
-        borderData: FlBorderData(show: false),
-        lineTouchData: const LineTouchData(enabled: true),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            color: color,
-            barWidth: 3,
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              color: color.withValues(alpha: 0.14),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -272,6 +272,82 @@ void main() {
     });
   });
 
+  group('setVersionLabel', () {
+    test('pairs set name with First Edition / Unlimited from subtype', () {
+      expect(
+        const CardModel(
+          id: 'a',
+          name: 'Shadow Puppetry',
+          setName: 'Monarch',
+          subTypeName: '1st Edition Normal',
+        ).setVersionLabel,
+        'Monarch First Edition',
+      );
+      expect(
+        const CardModel(
+          id: 'b',
+          name: 'Shadow Puppetry',
+          setName: 'Monarch',
+          subTypeName: 'Unlimited Edition Rainbow Foil',
+          isFoil: true,
+        ).setVersionLabel,
+        'Monarch Unlimited',
+      );
+    });
+
+    test('does not duplicate edition already in set name', () {
+      expect(
+        const CardModel(
+          id: 'a',
+          name: 'A',
+          setName: 'Welcome to Rathe Unlimited',
+          subTypeName: 'Unlimited Edition Normal',
+        ).setVersionLabel,
+        'Welcome to Rathe Unlimited',
+      );
+    });
+
+    test('falls back to bare set name when no edition', () {
+      expect(
+        const CardModel(
+          id: 'a',
+          name: 'A',
+          setName: 'Heavy Hitters',
+          subTypeName: 'Normal',
+        ).setVersionLabel,
+        'Heavy Hitters',
+      );
+    });
+  });
+
+  group('largeImageUrl', () {
+    test('builds FAB CDN URL from set-code collector numbers', () {
+      expect(
+        const CardModel(
+          id: 'a',
+          name: 'A',
+          collectorNumber: 'MON147',
+          subTypeName: 'Cold Foil',
+          isFoil: true,
+          imageUrl: 'https://example.com/fallback.jpg',
+        ).largeImageUrl,
+        'https://d2wlb52bya4y8z.cloudfront.net/media/cards/large/MON147-CF.webp',
+      );
+    });
+
+    test('falls back to imageUrl for fractional collector numbers', () {
+      expect(
+        const CardModel(
+          id: 'a',
+          name: 'A',
+          collectorNumber: '147/219',
+          imageUrl: 'https://example.com/card.jpg',
+        ).largeImageUrl,
+        'https://example.com/card.jpg',
+      );
+    });
+  });
+
   group('PricePoint.fromMap', () {
     test('parses a price_history row', () {
       final p = PricePoint.fromMap({
