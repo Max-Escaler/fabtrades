@@ -46,6 +46,19 @@ Never edit an already-applied migration. The remote records a checksum per
 version, so amending one makes local and remote disagree in a way that is
 tedious to unpick. Add a new migration instead.
 
+## Authentication
+
+Three providers, enabled for both clients: Apple, Google, and Discord. `config.toml`
+declares them, but a linked project reads its provider settings from the dashboard
+rather than from this file, so changes there must be made in both places.
+[docs/AUTH_PROVIDERS.md](../docs/AUTH_PROVIDERS.md) covers the dashboard and
+per-provider console setup.
+
+The one setting that silently breaks mobile sign-in if missed:
+`fabtrades://login-callback` must appear in **Authentication → URL Configuration →
+Redirect URLs**. Without it Google and Discord sign-in completes in the browser and
+never returns to the app.
+
 ## Row Level Security
 
 Every table has RLS enabled. The rules are:

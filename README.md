@@ -94,11 +94,14 @@ npm run ingest
 
 ### Authentication Setup
 
-To enable Discord authentication and trade history features, follow the setup guide in
+Web and mobile share one set of sign-in providers — Apple, Google, and Discord — backed by
+Supabase Auth. Provider and dashboard setup, including the `fabtrades://login-callback`
+deep link mobile needs, is in [docs/AUTH_PROVIDERS.md](./docs/AUTH_PROVIDERS.md). The
+Discord-specific walkthrough remains at
 [docs/DISCORD_AUTH_SETUP.md](./docs/DISCORD_AUTH_SETUP.md).
 
-**Note:** The app works without authentication, but you'll need to set it up to save and
-access trade history.
+**Note:** Both clients work fully without an account. Signing in adds cloud-synced
+collection data and trade history.
 
 ## License
 

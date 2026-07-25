@@ -51,6 +51,13 @@ dependencies:
   # version, they ship in lockstep.
   purchases_flutter: ^10.4.3
   purchases_ui_flutter: ^10.4.3
+  # Native Sign in with Apple. The browser OAuth flow also works, but App Review
+  # expects the system sheet, and it is the only provider Apple requires us to
+  # offer once any third-party sign-in exists (guideline 4.8).
+  sign_in_with_apple: ^7.0.1
+  # SHA-256 for the Apple sign-in nonce. Apple gets the hash, Supabase gets the
+  # raw value, and comparing them is what stops a replayed identity token.
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

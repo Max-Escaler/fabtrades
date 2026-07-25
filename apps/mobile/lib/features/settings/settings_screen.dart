@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/app_settings.dart';
 import '../../core/providers.dart';
+import 'account_section.dart';
 import 'subscription_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -19,6 +20,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const AccountSection(),
           const SubscriptionSection(),
           const SettingsSectionLabel('Price source'),
           const SizedBox(height: 8),

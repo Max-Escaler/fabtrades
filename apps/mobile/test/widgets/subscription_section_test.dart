@@ -39,6 +39,9 @@ Future<ProviderContainer> _pumpSettings(
       subscriptionProvider.overrideWith(() => _FakeSubscription(status)),
       // Prices would otherwise come from the store.
       proOfferingProvider.overrideWith((ref) async => null),
+      // Settings now renders an account block; keep it signed out so this test
+      // stays about subscriptions.
+      accountProvider.overrideWith((ref) => Stream.value(null)),
     ],
   );
   addTearDown(container.dispose);
