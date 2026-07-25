@@ -142,7 +142,7 @@ from desktop-only tests.
 
 ## 5. Accuracy harness (keep using it)
 
-From `mobile/app/`:
+From `apps/mobile/`:
 
 ```bash
 dart run tool/evaluate_scan.dart --samples=200 --seed=1

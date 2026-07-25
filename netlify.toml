@@ -1,4 +1,7 @@
 [build]
+  # The web app is one workspace in a monorepo; everything below is relative
+  # to this base, so Netlify needs no dashboard configuration to find it.
+  base = "apps/web"
   command = "npm run build"
   publish = "dist"
 

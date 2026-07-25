@@ -1,7 +1,7 @@
 # Discord Authentication Setup Guide
 
 FAB Trades web Discord auth uses the shared Supabase project **RiftTrades**
-(`tenrvaghaspwdvnwvgrh`) — the same project as mobile/pipeline card data.
+(`tenrvaghaspwdvnwvgrh`) — the same project as services/price-pipeline card data.
 
 > **Migration note (2026-07):** The old `FABTrades` project (`fjepuubksgrwxjwkiewx`)
 > is inactive. Auth + the `trades` table now live on RiftTrades. Local `.env` should

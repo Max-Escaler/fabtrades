@@ -1,7 +1,7 @@
 # Human-in-the-loop scan capture for Pixel debugging.
 # Agent runs this; you follow the prompts. Captures [DEBUG-scan] logcat.
 #
-# Usage (from mobile/app):
+# Usage (from apps/mobile):
 #   powershell -File tool/scan_hitl_capture.ps1
 
 $ErrorActionPreference = "Stop"

@@ -1,6 +1,6 @@
 /**
  * Read-only access to the shared Supabase card/price database (see
- * mobile/docs/DATABASE.md). This replaces the old committed CSV/JSON price
+ * docs/mobile/DATABASE.md). This replaces the old committed CSV/JSON price
  * files under public/price-guide — the daily "Update FAB Prices" GitHub
  * Action ingests TCGCSV data straight into the database, and every surface
  * (web, mobile, build scripts) reads from there.

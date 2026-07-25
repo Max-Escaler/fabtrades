@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Card image cache written by tool/generate_card_hashes.dart
+tool/.cache/

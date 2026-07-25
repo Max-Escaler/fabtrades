@@ -1,4 +1,5 @@
-// Unit tests for the FAB price-ingest pipeline row builder (mobile/pipeline).
+// Unit tests for the FAB price-ingest pipeline row builder
+// (services/price-pipeline).
 //
 // transform.js turns raw TCGCSV product rows into the rows that get upserted
 // into the shared Supabase price database. Its correctness has a large blast
@@ -8,7 +9,7 @@
 // cardmarket.js (imported transitively) pulls in config.js, which does
 // `import 'dotenv/config'` (not a dependency of the web app). We mock config.js
 // so the import chain resolves without dotenv and without loading Supabase.
-jest.mock('../../mobile/pipeline/src/config.js', () => ({
+jest.mock('../../../../services/price-pipeline/src/config.js', () => ({
   CARDMARKET_PRODUCTS_URL: 'http://example.test/products',
   CARDMARKET_PRICES_URL: 'http://example.test/prices',
 }));
@@ -20,7 +21,7 @@ import {
   subtypeSlug,
   printingId,
   buildRows,
-} from '../../mobile/pipeline/src/transform.js';
+} from '../../../../services/price-pipeline/src/transform.js';
 
 describe('toNumber', () => {
   it('returns null for empty-ish values', () => {

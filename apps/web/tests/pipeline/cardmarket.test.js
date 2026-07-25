@@ -7,7 +7,11 @@
 //
 // config.js does `import 'dotenv/config'` (not a web-app dependency), so we
 // mock it to keep the import chain resolvable and hermetic.
-jest.mock('../../mobile/pipeline/src/config.js', () => ({
+//
+// These specs live in the web suite but exercise services/price-pipeline,
+// which has no test runner of its own. CI therefore runs the web job for
+// pipeline changes too.
+jest.mock('../../../../services/price-pipeline/src/config.js', () => ({
   CARDMARKET_PRODUCTS_URL: 'http://example.test/products',
   CARDMARKET_PRICES_URL: 'http://example.test/prices',
 }));
@@ -15,7 +19,7 @@ jest.mock('../../mobile/pipeline/src/config.js', () => ({
 import {
   normalizeCardName,
   fetchCardMarketByName,
-} from '../../mobile/pipeline/src/cardmarket.js';
+} from '../../../../services/price-pipeline/src/cardmarket.js';
 
 describe('normalizeCardName', () => {
   it('lowercases, strips punctuation, and collapses whitespace', () => {

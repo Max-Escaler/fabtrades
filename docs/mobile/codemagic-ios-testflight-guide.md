@@ -6,7 +6,7 @@ Practical path from first Codemagic iOS build to an internal or external TestFli
 
 | Item | Value |
 | --- | --- |
-| Flutter app root | `mobile/app/` (`pubspec.yaml`, `ios/`) |
+| Flutter app root | `apps/mobile/` (`pubspec.yaml`, `ios/`) |
 | Bundle ID | `com.fabtrades.app` |
 | Display name | FAB Trades |
 | Current `pubspec` version | `1.0.1+4` (`build-name`+`build-number`) |
@@ -22,7 +22,7 @@ Sources below are official Codemagic, Apple Developer / App Store Connect, and F
 1. Enroll in the Apple Developer Program; register Bundle ID `com.fabtrades.app`; create the App Store Connect app record.
 2. Create an App Store Connect API key (role **App Manager**); connect it in Codemagic Team integrations → Developer Portal.
 3. In Codemagic **Code signing identities**, generate an **Apple Distribution** certificate and fetch/create an **App Store** provisioning profile for `com.fabtrades.app`.
-4. Add `codemagic.yaml` at the **fabtrades repo root** with `working_directory: mobile/app`, `ios_signing.distribution_type: app_store`, Flutter IPA build, and `publishing.app_store_connect`.
+4. Add `codemagic.yaml` at the **fabtrades repo root** with `working_directory: apps/mobile`, `ios_signing.distribution_type: app_store`, Flutter IPA build, and `publishing.app_store_connect`.
 5. Run the workflow → IPA uploads to App Store Connect → answer export compliance if needed → enable **Internal Testing**, then (optional) **External Testing** (may require TestFlight beta review).
 
 **Note:** Creating the App Store Connect app record (Phase 1) gives you a numeric **Apple ID** immediately. You do **not** need a prior binary upload for that ID. Auto-increment from TestFlight is optional and only useful after the first successful upload.
@@ -94,17 +94,17 @@ Codemagic uses an App Store Connect API key for automatic signing helpers and fo
 2. Connect GitHub/GitLab/Bitbucket (or other) and select the **fabtrades** repo.
 3. Choose an appropriate project type (Flutter when offered). ([Codemagic — Building a Flutter app](https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/))
 
-### 2.2 Flutter path: `mobile/app` (monorepo)
+### 2.2 Flutter path: `apps/mobile` (monorepo)
 
 This repo is a monorepo: the Flutter project is **not** at the repository root. Codemagic looks for `codemagic.yaml` at the **repository root**, and you set `working_directory` so scripts run inside the Flutter app. ([Codemagic — Building a Flutter app](https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/); [Codemagic — Monorepo apps](https://docs.codemagic.io/partials/monorepo-apps/); [Codemagic — Did not find xcodeproj](https://docs.codemagic.io/troubleshooting/common-ios-issues/))
 
 ```yaml
 workflows:
   ios-testflight:
-    working_directory: mobile/app
+    working_directory: apps/mobile
 ```
 
-If you use the Flutter **workflow editor** instead of yaml, set **Project path** to `mobile/app` (rescanning may be required). ([Codemagic — Building Flutter projects](https://docs.codemagic.io/flutter-configuration/flutter-projects/))
+If you use the Flutter **workflow editor** instead of yaml, set **Project path** to `apps/mobile` (rescanning may be required). ([Codemagic — Building Flutter projects](https://docs.codemagic.io/flutter-configuration/flutter-projects/))
 
 When `codemagic.yaml` is present, Codemagic uses it for event-triggered builds and ignores Flutter workflow editor config for those workflows. ([Codemagic — Building a Flutter app](https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/))
 
@@ -189,7 +189,7 @@ workflows:
   ios-testflight:
     name: iOS TestFlight
     # Flutter project is not at repo root
-    working_directory: mobile/app
+    working_directory: apps/mobile
     max_build_duration: 120
     instance_type: mac_mini_m2
 
@@ -252,7 +252,7 @@ workflows:
 
 | Piece | Reason | Source |
 | --- | --- | --- |
-| `working_directory: mobile/app` | Monorepo Flutter root | [Monorepo apps](https://docs.codemagic.io/partials/monorepo-apps/) |
+| `working_directory: apps/mobile` | Monorepo Flutter root | [Monorepo apps](https://docs.codemagic.io/partials/monorepo-apps/) |
 | `ios_signing` + `app_store` | TestFlight / App Store signing | [Signing iOS apps](https://docs.codemagic.io/yaml-code-signing/signing-ios/) |
 | `xcode-project use-profiles` | Apply profiles / export options | [Signing iOS apps](https://docs.codemagic.io/yaml-code-signing/signing-ios/) |
 | `flutter build ipa` | Archive + IPA | [Flutter iOS deployment](https://docs.flutter.dev/deployment/ios) |
@@ -317,7 +317,7 @@ Never commit `.p8`, certificate private keys, or production anon keys that shoul
 
 What happens on a successful Codemagic run:
 
-1. **Clone** repo; `cd` / run under `working_directory: mobile/app`.
+1. **Clone** repo; `cd` / run under `working_directory: apps/mobile`.
 2. **Fetch signing** materials matching `app_store` + `com.fabtrades.app`.
 3. **`flutter pub get`** / CocoaPods install.
 4. **`xcode-project use-profiles`** — writes signing settings and `export_options.plist`.
@@ -377,7 +377,7 @@ Do not use Internal-Only export builds for external groups. ([Invite external te
 
 | Symptom | Likely cause | Fix | Source |
 | --- | --- | --- | --- |
-| `Did not find xcodeproj from …/ios` | Wrong working directory (monorepo) | Set `working_directory: mobile/app` | [Common iOS issues](https://docs.codemagic.io/troubleshooting/common-ios-issues/) |
+| `Did not find xcodeproj from …/ios` | Wrong working directory (monorepo) | Set `working_directory: apps/mobile` | [Common iOS issues](https://docs.codemagic.io/troubleshooting/common-ios-issues/) |
 | `No matching profiles found … app_store` | Profile not uploaded / wrong Bundle ID | Add App Store profile for `com.fabtrades.app` in Code signing identities | [Common iOS issues](https://docs.codemagic.io/troubleshooting/common-ios-issues/) |
 | Signing / entitlements errors | Missing `xcode-project use-profiles` or stale profile | Add `use-profiles`; refresh profile after capability changes | [Common iOS issues](https://docs.codemagic.io/troubleshooting/common-ios-issues/); [Signing iOS apps](https://docs.codemagic.io/yaml-code-signing/signing-ios/) |
 | Certificate / profile mismatch | Dev cert with App Store profile, or cert not in profile | Align Distribution cert + App Store profile | [Common iOS issues](https://docs.codemagic.io/troubleshooting/common-ios-issues/) |
@@ -404,7 +404,7 @@ Do not use Internal-Only export builds for external groups. ([Invite external te
 - [ ] App Store Connect API key (App Manager) created; `.p8` stored securely  
 - [ ] Codemagic app linked to repo; Developer Portal integration configured  
 - [ ] Distribution certificate + App Store profile in Code signing identities  
-- [ ] `codemagic.yaml` at repo root with `working_directory: mobile/app`  
+- [ ] `codemagic.yaml` at repo root with `working_directory: apps/mobile`  
 - [ ] App icons / launch assets finalized (not Flutter placeholders if still default)  
 - [ ] Decide encryption compliance → `ITSAppUsesNonExemptEncryption` if exempt  
 - [ ] First Codemagic build uploads IPA successfully  
@@ -438,4 +438,4 @@ Do not use Internal-Only export builds for external groups. ([Invite external te
 
 ---
 
-*Guide written for the fabtrades monorepo Flutter app at `mobile/app`. Add `codemagic.yaml` at the repository root when you are ready to implement.*
+*Guide written for the fabtrades monorepo Flutter app at `apps/mobile`. Add `codemagic.yaml` at the repository root when you are ready to implement.*

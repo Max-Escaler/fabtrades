@@ -21,8 +21,8 @@ Speed at the table. FAB Trades is the fastest way to stack two piles of cards an
 ## Operating Context
 
 - Trades happen live: across a table at a store or event, or asynchronously in Discord trade channels (the web app generates Discord-ready trade-offer text and shareable URLs).
-- Prices come from TCGplayer data ingested into a shared Supabase catalog (`mobile/pipeline/`, `npm run ingest`); both web and mobile read the same catalog.
-- Two client surfaces: React 19 + Vite web app (this repo root, deployed to Netlify) and a Flutter Android/iOS app (`mobile/app/`, bundle `com.fabtrades.app`). The user treats web and native mobile as **equal peers sharing one design language** — the platform value `web` above records that the design language is a single brand-driven system, not OS-adaptive; neither surface is subordinate.
+- Prices come from TCGplayer data ingested into a shared Supabase catalog (`services/price-pipeline/`, `npm run ingest`); both web and mobile read the same catalog.
+- Two client surfaces: React 19 + Vite web app (`apps/web/`, deployed to Netlify) and a Flutter Android/iOS app (`apps/mobile/`, bundle `com.fabtrades.app`). The user treats web and native mobile as **equal peers sharing one design language** — the platform value `web` above records that the design language is a single brand-driven system, not OS-adaptive; neither surface is subordinate.
 - Mobile adds camera-based card scanning (pHash + ML Kit OCR, on-device) for building trades from physical cards.
 
 ## Capabilities and Constraints

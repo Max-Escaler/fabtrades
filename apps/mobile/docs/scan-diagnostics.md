@@ -159,7 +159,7 @@ Fix applied in RiftTrades (same plugin versions as here — port both):
   above);
 - padded `bytesPerRow` doesn't change the hash.
 
-Run: `flutter test test/core/scan` (from `mobile/app`). The guide-rect
+Run: `flutter test test/core/scan` (from `apps/mobile`). The guide-rect
 geometry used by the tests is the same shared contract
 (`kViewportAspect`, `kGuideWidthFraction`, `kGuideMaxHeightFraction`,
 `kCardAspect`, `kGraySide`) exported by `frame_hasher.dart` from `phash.dart`.

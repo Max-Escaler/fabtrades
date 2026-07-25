@@ -5,7 +5,7 @@
 /// same code the app runs on camera frames (`lib/core/scan/phash.dart`), and
 /// writes `assets/scan/card_hashes.json`.
 ///
-/// Run from the `mobile/app/` directory whenever a new set is released:
+/// Run from the `apps/mobile/` directory whenever a new set is released:
 ///
 ///     dart run tool/generate_card_hashes.dart
 ///

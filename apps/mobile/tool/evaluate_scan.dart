@@ -15,7 +15,7 @@
 /// conditions the pHash pipeline fails under, which is what tells you whether
 /// the embedding (Phase 2) upgrade is worth it.
 ///
-/// Run from the `mobile/app/` directory (images are cached under
+/// Run from the `apps/mobile/` directory (images are cached under
 /// `tool/.cache/images/`, so only the first run downloads):
 ///
 ///     dart run tool/evaluate_scan.dart --samples=200 --seed=1

@@ -164,7 +164,7 @@ function pageUrlFromSlug(slugOrPath) {
 }
 
 // Set list comes from the shared Supabase card database (public read-only;
-// see mobile/docs/DATABASE.md).
+// see docs/mobile/DATABASE.md).
 const FAB_DB_URL = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
 const FAB_DB_KEY = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
 

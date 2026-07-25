@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mobile/app
+        working-directory: apps/mobile
 
     steps:
       - name: Checkout
@@ -72,8 +72,8 @@ jobs:
             echo "Missing secret ANDROID_KEYSTORE_BASE64"
             exit 1
           fi
-          mkdir -p mobile/app/android/app
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > mobile/app/android/app/upload-keystore.jks
+          mkdir -p apps/mobile/android/app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/mobile/android/app/upload-keystore.jks
 
       - name: Write key.properties
         working-directory: ${{ github.workspace }}
@@ -92,14 +92,14 @@ jobs:
             printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
             printf 'keyAlias=%s\n' "$alias"
             printf 'storeFile=%s\n' 'app/upload-keystore.jks'
-          } > mobile/app/android/key.properties
+          } > apps/mobile/android/key.properties
 
       # GitHub-hosted runners have ~7GB RAM; the repo gradle.properties requests 8G.
       - name: Cap Gradle memory for CI
         working-directory: ${{ github.workspace }}
         run: |
           sed -i 's/org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=1G -XX:+HeapDumpOnOutOfMemoryError/' \
-            mobile/app/android/gradle.properties
+            apps/mobile/android/gradle.properties
 
       # Play rejects reuse of any previously uploaded versionCode. Query Play for the
       # max across bundles/APKs and use max+1 unless a manual override is provided.
@@ -185,6 +185,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: fabtrades.myapp
-          releaseFiles: mobile/app/build/app/outputs/bundle/release/app-release.aab
+          releaseFiles: apps/mobile/build/app/outputs/bundle/release/app-release.aab
           tracks: ${{ inputs.track }}
           status: ${{ inputs.status }}

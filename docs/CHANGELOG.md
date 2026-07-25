@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to **FAB Trades** are documented here. Mobile app versions
-are tracked in `mobile/app/pubspec.yaml` (`version: name+build`).
+are tracked in `apps/mobile/pubspec.yaml` (`version: name+build`).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
@@ -74,7 +74,7 @@ Shipped on `main` after the scanner wave. Web + mobile unless noted.
 
 ### Docs
 
-- `mobile/docs/card-scanning-learnings.md` — Pixel debug write-up
+- `docs/mobile/card-scanning-learnings.md` — Pixel debug write-up
   (also the source RiftTrades ported from).
 
 ### Notes / follow-ups

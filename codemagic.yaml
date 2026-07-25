@@ -1,5 +1,5 @@
 # Codemagic CI for FAB Trades (Flutter iOS).
-# Flutter project lives at mobile/app — see working_directory below.
+# Flutter project lives at apps/mobile — see working_directory below.
 #
 # Before the first signed upload:
 # 1. Create the App Store Connect app record (Apps → + → New App) for bundle ID
@@ -11,7 +11,7 @@
 workflows:
   ios-unsigned:
     name: iOS unsigned (debug)
-    working_directory: mobile/app
+    working_directory: apps/mobile
     max_build_duration: 120
     instance_type: mac_mini_m2
     environment:
@@ -32,7 +32,7 @@ workflows:
 
   ios-testflight:
     name: iOS TestFlight
-    working_directory: mobile/app
+    working_directory: apps/mobile
     max_build_duration: 120
     instance_type: mac_mini_m2
 

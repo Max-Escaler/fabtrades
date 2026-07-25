@@ -3,13 +3,13 @@
 > **Status (2026-07-17):** Grouped browse / search / provenance landed earlier and
 > is on `main`. The git-branch handoff notes below are **stale** (they still
 > mention `feat/browse-grouping-search-trust` and a RiftTrades remote). Prefer
-> root `CHANGELOG.md`, `mobile/docs/card-scanning-learnings.md`, and MyBrain
+> root `CHANGELOG.md`, `docs/mobile/card-scanning-learnings.md`, and MyBrain
 > `FABTrades Current Design` for current product state.
 >
 > **Also on `main` since that handoff:** official set logos + `SetLogoCache`,
 > Find Trade Filler (mobile; removed from web), dark mode, market+low dual
 > prices, set browse tiers, Pixel scanner reliability fixes. Paths below say
-> `app/` — in this repo the Flutter app lives under **`mobile/app/`**.
+> `app/` — in this repo the Flutter app lives under **`apps/mobile/`**.
 
 Handoff notes originally written for the browse-grouping wave. Still useful for
 *how* grouping / `baseCardName` / providers work; do not trust the branch state.
