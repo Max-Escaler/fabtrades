@@ -11,7 +11,7 @@ class FreeLimits {
   static const binderCards = 5;
 
   /// Distinct cards a free want list holds.
-  static const wantListCards = 25;
+  static const wantListCards = 4;
 
   /// Cards currently lent out across all lend groups.
   ///

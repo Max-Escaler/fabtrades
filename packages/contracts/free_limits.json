@@ -2,7 +2,7 @@
   "description": "Free-tier ceilings, and what happens at each one. FABTrades Pro removes all of them. Both clients read the same numbers because a cap that differs between web and mobile is worse than no cap: mobile's rolling trade window would silently delete trades a free customer saved on web.",
   "limits": {
     "binderCards": 5,
-    "wantListCards": 25,
+    "wantListCards": 4,
     "savedTrades": 3,
     "loanedCards": 1
   },
@@ -26,15 +26,15 @@
       "allowed": false
     },
     {
-      "name": "a free want list accepts the twenty-fifth distinct card",
+      "name": "a free want list accepts the fourth distinct card",
       "limit": "wantListCards",
-      "existing": 24,
+      "existing": 3,
       "allowed": true
     },
     {
-      "name": "a free want list refuses the twenty-sixth",
+      "name": "a free want list refuses the fifth",
       "limit": "wantListCards",
-      "existing": 25,
+      "existing": 4,
       "allowed": false
     },
     {

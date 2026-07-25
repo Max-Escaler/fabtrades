@@ -13,7 +13,7 @@
  */
 export const FreeLimits = {
     binderCards: 5,
-    wantListCards: 25,
+    wantListCards: 4,
     savedTrades: 3,
     loanedCards: 1,
 };
