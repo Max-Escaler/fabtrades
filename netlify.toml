@@ -1,4 +1,7 @@
 [build]
+  # The web app is one workspace in a monorepo; everything below is relative
+  # to this base, so Netlify needs no dashboard configuration to find it.
+  base = "apps/web"
   command = "npm run build"
   publish = "dist"
 
@@ -8,3 +11,26 @@
   # These are Supabase public keys that are safe to expose in client-side code
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
 
+# Which Supabase project a deploy talks to is decided here, per context, rather
+# than in code, and the app throws if it is not told. Nothing is secret: these are
+# publishable keys, gated by RLS.
+
+[context.production.environment]
+  VITE_APP_ENV = "production"
+  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+
+# Previews talk to staging (fabloodle) so they cannot read or write production
+# user data. Web still cannot sell Pro — purchases live in the apps — but trade
+# history and any future signed-in features stay off the production project.
+# See docs/ENVIRONMENTS.md.
+
+[context.deploy-preview.environment]
+  VITE_APP_ENV = "staging"
+  VITE_SUPABASE_URL = "https://cnmxaccamqshgvesieez.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_4hW7qDSTmCljfKl-dB43kQ_xSk0JFom"
+
+[context.branch-deploy.environment]
+  VITE_APP_ENV = "staging"
+  VITE_SUPABASE_URL = "https://cnmxaccamqshgvesieez.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_4hW7qDSTmCljfKl-dB43kQ_xSk0JFom"

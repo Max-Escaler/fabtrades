@@ -1,5 +1,5 @@
 # Codemagic CI for FAB Trades (Flutter iOS).
-# Flutter project lives at mobile/app — see working_directory below.
+# Flutter project lives at apps/mobile — see working_directory below.
 #
 # Before the first signed upload:
 # 1. Create the App Store Connect app record (Apps → + → New App) for bundle ID
@@ -11,13 +11,15 @@
 workflows:
   ios-unsigned:
     name: iOS unsigned (debug)
-    working_directory: mobile/app
+    working_directory: apps/mobile
     max_build_duration: 120
     instance_type: mac_mini_m2
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
+      vars:
+        APP_ENVIRONMENT: production
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
@@ -25,16 +27,32 @@ workflows:
         script: |
           find . -name "Podfile" -execdir pod install \;
       - name: Build iOS debug without code signing
-        script: flutter build ios --debug --no-codesign
+        script: |
+          flutter build ios --debug --no-codesign \
+            --dart-define-from-file="env/${APP_ENVIRONMENT}.json"
     artifacts:
       - build/ios/iphoneos/**/*.app
       - /tmp/xcodebuild_logs/*.log
 
   ios-testflight:
     name: iOS TestFlight
-    working_directory: mobile/app
+    working_directory: apps/mobile
     max_build_duration: 120
     instance_type: mac_mini_m2
+
+    # One tag ships both stores from the same commit. The Android workflow in
+    # .github/workflows/release-android-closed.yml listens for the same pattern, so
+    # `git tag mobile-v1.2.0 && git push --tags` is the whole release.
+    #
+    # Requires the Codemagic webhook to be installed on the repository (App settings
+    # → Webhooks); without it Codemagic never hears about the tag. Starting a build
+    # from the UI still works and simply skips the tag check below.
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'mobile-v*'
+          include: true
 
     integrations:
       # Must match the name you give the key in Codemagic → Team integrations → Developer Portal
@@ -50,8 +68,29 @@ workflows:
       vars:
         # App Store Connect → App Information → Apple ID
         APP_STORE_APPLE_ID: "6794308687"
+        # Which Supabase project the build talks to (apps/mobile/env/*.json).
+        # Override per build in the Codemagic UI to ship a staging TestFlight
+        # build; sandbox purchases must never write real entitlements.
+        APP_ENVIRONMENT: production
+      groups:
+        # Codemagic → Team/App settings → Environment variables. Holds
+        # REVENUECAT_APPLE_API_KEY. Without it the build still succeeds and simply
+        # runs with subscriptions switched off, never with the test-store key.
+        - revenuecat
 
     scripts:
+      # First, before an hour of Xcode: App Store Connect takes whatever version it
+      # is handed, so a tag that disagrees with pubspec.yaml ships silently. Same
+      # script the Android workflow runs — a check that lives in only one of the two
+      # pipelines is exactly the one that gets skipped.
+      - name: Check the tag matches pubspec.yaml
+        script: |
+          if [ -n "${CM_TAG:-}" ]; then
+            bash ../../scripts/check-release-tag.sh "$CM_TAG" pubspec.yaml
+          else
+            echo "Not a tag build — nothing to check."
+          fi
+
       - name: Get Flutter packages
         script: flutter pub get
 
@@ -73,9 +112,23 @@ workflows:
 
       - name: Flutter build IPA
         script: |
-          flutter build ipa --release \
-            --build-number="$NEW_BUILD" \
-            --export-options-plist=/Users/builder/export_options.plist
+          set -e
+          env_file="env/${APP_ENVIRONMENT}.json"
+          # The app refuses to start without this, so catch an unfilled env file here
+          # rather than in a tester's crash report.
+          grep -q '"SUPABASE_URL": *"http' "$env_file" || {
+            echo "$env_file has no SUPABASE_URL — see docs/ENVIRONMENTS.md"
+            exit 1
+          }
+          args=(build ipa --release
+            --build-number="$NEW_BUILD"
+            --dart-define-from-file="$env_file"
+            --export-options-plist=/Users/builder/export_options.plist)
+          if [ -n "$REVENUECAT_APPLE_API_KEY" ]; then
+            args+=(--dart-define=REVENUECAT_APPLE_API_KEY="$REVENUECAT_APPLE_API_KEY")
+          fi
+          echo "Building $APP_ENVIRONMENT"
+          flutter "${args[@]}"
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -85,10 +138,14 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        # Upload IPA only; turn on TestFlight group submission after first success.
-        submit_to_testflight: false
+        # The app record exists and internal testing is set up, so builds go straight
+        # to TestFlight rather than sitting in App Store Connect waiting for someone
+        # to notice them.
+        submit_to_testflight: true
+        # Still manual. Submitting a build for review is a decision, not a
+        # consequence of pushing a tag.
         submit_to_app_store: false
-        # After Internal Testing group exists in App Store Connect:
-        # submit_to_testflight: true
+        # External groups need App Review for the first build they receive; add them
+        # here once one exists and testing has to reach beyond internal testers.
         # beta_groups:
-        #   - Internal testers
+        #   - Closed testers

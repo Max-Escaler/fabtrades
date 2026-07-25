@@ -1,0 +1,103 @@
+{
+  "$comment": "Browse-list ordering for FAB product groups. See README.md.",
+  "tiers": {
+    "MAIN": 0,
+    "BLITZ": 1,
+    "ARMORY": 2,
+    "SILVER_AGE": 3,
+    "HERO": 4,
+    "OTHER": 5
+  },
+  "browseTier": [
+    { "name": "Welcome to Rathe", "tier": 0 },
+    { "name": "Crucible of War", "tier": 0 },
+    { "name": "High Seas", "tier": 0 },
+    { "name": "Dusk till Dawn", "tier": 0 },
+    { "name": "Blitz Deck: Ira", "tier": 1 },
+    { "name": "blitz deck: dorinthea", "tier": 1 },
+    { "name": "Armory Deck: Prism", "tier": 2 },
+    { "name": "Silver Age", "tier": 3 },
+    { "name": "Silver Age Chapter 1", "tier": 3 },
+    { "name": "Hero Deck: Boltyn", "tier": 4 },
+    { "name": "Welcome Deck 2021", "tier": 5 },
+    { "name": "Gem Pack", "tier": 5 },
+    { "name": "Historic Pack 1", "tier": 5 },
+    { "name": "Classic Battles: Rhinar vs Dorinthea", "tier": 5 },
+    { "name": "1st Strike", "tier": 5 },
+    { "name": "Round the Table: TCC x LSS", "tier": 5 },
+    { "name": "Monarch Promo Cards", "tier": 5 },
+    {
+      "$comment": "Unnamed sets fall to Other rather than defaulting to Main.",
+      "name": "",
+      "tier": 5
+    },
+    { "name": "   ", "tier": 5 }
+  ],
+  "tierLabel": [
+    { "tier": 0, "label": "Main Sets" },
+    { "tier": 1, "label": "Blitz Decks" },
+    { "tier": 2, "label": "Armory Decks" },
+    { "tier": 3, "label": "Silver Age" },
+    { "tier": 4, "label": "Hero Decks" },
+    { "tier": 5, "label": "Other" },
+    {
+      "$comment": "Unknown tiers fall back to the catch-all label.",
+      "tier": 99,
+      "label": "Other"
+    }
+  ],
+  "compareNames": [
+    {
+      "$comment": "Tier wins over alphabetical order.",
+      "a": "Crucible of War",
+      "b": "Blitz Deck: Ira",
+      "sign": -1
+    },
+    { "a": "Blitz Deck: Ira", "b": "Crucible of War", "sign": 1 },
+    {
+      "$comment": "Within a tier, names sort A-Z.",
+      "a": "Crucible of War",
+      "b": "High Seas",
+      "sign": -1
+    },
+    { "a": "High Seas", "b": "Crucible of War", "sign": 1 },
+    { "a": "High Seas", "b": "High Seas", "sign": 0 },
+    {
+      "$comment": "Case is ignored when comparing names.",
+      "a": "high seas",
+      "b": "High Seas",
+      "sign": 0
+    }
+  ],
+  "compareSets": [
+    {
+      "$comment": "Same tier: newer publishedOn sorts first.",
+      "a": { "name": "Older Set", "publishedOn": "2020-01-01" },
+      "b": { "name": "Newer Set", "publishedOn": "2025-01-01" },
+      "sign": 1
+    },
+    {
+      "a": { "name": "Newer Set", "publishedOn": "2025-01-01" },
+      "b": { "name": "Older Set", "publishedOn": "2020-01-01" },
+      "sign": -1
+    },
+    {
+      "$comment": "Tier still beats recency.",
+      "a": { "name": "Blitz Deck: Ira", "publishedOn": "2025-01-01" },
+      "b": { "name": "Crucible of War", "publishedOn": "2020-01-01" },
+      "sign": 1
+    },
+    {
+      "$comment": "Missing dates fall back to the name comparison.",
+      "a": { "name": "Crucible of War", "publishedOn": null },
+      "b": { "name": "High Seas", "publishedOn": null },
+      "sign": -1
+    },
+    {
+      "$comment": "A set with a date outranks one without.",
+      "a": { "name": "Aaa Set", "publishedOn": null },
+      "b": { "name": "Zzz Set", "publishedOn": "2020-01-01" },
+      "sign": 1
+    }
+  ]
+}

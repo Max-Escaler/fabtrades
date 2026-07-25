@@ -1,0 +1,86 @@
+# Supabase CLI configuration.
+#
+# This project is shared with RiftTrades: FAB Trades owns the fab_* tables plus
+# `trades`, and RiftTrades owns the unprefixed equivalents. See README.md in this
+# directory before adding migrations.
+project_id = "tenrvaghaspwdvnwvgrh"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+# The `fabtrades://` entry is what lets the mobile app finish a browser sign-in.
+# Supabase refuses to redirect anywhere absent from this list, which is what stops
+# another app from registering the same scheme and harvesting sessions. Must stay
+# in step with AuthConfig.redirectUrl in apps/mobile.
+additional_redirect_urls = [
+  "https://fabtrades.net",
+  "fabtrades://login-callback",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+# Discord signs in on web and mobile. Secrets come from the environment so they are
+# never committed; see docs/DISCORD_AUTH_SETUP.md.
+[auth.external.discord]
+enabled = true
+client_id = "env(SUPABASE_AUTH_DISCORD_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_DISCORD_SECRET)"
+
+# Google runs through the browser on both platforms, so only the Web client id is
+# needed — no per-platform OAuth clients to reconcile.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+
+# Apple accepts a comma-separated list of client ids. It needs two: the Services ID
+# for any browser flow, and the iOS bundle id `com.fabtrades.app`, because the
+# native sheet returns an identity token audienced to the bundle rather than the
+# Services ID. Omitting the bundle id makes native sign-in fail as "invalid
+# audience".
+[auth.external.apple]
+enabled = true
+client_id = "env(SUPABASE_AUTH_APPLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
+
+# Both functions authenticate callers with their own shared secret rather than a
+# Supabase JWT, so gateway JWT verification has to be off or every call would 401.
+# Declared here rather than passed as `--no-verify-jwt`, because a deploy that forgets
+# the flag silently breaks billing until somebody notices the 401s.
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+[functions.reconcile-entitlements]
+verify_jwt = false
+
+# Staging points at the free fabloodle project so sandbox purchases never touch
+# production entitlements and we do not pay for a persistent branch. Schema is
+# applied with `supabase link --project-ref cnmxaccamqshgvesieez && supabase db push`
+# — see docs/ENVIRONMENTS.md. Auth overrides only what differs; provider secrets
+# still come from that project's environment.
+[remotes.staging]
+project_id = "cnmxaccamqshgvesieez"
+
+[remotes.staging.auth]
+site_url = "https://staging--fabtrades.netlify.app"
+additional_redirect_urls = [
+  "https://staging--fabtrades.netlify.app",
+  "fabtrades://login-callback",
+]

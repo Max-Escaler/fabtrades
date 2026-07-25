@@ -1,6 +1,17 @@
 name: Release Android (Play Closed Testing)
 
+# Releases are cut from one tag, `mobile-v1.2.0`, which triggers this workflow and
+# the Codemagic iOS workflow from the same commit. Before that, iOS shipped from a
+# Codemagic UI button and Android from a manual dispatch, so the two stores could
+# carry different code under the same version string — tolerable for a free
+# calculator, not once a subscription decides what the code does.
+#
+# workflow_dispatch stays for builds that are not releases: a one-off staging
+# bundle, or a rebuild of a track after a failed upload.
 on:
+  push:
+    tags:
+      - 'mobile-v*'
   workflow_dispatch:
     inputs:
       track:
@@ -29,6 +40,16 @@ on:
           highest versionCode already uploaded to Play (recommended).
         required: false
         type: string
+      environment:
+        description: >
+          Which Supabase project the build talks to (apps/mobile/env/*.json).
+          Use staging for anything exercising sandbox purchases.
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
 
 concurrency:
   group: release-android-closed
@@ -42,11 +63,27 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mobile/app
+        working-directory: apps/mobile
+
+    # `inputs` is empty on a tag push, so each of these falls back to what a real
+    # release is: the closed track, live, against production. Staging is reachable
+    # only by dispatching deliberately, which is the point — a sandbox purchase must
+    # never write a production entitlement.
+    env:
+      RELEASE_TRACK: ${{ inputs.track || 'alpha' }}
+      RELEASE_STATUS: ${{ inputs.status || 'completed' }}
+      APP_ENVIRONMENT: ${{ inputs.environment || 'production' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # First, before twenty minutes of Gradle: Play takes whatever versionName it is
+      # handed, so a tag that disagrees with pubspec.yaml ships silently.
+      - name: Check the tag matches pubspec.yaml
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-release-tag.sh "${{ github.ref_name }}"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -72,8 +109,8 @@ jobs:
             echo "Missing secret ANDROID_KEYSTORE_BASE64"
             exit 1
           fi
-          mkdir -p mobile/app/android/app
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > mobile/app/android/app/upload-keystore.jks
+          mkdir -p apps/mobile/android/app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > apps/mobile/android/app/upload-keystore.jks
 
       - name: Write key.properties
         working-directory: ${{ github.workspace }}
@@ -92,14 +129,14 @@ jobs:
             printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
             printf 'keyAlias=%s\n' "$alias"
             printf 'storeFile=%s\n' 'app/upload-keystore.jks'
-          } > mobile/app/android/key.properties
+          } > apps/mobile/android/key.properties
 
       # GitHub-hosted runners have ~7GB RAM; the repo gradle.properties requests 8G.
       - name: Cap Gradle memory for CI
         working-directory: ${{ github.workspace }}
         run: |
           sed -i 's/org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=1G -XX:+HeapDumpOnOutOfMemoryError/' \
-            mobile/app/android/gradle.properties
+            apps/mobile/android/gradle.properties
 
       # Play rejects reuse of any previously uploaded versionCode. Query Play for the
       # max across bundles/APKs and use max+1 unless a manual override is provided.
@@ -166,18 +203,37 @@ jobs:
 
       - name: Build app bundle
         env:
+          # Blank on a tag push, so the versionName comes from pubspec.yaml — which
+          # the tag has already been checked against.
           BUILD_NAME: ${{ inputs.build_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.version_code }}
+          REVENUECAT_GOOGLE_API_KEY: ${{ secrets.REVENUECAT_GOOGLE_API_KEY }}
         run: |
           if [ -z "$BUILD_NUMBER" ]; then
             echo "Resolved versionCode is empty"
             exit 1
           fi
-          args=(build appbundle --release --build-number="$BUILD_NUMBER")
+          # The app refuses to start without this, so a missing or empty env file is
+          # worth catching here rather than in a tester's crash report.
+          env_file="env/${APP_ENVIRONMENT}.json"
+          if ! grep -q '"SUPABASE_URL": *"http' "$env_file"; then
+            echo "$env_file has no SUPABASE_URL — see docs/ENVIRONMENTS.md"
+            exit 1
+          fi
+          args=(
+            build appbundle --release
+            --build-number="$BUILD_NUMBER"
+            --dart-define-from-file="$env_file"
+          )
           if [ -n "$BUILD_NAME" ]; then
             args+=(--build-name="$BUILD_NAME")
           fi
-          echo "Building with versionCode=$BUILD_NUMBER${BUILD_NAME:+ versionName=$BUILD_NAME}"
+          # Absent, the app runs with subscriptions switched off rather than with the
+          # test-store key, so an unset secret degrades instead of faking purchases.
+          if [ -n "$REVENUECAT_GOOGLE_API_KEY" ]; then
+            args+=(--dart-define=REVENUECAT_GOOGLE_API_KEY="$REVENUECAT_GOOGLE_API_KEY")
+          fi
+          echo "Building $APP_ENVIRONMENT with versionCode=$BUILD_NUMBER${BUILD_NAME:+ versionName=$BUILD_NAME}"
           flutter "${args[@]}"
 
       - name: Upload to Google Play
@@ -185,6 +241,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: fabtrades.myapp
-          releaseFiles: mobile/app/build/app/outputs/bundle/release/app-release.aab
-          tracks: ${{ inputs.track }}
-          status: ${{ inputs.status }}
+          releaseFiles: apps/mobile/build/app/outputs/bundle/release/app-release.aab
+          tracks: ${{ env.RELEASE_TRACK }}
+          status: ${{ env.RELEASE_STATUS }}

@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push to the same branch makes the first run irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Each app is independent, so only test what changed. The filters below decide
+  # which jobs actually do work; skipped jobs still report success so branch
+  # protection can require all three.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      supabase: ${{ steps.filter.outputs.supabase }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/contracts/**'
+              - '.github/workflows/ci.yml'
+              # The pipeline has no test runner of its own; its specs live in the
+              # web suite, so pipeline changes have to run the web job.
+              - 'services/price-pipeline/**'
+            mobile:
+              - 'apps/mobile/**'
+              - 'packages/contracts/**'
+              - '.github/workflows/ci.yml'
+              # The release tag check reads apps/mobile/pubspec.yaml, so it belongs
+              # to this job rather than a separate one.
+              - 'scripts/**'
+            supabase:
+              - 'supabase/**'
+              - '.github/workflows/ci.yml'
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:ci
+
+      # `npm run build` also prerenders SEO pages, which needs live Supabase
+      # credentials. Build the app only so CI stays hermetic.
+      - name: Build
+        run: npm run build:app
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Not gating on `dart format`: the existing code predates it and 76 of 100
+      # files would need reformatting, which would bury real diffs. Worth doing as
+      # its own change, then adding the check here.
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # The release pipelines run this against a real tag, which means a bug in it
+      # would surface mid-release. Exercising it here is the only chance to find one
+      # at a moment when nothing is shipping.
+      - name: Check the release tag guard
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-release-tag.test.sh
+
+  supabase:
+    needs: changes
+    if: needs.changes.outputs.supabase == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Builds a throwaway Postgres by applying every migration from scratch, so
+      # this step failing is the signal that matters: a migration that works
+      # against today's production schema but cannot rebuild it from nothing.
+      - name: Apply migrations to a clean database
+        run: supabase db start
+
+      - name: Lint schema
+        run: supabase db lint --level warning
+
+  # The Edge Functions are the only writer of `entitlements`, so their logic is
+  # tested in isolation: `handler.ts` and `_shared/` take the database and the
+  # RevenueCat API as arguments, which is what makes that possible without either.
+  functions:
+    needs: changes
+    if: needs.changes.outputs.supabase == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verify formatting
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      # `deno test` type-checks only what the tests import, which would leave the
+      # entry points unchecked — and those are exactly the files CI never runs.
+      # The glob is quoted so Deno expands it recursively; bash would not.
+      - name: Type check
+        run: deno check "**/*.ts"
+
+      - name: Test
+        run: deno test

@@ -97,4 +97,9 @@ jspm_packages/
 .tern-port
 
 # Scraper debug output
-scripts/_set-logos-scrape.json
+apps/web/scripts/_set-logos-scrape.json
+
+# Supabase CLI local state
+supabase/.branches/
+supabase/.temp/
+

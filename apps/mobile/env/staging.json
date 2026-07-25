@@ -1,0 +1,5 @@
+{
+  "APP_ENV": "staging",
+  "SUPABASE_URL": "https://cnmxaccamqshgvesieez.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_4hW7qDSTmCljfKl-dB43kQ_xSk0JFom"
+}
