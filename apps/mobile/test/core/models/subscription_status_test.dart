@@ -37,7 +37,7 @@ EntitlementInfo _entitlement({
   PeriodType periodType = PeriodType.normal,
   String? billingIssueDetectedAt,
   bool isSandbox = false,
-  String productIdentifier = RevenueCatConfig.yearlyProductId,
+  String productIdentifier = 'com.fabtrades.app.pro.yearly',
 }) =>
     EntitlementInfo(
       RevenueCatConfig.proEntitlement,
@@ -62,7 +62,7 @@ void main() {
 
       expect(status.isPro, isTrue);
       expect(status.willRenew, isTrue);
-      expect(status.productIdentifier, RevenueCatConfig.yearlyProductId);
+      expect(status.productIdentifier, 'com.fabtrades.app.pro.yearly');
       expect(status.expiresAt, DateTime.utc(2027, 7, 25).toLocal());
     });
 

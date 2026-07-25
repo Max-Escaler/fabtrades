@@ -122,7 +122,8 @@ FABTrades Pro is bought through the App Store or Play Store, but access itself i
 in Postgres keyed by Supabase user — so a purchase on one platform grants Pro on all
 three. A RevenueCat webhook is the only writer of that row, with a nightly job to catch
 missed deliveries and lapses. The design and its setup are in
-[docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md).
+[docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md); the store-side product and notification
+configuration is in [docs/STORE_SETUP.md](./docs/STORE_SETUP.md).
 
 ## License
 

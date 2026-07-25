@@ -24,7 +24,15 @@ android {
     }
 
     defaultConfig {
-        // Application ID must match the package name registered in Google Play Console.
+        // Do not "fix" this to match the namespace above. Play binds an app to its
+        // application id permanently, and a build has already shipped to a closed
+        // track under `fabtrades.myapp`, so changing it would orphan the listing,
+        // its testers, and every subscription bought against it.
+        //
+        // Consequences: Play products and the RevenueCat Play app are configured
+        // against `fabtrades.myapp`, while iOS uses `com.fabtrades.app`. The
+        // mismatch with `namespace` is cosmetic — namespace only names the
+        // generated R class. See docs/STORE_SETUP.md.
         applicationId = "fabtrades.myapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.

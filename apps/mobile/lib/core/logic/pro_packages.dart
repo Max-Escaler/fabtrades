@@ -14,25 +14,27 @@ import '../config/revenuecat_config.dart';
 /// localized and correct for the customer's region, which hardcoded strings
 /// never are.
 extension ProPackages on Offering {
-  /// The `yearly` plan.
+  /// The yearly plan.
   Package? get yearlyPackage =>
-      annual ?? _byProductId(RevenueCatConfig.yearlyProductId);
+      annual ?? _byProductId(RevenueCatConfig.yearlyProductIds);
 
-  /// The `monthly` plan.
+  /// The monthly plan.
   Package? get monthlyPackage =>
-      monthly ?? _byProductId(RevenueCatConfig.monthlyProductId);
+      monthly ?? _byProductId(RevenueCatConfig.monthlyProductIds);
 
   /// Both plans, cheapest commitment last, skipping any that aren't attached
   /// to this offering yet.
   List<Package> get proPackages =>
       [yearlyPackage, monthlyPackage].whereType<Package>().toList();
 
-  Package? _byProductId(String productId) {
+  Package? _byProductId(Set<String> productIds) {
     for (final package in availablePackages) {
       final identifier = package.storeProduct.identifier;
-      // Play Store subscription products report as `product:base_plan`.
-      if (identifier == productId || identifier.startsWith('$productId:')) {
-        return package;
+      for (final productId in productIds) {
+        // Play Store subscription products report as `subscription:base_plan`.
+        if (identifier == productId || identifier.startsWith('$productId:')) {
+          return package;
+        }
       }
     }
     return null;

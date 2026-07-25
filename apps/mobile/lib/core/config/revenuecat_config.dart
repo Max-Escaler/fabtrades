@@ -5,9 +5,12 @@ import 'package:flutter/foundation.dart';
 /// The identifiers below must match the RevenueCat dashboard exactly:
 ///
 /// * Entitlement — `FABTrades Pro` (Product catalog → Entitlements)
-/// * Products    — `yearly` and `monthly` (Product catalog → Products)
-/// * Offering    — both products attached as the `$rc_annual` / `$rc_monthly`
-///   packages of the offering marked **Current** (Product catalog → Offerings)
+/// * Offering    — one offering marked **Current**, with every platform's yearly
+///   product attached to `$rc_annual` and every monthly product to `$rc_monthly`
+///   (Product catalog → Offerings)
+///
+/// Store setup, and the exact product identifiers, are in
+/// [docs/STORE_SETUP.md](../../../../../docs/STORE_SETUP.md).
 ///
 /// ## API keys
 ///
@@ -34,10 +37,30 @@ class RevenueCatConfig {
   /// Entitlement identifier that unlocks Pro features.
   static const proEntitlement = 'FABTrades Pro';
 
-  /// Store product identifiers, used to resolve packages when an offering
-  /// doesn't use RevenueCat's predefined package types.
-  static const yearlyProductId = 'yearly';
-  static const monthlyProductId = 'monthly';
+  /// Every store identifier that means "the yearly plan".
+  ///
+  /// A set rather than one string, because the identifier genuinely cannot be the
+  /// same everywhere: Apple requires product ids to be unique across the entire
+  /// developer account (which this app shares with another product), Play scopes
+  /// them to the app and reports them as `subscription:base_plan`, and the Test
+  /// Store has its own. Matching against all of them keeps one list to maintain
+  /// instead of a per-platform branch.
+  ///
+  /// Only a fallback: packages normally resolve by [PackageType], which is what
+  /// attaching them to the `$rc_annual` / `$rc_monthly` slots gives you.
+  static const yearlyProductIds = {
+    'com.fabtrades.app.pro.yearly', // App Store
+    'pro_yearly', // Play Store, base plan appended
+    'yearly', // Test Store
+  };
+
+  /// Every store identifier that means "the monthly plan". See
+  /// [yearlyProductIds] for why there is more than one.
+  static const monthlyProductIds = {
+    'com.fabtrades.app.pro.monthly', // App Store
+    'pro_monthly', // Play Store, base plan appended
+    'monthly', // Test Store
+  };
 
   /// Test Store key. Safe to commit: it only ever transacts against
   /// RevenueCat's simulated store, and is rejected for release builds below.
