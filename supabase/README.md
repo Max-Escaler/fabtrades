@@ -1,0 +1,62 @@
+# Supabase
+
+Database schema and Edge Functions for FAB Trades.
+
+## This project is shared
+
+The Supabase project `tenrvaghaspwdvnwvgrh` backs two products:
+
+- **FAB Trades** owns the `fab_*` tables and `trades`. Those are the migrations in
+  this directory.
+- **RiftTrades** owns the unprefixed equivalents (`sets`, `cards`, `card_prices`,
+  `price_history`, `pipeline_runs`, `app_config`). Its migrations live in that
+  product's repository.
+
+So the version numbers here have gaps, and that is deliberate — the missing
+versions belong to RiftTrades. Two consequences worth knowing:
+
+- `supabase db push` from this repo only ever touches FAB objects.
+- `supabase db reset` against a local stack gives you a FAB-only database. That is
+  enough to run and test both clients, since neither reads the Riftbound tables.
+
+Before adding a table, prefix it `fab_` unless it is genuinely shared. `trades`
+predates this convention and is FAB-only despite the bare name.
+
+## Layout
+
+```
+migrations/    Schema changes, applied in filename order
+functions/     Edge Functions (Deno)
+config.toml    Local stack + CLI configuration
+```
+
+## Working on the schema
+
+The CLI is not committed as a dependency; install it per the
+[Supabase docs](https://supabase.com/docs/guides/local-development).
+
+```bash
+supabase link --project-ref tenrvaghaspwdvnwvgrh
+supabase db diff -f describe_your_change   # generate a migration from local edits
+supabase db push                           # apply pending migrations to the linked project
+supabase migration list                    # compare local and remote history
+```
+
+Never edit an already-applied migration. The remote records a checksum per
+version, so amending one makes local and remote disagree in a way that is
+tedious to unpick. Add a new migration instead.
+
+## Row Level Security
+
+Every table has RLS enabled. The rules are:
+
+- **Catalog** (`fab_sets`, `fab_cards`, `fab_card_prices`, `fab_price_history`,
+  `fab_app_config`) — public `select` for `anon` and `authenticated`. Prices are
+  public information and both clients read them without signing in.
+- **`fab_pipeline_runs`** — RLS enabled with no policy at all, so only the service
+  role can see it. Ingest logs are operational data, not user data.
+- **`trades`** — `select`/`insert`/`update`/`delete` restricted to
+  `auth.uid() = user_id`.
+
+The price pipeline writes with the service role, which bypasses RLS. That is why
+no catalog table needs an insert or update policy.

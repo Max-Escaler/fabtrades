@@ -98,3 +98,8 @@ jspm_packages/
 
 # Scraper debug output
 apps/web/scripts/_set-logos-scrape.json
+
+# Supabase CLI local state
+supabase/.branches/
+supabase/.temp/
+
