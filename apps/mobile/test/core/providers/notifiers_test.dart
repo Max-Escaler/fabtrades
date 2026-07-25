@@ -198,7 +198,9 @@ void main() {
     test('addCard merges quantities for the same printing', () async {
       final c = await makeContainer();
       final n = c.read(lendProvider.notifier);
-      final id = n.createGroup();
+      // Borrowing is uncapped; a lent group would refuse the second add under
+      // FreeLimits.loanedCards (1). Merge itself is what this asserts.
+      final id = n.createGroup(isBorrowing: true);
       n.addCard(id, buildCard(id: 'card'), quantity: 1);
       n.addCard(id, buildCard(id: 'card'), quantity: 2);
       expect(c.read(lendGroupProvider(id))!.items.single.quantity, 3);
