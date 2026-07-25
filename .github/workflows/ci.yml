@@ -41,6 +41,9 @@ jobs:
               - 'apps/mobile/**'
               - 'packages/contracts/**'
               - '.github/workflows/ci.yml'
+              # The release tag check reads apps/mobile/pubspec.yaml, so it belongs
+              # to this job rather than a separate one.
+              - 'scripts/**'
             supabase:
               - 'supabase/**'
               - '.github/workflows/ci.yml'
@@ -99,6 +102,13 @@ jobs:
 
       - name: Test
         run: flutter test
+
+      # The release pipelines run this against a real tag, which means a bug in it
+      # would surface mid-release. Exercising it here is the only chance to find one
+      # at a moment when nothing is shipping.
+      - name: Check the release tag guard
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/check-release-tag.test.sh
 
   supabase:
     needs: changes

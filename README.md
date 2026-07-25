@@ -129,6 +129,20 @@ and its setup are in [docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md); the store-s
 product and notification configuration is in
 [docs/STORE_SETUP.md](./docs/STORE_SETUP.md).
 
+## Releasing
+
+Web deploys from `main`. Mobile ships from one tag:
+
+```bash
+git tag mobile-v1.2.0
+git push origin mobile-v1.2.0
+```
+
+That drives the Android workflow and the Codemagic iOS workflow from the same commit,
+so the two stores cannot carry different code under one version string. CI refuses a
+tag that disagrees with `apps/mobile/pubspec.yaml`. The full runbook, including
+non-release builds against staging, is in [docs/RELEASING.md](./docs/RELEASING.md).
+
 ## License
 
 [Add your license here]

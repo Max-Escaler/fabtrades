@@ -40,6 +40,20 @@ workflows:
     max_build_duration: 120
     instance_type: mac_mini_m2
 
+    # One tag ships both stores from the same commit. The Android workflow in
+    # .github/workflows/release-android-closed.yml listens for the same pattern, so
+    # `git tag mobile-v1.2.0 && git push --tags` is the whole release.
+    #
+    # Requires the Codemagic webhook to be installed on the repository (App settings
+    # → Webhooks); without it Codemagic never hears about the tag. Starting a build
+    # from the UI still works and simply skips the tag check below.
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'mobile-v*'
+          include: true
+
     integrations:
       # Must match the name you give the key in Codemagic → Team integrations → Developer Portal
       app_store_connect: codemagickey
@@ -65,6 +79,18 @@ workflows:
         - revenuecat
 
     scripts:
+      # First, before an hour of Xcode: App Store Connect takes whatever version it
+      # is handed, so a tag that disagrees with pubspec.yaml ships silently. Same
+      # script the Android workflow runs — a check that lives in only one of the two
+      # pipelines is exactly the one that gets skipped.
+      - name: Check the tag matches pubspec.yaml
+        script: |
+          if [ -n "${CM_TAG:-}" ]; then
+            bash ../../scripts/check-release-tag.sh "$CM_TAG" pubspec.yaml
+          else
+            echo "Not a tag build — nothing to check."
+          fi
+
       - name: Get Flutter packages
         script: flutter pub get
 
@@ -112,10 +138,14 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        # Upload IPA only; turn on TestFlight group submission after first success.
-        submit_to_testflight: false
+        # The app record exists and internal testing is set up, so builds go straight
+        # to TestFlight rather than sitting in App Store Connect waiting for someone
+        # to notice them.
+        submit_to_testflight: true
+        # Still manual. Submitting a build for review is a decision, not a
+        # consequence of pushing a tag.
         submit_to_app_store: false
-        # After Internal Testing group exists in App Store Connect:
-        # submit_to_testflight: true
+        # External groups need App Review for the first build they receive; add them
+        # here once one exists and testing has to reach beyond internal testers.
         # beta_groups:
-        #   - Internal testers
+        #   - Closed testers
