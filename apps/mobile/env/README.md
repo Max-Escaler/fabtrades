@@ -10,8 +10,9 @@ flutter build appbundle --release --dart-define-from-file=env/staging.json
 Without one of these the app throws at startup. That is deliberate — see the note
 in [supabase_config.dart](../lib/core/config/supabase_config.dart).
 
-`staging.json` ships empty because the staging project does not exist yet. Fill in
-the branch's URL and publishable key once it has been created; the steps are in
+`staging.json` points at the **fabloodle** Supabase project
+(`cnmxaccamqshgvesieez`) so sandbox purchases write there instead of production.
+Why that project, and what still has to be deployed on it, is in
 [docs/ENVIRONMENTS.md](../../../docs/ENVIRONMENTS.md).
 
 These are safe to commit. Publishable keys are public by design: every catalog

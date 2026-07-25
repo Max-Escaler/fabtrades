@@ -20,23 +20,17 @@
   VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
   VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
 
-# Previews still read production, which is what they did before this file said so
-# out loud. Web is read-only premium — it has no purchase flow to keep out of
-# production — so the isolation that matters today is mobile's.
-#
-# Once the persistent Supabase branch exists (docs/ENVIRONMENTS.md), swap both
-# blocks below to the staging project and previews stop touching production at all:
-#
-#   VITE_APP_ENV = "staging"
-#   VITE_SUPABASE_URL = "https://<branch-ref>.supabase.co"
-#   VITE_SUPABASE_ANON_KEY = "<branch publishable key>"
+# Previews talk to staging (fabloodle) so they cannot read or write production
+# user data. Web still cannot sell Pro — purchases live in the apps — but trade
+# history and any future signed-in features stay off the production project.
+# See docs/ENVIRONMENTS.md.
 
 [context.deploy-preview.environment]
-  VITE_APP_ENV = "production"
-  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+  VITE_APP_ENV = "staging"
+  VITE_SUPABASE_URL = "https://cnmxaccamqshgvesieez.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_4hW7qDSTmCljfKl-dB43kQ_xSk0JFom"
 
 [context.branch-deploy.environment]
-  VITE_APP_ENV = "production"
-  VITE_SUPABASE_URL = "https://tenrvaghaspwdvnwvgrh.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+  VITE_APP_ENV = "staging"
+  VITE_SUPABASE_URL = "https://cnmxaccamqshgvesieez.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_4hW7qDSTmCljfKl-dB43kQ_xSk0JFom"

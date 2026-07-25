@@ -70,17 +70,17 @@ verify_jwt = false
 [functions.reconcile-entitlements]
 verify_jwt = false
 
-# Staging is a persistent branch of this project rather than a separate project, so
-# it inherits everything above and overrides only what differs. The branch has to
-# exist before it can be named here — `project_id` must be a real ref or the whole
-# configuration step is skipped silently. Creation steps: docs/ENVIRONMENTS.md.
-#
-# [remotes.staging]
-# project_id = "<branch project ref>"
-#
-# [remotes.staging.auth]
-# site_url = "https://staging--fabtrades.netlify.app"
-# additional_redirect_urls = [
-#   "https://staging--fabtrades.netlify.app",
-#   "fabtrades://login-callback",
-# ]
+# Staging points at the free fabloodle project so sandbox purchases never touch
+# production entitlements and we do not pay for a persistent branch. Schema is
+# applied with `supabase link --project-ref cnmxaccamqshgvesieez && supabase db push`
+# — see docs/ENVIRONMENTS.md. Auth overrides only what differs; provider secrets
+# still come from that project's environment.
+[remotes.staging]
+project_id = "cnmxaccamqshgvesieez"
+
+[remotes.staging.auth]
+site_url = "https://staging--fabtrades.netlify.app"
+additional_redirect_urls = [
+  "https://staging--fabtrades.netlify.app",
+  "fabtrades://login-callback",
+]

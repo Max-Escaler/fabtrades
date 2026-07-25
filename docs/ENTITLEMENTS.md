@@ -183,6 +183,13 @@ In the RevenueCat dashboard, under **Integrations → Webhooks**, point the URL 
 `https://<project>.supabase.co/functions/v1/revenuecat-webhook` and set the
 Authorization header to `Bearer <REVENUECAT_WEBHOOK_SECRET>`.
 
+Staging uses a **separate sandbox-only webhook** aimed at fabloodle
+(`cnmxaccamqshgvesieez`), so store sandbox events never write production
+entitlements. Production gets its own webhook on `tenrvaghaspwdvnwvgrh` when
+you are ready to take real money. Both need the matching project's
+`REVENUECAT_API_KEY` secret set — without it the function cannot re-read the
+subscriber and every delivery will 500. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+
 Two repository secrets drive the nightly job:
 
 | Secret | Value |

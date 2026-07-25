@@ -43,13 +43,9 @@ void main() {
         expect(values['APP_ENV'], environment);
       });
 
-      test('points at a real project, or none at all', () {
-        // Blank is allowed: staging ships empty until the branch exists, and the
-        // release workflows refuse to build from it. Half-filled is not.
+      test('points at a real project', () {
         final url = values['SUPABASE_URL'] as String;
         final key = values['SUPABASE_PUBLISHABLE_KEY'] as String;
-        if (url.isEmpty && key.isEmpty) return;
-
         expect(url, startsWith('https://'));
         expect(key, isNotEmpty);
       });
@@ -62,5 +58,16 @@ void main() {
 
     expect(values['SUPABASE_URL'], startsWith('https://'));
     expect(values['SUPABASE_PUBLISHABLE_KEY'], isNotEmpty);
+  });
+
+  test('staging points at fabloodle, not production', () {
+    final values = jsonDecode(File('env/staging.json').readAsStringSync())
+        as Map<String, dynamic>;
+
+    expect(values['SUPABASE_URL'], contains('cnmxaccamqshgvesieez'));
+    expect(
+      values['SUPABASE_URL'],
+      isNot(contains('tenrvaghaspwdvnwvgrh')),
+    );
   });
 }

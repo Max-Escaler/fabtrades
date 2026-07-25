@@ -13,47 +13,69 @@ database.
 
 | | Production | Staging |
 | --- | --- | --- |
-| Supabase | `tenrvaghaspwdvnwvgrh` (shared with RiftTrades) | persistent branch of it |
+| Supabase | `tenrvaghaspwdvnwvgrh` (RiftTrades / FABTrades) | `cnmxaccamqshgvesieez` (**fabloodle**) |
 | Web | `fabtrades.net` via Netlify `production` context | Netlify preview/branch contexts |
 | Mobile | `env/production.json` | `env/staging.json` |
 
-Staging is a **persistent Supabase branch**, not a second project. A branch is
-created from the same migrations, shares auth provider setup and `config.toml`, and
-cannot drift structurally from production the way an independently-maintained
-project does. It costs roughly $0.32/day while it exists.
+Staging reuses the existing **fabloodle** Supabase project rather than a paid
+persistent branch of production. Same migrations are applied there (the fabloodle
+Wordle tables sit beside them; they do not collide), so sandbox purchases write
+entitlement rows without standing up another billable database. The trade-off is
+that schema drift between the two projects is possible — apply migrations to both
+when they change.
 
-> **Staging does not exist yet.** `apps/mobile/env/staging.json` is blank and the
-> `[remotes.staging]` block in `supabase/config.toml` is commented out. Everything
-> else is wired and waiting. Creating it is the section below.
+If fabloodle is ever retired as staging, the paid-branch path is still documented
+below as the longer-term option.
 
-## Creating the staging branch
+## Applying schema and functions to staging
+
+FABTrades tables and Edge Functions have to exist on fabloodle before a staging
+build can sync or record a purchase:
 
 ```bash
 supabase login
+supabase link --project-ref cnmxaccamqshgvesieez
+supabase db push
+supabase secrets set \
+  REVENUECAT_WEBHOOK_SECRET=<any long random string> \
+  RECONCILE_SECRET=<a different long random string> \
+  REVENUECAT_API_KEY=sk_<secret key from RevenueCat> \
+  REVENUECAT_ENTITLEMENT_ID='FABTrades Pro'
+supabase functions deploy revenuecat-webhook
+supabase functions deploy reconcile-entitlements
+```
+
+Then in RevenueCat → **Integrations → Webhooks**, add a webhook (or a second one
+filtered to sandbox) pointing at:
+
+`https://cnmxaccamqshgvesieez.supabase.co/functions/v1/revenuecat-webhook`
+
+with `Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>`. Keep the production
+webhook on `tenrvaghaspwdvnwvgrh` so live purchases never hit fabloodle.
+
+Card catalog data is not shared automatically. Run the price pipeline once against
+fabloodle (`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` from that project) if a
+staging build needs a usable binder; purchase-flow testing only needs auth + the
+entitlements tables.
+
+Auth providers on fabloodle need the same Apple / Google / Discord setup as
+production, plus `fabtrades://login-callback` in the redirect allow-list — see
+[AUTH_PROVIDERS.md](./AUTH_PROVIDERS.md).
+
+## Longer-term option: a paid persistent branch
+
+A persistent Supabase branch of production (`~$0.32/day`) shares auth provider
+setup and cannot drift structurally. Create it with:
+
+```bash
 supabase link --project-ref tenrvaghaspwdvnwvgrh
 supabase --experimental branches create staging --persistent
 supabase --experimental branches list          # note BRANCH PROJECT ID
 ```
 
-Then, in order:
-
-1. **`supabase/config.toml`** — uncomment the `[remotes.staging]` block and set
-   `project_id` to the branch project ref. Until it names a real branch, Supabase
-   skips the whole configuration step without complaining.
-2. **`apps/mobile/env/staging.json`** — fill in `SUPABASE_URL` and
-   `SUPABASE_PUBLISHABLE_KEY` from the branch (Dashboard → the branch → Project
-   Settings → API). `test/core/config/build_env_test.dart` checks these files are
-   complete and self-consistent, so a half-filled one fails the suite.
-3. **`netlify.toml`** — point `context.deploy-preview` and `context.branch-deploy`
-   at the branch, as described in the comment there.
-4. **Auth providers** — a branch gets its own auth settings. Add the branch's
-   callback URL to Google, Discord, and Apple, per
-   [AUTH_PROVIDERS.md](./AUTH_PROVIDERS.md). Mobile's `fabtrades://login-callback`
-   works unchanged, since the scheme is the app's rather than the project's.
-5. **Card data** — a branch starts with schema but no rows. Run the price pipeline
-   against it once (`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` from the branch,
-   see [services/price-pipeline](../services/price-pipeline)); the app is unusable
-   without a catalog.
+Then point `apps/mobile/env/staging.json`, `[remotes.staging]` in
+`supabase/config.toml`, and the Netlify preview contexts at that branch ref
+instead of fabloodle.
 
 ## How each client is told
 
@@ -114,7 +136,7 @@ build or in this repository.
 | Android (`release-android-closed.yml`) | `environment` workflow input, default `production` |
 | iOS (`codemagic.yaml`) | `APP_ENVIRONMENT` variable, default `production` |
 | Netlify production | `production` |
-| Netlify previews | `production` today; `staging` once the branch exists |
+| Netlify previews | `production` today; optionally `staging` (fabloodle) |
 
 Both mobile workflows check that the chosen env file actually has a `SUPABASE_URL`
 before building, so an unfilled `staging.json` fails the build rather than shipping
