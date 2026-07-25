@@ -1,0 +1,70 @@
+name: Reconcile Entitlements
+
+# The repair layer behind the RevenueCat webhook.
+#
+# Two things the webhook cannot cover on its own: a delivery that exhausts its
+# retries during an outage, and an expiry, which is a non-event — nothing fires when
+# a subscription simply lapses. Both leave a customer with the wrong access and
+# nothing to notice it.
+#
+# Runs at 05:00 UTC, an hour before update-prices.yml, so a failure here is not
+# competing for attention with a pipeline failure.
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reconcile-entitlements
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      # This job holds only the function's shared secret. The RevenueCat API key and
+      # the service-role key stay in Supabase secrets, so a leak here cannot read
+      # the database or the billing account.
+      - name: Reconcile expiring entitlements
+        env:
+          FUNCTIONS_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          RECONCILE_SECRET: ${{ secrets.RECONCILE_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${FUNCTIONS_URL:-}" ] || [ -z "${RECONCILE_SECRET:-}" ]; then
+            echo "::error::Set the SUPABASE_FUNCTIONS_URL and RECONCILE_SECRET repository secrets."
+            echo "See docs/ENTITLEMENTS.md."
+            exit 1
+          fi
+
+          # Separate body and status so a non-2xx can be reported with the reason the
+          # function gave, rather than just a number.
+          status=$(curl --silent --show-error \
+            --max-time 600 \
+            --output response.json \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer ${RECONCILE_SECRET}" \
+            --header 'Content-Type: application/json' \
+            "${FUNCTIONS_URL}/reconcile-entitlements")
+
+          cat response.json
+          echo
+
+          # The function reports 500 when any single customer failed, so a partial
+          # sweep fails the job here rather than passing quietly with stale rows.
+          if [ "$status" != "200" ]; then
+            echo "::error::reconcile-entitlements returned HTTP ${status}"
+            exit 1
+          fi
+
+          checked=$(jq -r '.checked // 0' response.json)
+          changed=$(jq -r '.changed // 0' response.json)
+          echo "### Entitlement reconciliation" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Checked **${checked}** entitlement(s), **${changed}** changed." >> "$GITHUB_STEP_SUMMARY"

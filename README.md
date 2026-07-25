@@ -116,6 +116,14 @@ device's existing data uploads on first sign-in without the customer doing anyth
 The reconciliation rules — last write wins per record, tombstoned deletes, and what
 happens when a device changes hands — are in [docs/CLOUD_SYNC.md](./docs/CLOUD_SYNC.md).
 
+### Subscriptions
+
+FABTrades Pro is bought through the App Store or Play Store, but access itself is a row
+in Postgres keyed by Supabase user — so a purchase on one platform grants Pro on all
+three. A RevenueCat webhook is the only writer of that row, with a nightly job to catch
+missed deliveries and lapses. The design and its setup are in
+[docs/ENTITLEMENTS.md](./docs/ENTITLEMENTS.md).
+
 ## License
 
 [Add your license here]

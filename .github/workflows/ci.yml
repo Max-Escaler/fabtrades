@@ -119,3 +119,35 @@ jobs:
 
       - name: Lint schema
         run: supabase db lint --level warning
+
+  # The Edge Functions are the only writer of `entitlements`, so their logic is
+  # tested in isolation: `handler.ts` and `_shared/` take the database and the
+  # RevenueCat API as arguments, which is what makes that possible without either.
+  functions:
+    needs: changes
+    if: needs.changes.outputs.supabase == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verify formatting
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      # `deno test` type-checks only what the tests import, which would leave the
+      # entry points unchecked — and those are exactly the files CI never runs.
+      # The glob is quoted so Deno expands it recursively; bash would not.
+      - name: Type check
+        run: deno check "**/*.ts"
+
+      - name: Test
+        run: deno test

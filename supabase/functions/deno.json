@@ -1,0 +1,16 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "fmt": {
+    "singleQuote": true,
+    "lineWidth": 88
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "tasks": {
+    "test": "deno test",
+    "check": "deno fmt --check && deno lint && deno check \"**/*.ts\" && deno test"
+  }
+}
