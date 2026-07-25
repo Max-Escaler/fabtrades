@@ -13,30 +13,38 @@ import {
     TextField,
     InputAdornment,
     Tooltip,
-    Button
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Snackbar
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
     Download as LoadIcon,
     Search as SearchIcon,
-    TrendingUp as TrendingUpIcon,
-    TrendingDown as TrendingDownIcon,
     ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
 import { fetchLastUpdatedTimestamp } from '../services/api';
+import { formatCurrency } from '../utils/helpers.js';
 import Header from '../components/elements/Header.jsx';
 
 const TradeHistory = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, signInWithDiscord } = useAuth();
+    const { isDark } = useThemeMode();
     const [trades, setTrades] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingId, setDeletingId] = useState(null);
+    const [confirmDeleteTrade, setConfirmDeleteTrade] = useState(null);
+    const [deleteError, setDeleteError] = useState('');
     const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     useEffect(() => {
@@ -57,32 +65,32 @@ const TradeHistory = () => {
     const loadTrades = async () => {
         setLoading(true);
         setError(null);
-        
+
         const { data, error: fetchError } = await getUserTrades();
-        
+
         if (fetchError) {
             setError(fetchError.message || 'Failed to load trade history');
         } else {
             setTrades(data || []);
         }
-        
+
         setLoading(false);
     };
 
-    const handleDelete = async (tradeId) => {
-        if (!confirm('Are you sure you want to delete this trade from your history?')) {
-            return;
+    const handleConfirmDelete = async () => {
+        const trade = confirmDeleteTrade;
+        setConfirmDeleteTrade(null);
+        if (!trade) return;
+
+        setDeletingId(trade.id);
+        const { error: delError } = await deleteTrade(trade.id);
+
+        if (delError) {
+            setDeleteError(delError.message || 'Failed to delete trade');
+        } else {
+            setTrades(prev => prev.filter(t => t.id !== trade.id));
         }
 
-        setDeletingId(tradeId);
-        const { error: deleteError } = await deleteTrade(tradeId);
-        
-        if (deleteError) {
-            alert('Failed to delete trade: ' + (deleteError.message || 'Unknown error'));
-        } else {
-            setTrades(trades.filter(t => t.id !== tradeId));
-        }
-        
         setDeletingId(null);
     };
 
@@ -96,7 +104,7 @@ const TradeHistory = () => {
         const now = new Date();
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 0) {
             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             if (diffHours === 0) {
@@ -114,32 +122,27 @@ const TradeHistory = () => {
         return date.toLocaleDateString();
     };
 
-    const formatCurrency = (value) => {
-        return `$${parseFloat(value).toFixed(2)}`;
-    };
-
     const formatTradeSummary = (haveList, wantList) => {
         const maxCards = 5; // Show up to 5 total cards
         const allCards = [];
-        
-        // Add have cards with - prefix
+
+        // Have side (cards you give) prefixed with −, want side (cards you get) with +
         haveList.forEach(card => {
             allCards.push(`-${card.quantity} ${card.name || 'Unknown'}`);
         });
-        
-        // Add want cards with + prefix
+
         wantList.forEach(card => {
             allCards.push(`+${card.quantity} ${card.name || 'Unknown'}`);
         });
-        
+
         // Show first maxCards, then indicate if there are more
         const displayCards = allCards.slice(0, maxCards);
         const remaining = allCards.length - maxCards;
-        
+
         if (remaining > 0) {
             return displayCards.join('  ') + `  ... (+${remaining} more)`;
         }
-        
+
         return displayCards.join('  ');
     };
 
@@ -147,35 +150,71 @@ const TradeHistory = () => {
         trade.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Redirect to home if not authenticated
+    // Theme-aware colors matching the rest of the app
+    const bgGradient = isDark
+        ? 'linear-gradient(135deg, #0d0806 0%, #1a0f0a 50%, #2c1810 100%)'
+        : 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 50%, #f0e6dc 100%)';
+    const textColor = isDark ? '#f5f1ed' : '#2c1810';
+    const mutedColor = isDark ? '#d4a574' : '#5d3a1a';
+    const accentColor = isDark ? '#e4c09c' : '#8b4513';
+    const paperBg = isDark ? 'rgba(44, 24, 16, 0.6)' : '#ffffff';
+    const paperBorder = isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.15)';
+
+    // Not signed in: explain and offer the sign-in action right here
     if (!user) {
         return (
-            <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                height: '100vh',
-                background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100vh',
+                background: bgGradient,
+                backgroundAttachment: 'fixed'
             }}>
                 <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
-                <Container maxWidth="md" sx={{ mt: 8 }}>
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h5" sx={{ mb: 2, color: '#8b4513' }}>
+                <Container maxWidth="sm" sx={{ mt: 8 }}>
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 4,
+                            textAlign: 'center',
+                            backgroundColor: paperBg,
+                            border: `1px solid ${paperBorder}`,
+                            borderRadius: 3
+                        }}
+                    >
+                        <Typography variant="h5" sx={{ mb: 2, color: accentColor, fontWeight: 700 }}>
                             Sign In Required
                         </Typography>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                            Please sign in with Discord to view your trade history.
+                        <Typography variant="body1" sx={{ mb: 3, color: mutedColor }}>
+                            Sign in with Discord to save trades and view your trade history.
                         </Typography>
-                        <Button
-                            variant="contained"
-                            onClick={() => navigate('/')}
-                            sx={{
-                                backgroundColor: '#8b4513',
-                                '&:hover': { backgroundColor: '#5d2f0d' }
-                            }}
-                        >
-                            <ArrowBackIcon sx={{ mr: 1 }} />
-                            Back to Home
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                onClick={signInWithDiscord}
+                                sx={{
+                                    background: '#5865F2',
+                                    '&:hover': { background: '#4752C4' }
+                                }}
+                            >
+                                Sign in with Discord
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                startIcon={<ArrowBackIcon />}
+                                onClick={() => navigate('/')}
+                                sx={{
+                                    color: accentColor,
+                                    borderColor: paperBorder,
+                                    '&:hover': {
+                                        borderColor: accentColor,
+                                        backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.06)'
+                                    }
+                                }}
+                            >
+                                Back to Trading
+                            </Button>
+                        </Box>
                     </Paper>
                 </Container>
             </Box>
@@ -183,33 +222,36 @@ const TradeHistory = () => {
     }
 
     return (
-        <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
             minHeight: '100vh',
-            background: 'linear-gradient(135deg, #f5f1ed 0%, #e8dfd6 100%)',
+            background: bgGradient,
             backgroundAttachment: 'fixed'
         }}>
             <Header lastUpdatedTimestamp={lastUpdatedTimestamp} />
-            
+
             <Container maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
-                <Paper sx={{ 
-                    p: { xs: 2, sm: 3, md: 4 },
-                    borderRadius: 3,
-                    border: '2px solid rgba(139, 69, 19, 0.15)',
-                    boxShadow: '0 8px 24px rgba(139, 69, 19, 0.12)',
-                    minHeight: '60vh'
-                }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: { xs: 2, sm: 3, md: 4 },
+                        borderRadius: 3,
+                        backgroundColor: paperBg,
+                        border: `1px solid ${paperBorder}`,
+                        minHeight: '60vh'
+                    }}
+                >
                     {/* Header */}
-                    <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
                         mb: 3,
                         pb: 2,
                         borderBottom: '2px solid #d4a574'
                     }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#8b4513' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: accentColor }}>
                             Trade History
                         </Typography>
                         <Button
@@ -218,11 +260,11 @@ const TradeHistory = () => {
                             startIcon={<ArrowBackIcon />}
                             onClick={() => navigate('/')}
                             sx={{
-                                borderColor: '#8b4513',
-                                color: '#8b4513',
+                                borderColor: paperBorder,
+                                color: accentColor,
                                 '&:hover': {
-                                    borderColor: '#5d2f0d',
-                                    backgroundColor: 'rgba(139, 69, 19, 0.08)',
+                                    borderColor: accentColor,
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.08)'
                                 }
                             }}
                         >
@@ -237,11 +279,19 @@ const TradeHistory = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         size="medium"
-                        sx={{ mb: 3 }}
+                        sx={{
+                            mb: 3,
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: isDark ? 'rgba(26, 15, 10, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                                '& fieldset': { borderColor: paperBorder },
+                                '&:hover fieldset': { borderColor: accentColor }
+                            },
+                            '& input': { color: textColor }
+                        }}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
-                                    <SearchIcon sx={{ color: 'text.secondary' }} />
+                                    <SearchIcon sx={{ color: mutedColor }} />
                                 </InputAdornment>
                             ),
                         }}
@@ -250,7 +300,7 @@ const TradeHistory = () => {
                     {/* Loading State */}
                     {loading && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                            <CircularProgress sx={{ color: '#8b4513' }} />
+                            <CircularProgress sx={{ color: accentColor }} />
                         </Box>
                     )}
 
@@ -266,28 +316,24 @@ const TradeHistory = () => {
                         <Box sx={{ textAlign: 'center', py: 8 }}>
                             {searchQuery ? (
                                 <>
-                                    <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ color: textColor, mb: 1 }}>
                                         No trades found
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    <Typography variant="body2" sx={{ color: mutedColor }}>
                                         Try a different search term
                                     </Typography>
                                 </>
                             ) : (
                                 <>
-                                    <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
+                                    <Typography variant="h6" sx={{ color: textColor, mb: 1 }}>
                                         No saved trades yet
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-                                        Build a trade and click the Save button to add it to your history
+                                    <Typography variant="body2" sx={{ color: mutedColor, mb: 3 }}>
+                                        Build a trade and click Save to add it to your history
                                     </Typography>
                                     <Button
                                         variant="contained"
                                         onClick={() => navigate('/')}
-                                        sx={{
-                                            backgroundColor: '#8b4513',
-                                            '&:hover': { backgroundColor: '#5d2f0d' }
-                                        }}
                                     >
                                         Start Trading
                                     </Button>
@@ -302,16 +348,19 @@ const TradeHistory = () => {
                             {filteredTrades.map((trade) => (
                                 <ListItem key={trade.id} sx={{ px: 0, py: 1 }}>
                                     <Paper
+                                        elevation={0}
                                         sx={{
                                             width: '100%',
                                             p: 3,
-                                            border: '1px solid',
-                                            borderColor: 'divider',
+                                            backgroundColor: isDark ? 'rgba(26, 15, 10, 0.5)' : '#ffffff',
+                                            border: `1px solid ${paperBorder}`,
                                             borderRadius: 2,
                                             transition: 'all 0.2s',
                                             '&:hover': {
-                                                borderColor: '#8b4513',
-                                                boxShadow: '0 4px 12px rgba(139, 69, 19, 0.15)',
+                                                borderColor: accentColor,
+                                                boxShadow: isDark
+                                                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                                                    : '0 4px 12px rgba(139, 69, 19, 0.15)'
                                             }
                                         }}
                                     >
@@ -321,7 +370,7 @@ const TradeHistory = () => {
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: '#2c1810',
+                                                        color: textColor,
                                                         mb: 1,
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
@@ -330,8 +379,8 @@ const TradeHistory = () => {
                                                 >
                                                     {trade.name}
                                                 </Typography>
-                                                
-                                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+
+                                                <Typography variant="caption" sx={{ color: mutedColor, display: 'block', mb: 2 }}>
                                                     {formatDate(trade.created_at)}
                                                 </Typography>
 
@@ -339,7 +388,7 @@ const TradeHistory = () => {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
-                                                        color: 'text.secondary',
+                                                        color: mutedColor,
                                                         mb: 1.5,
                                                         fontStyle: 'italic',
                                                         overflow: 'hidden',
@@ -352,18 +401,15 @@ const TradeHistory = () => {
                                                     {formatTradeSummary(trade.have_list, trade.want_list)}
                                                 </Typography>
 
+                                                {/* Diff colors match the trade calculator:
+                                                    positive = your side is worth more (primary),
+                                                    negative = their side is worth more (success) */}
                                                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                                     <Chip
-                                                        size="medium"
-                                                        icon={parseFloat(trade.diff) >= 0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
-                                                        label={`Diff: ${formatCurrency(trade.diff)}`}
-                                                        sx={{
-                                                            backgroundColor: parseFloat(trade.diff) >= 0 
-                                                                ? 'rgba(46, 125, 50, 0.1)' 
-                                                                : 'rgba(211, 47, 47, 0.1)',
-                                                            color: parseFloat(trade.diff) >= 0 ? '#2e7d32' : '#d32f2f',
-                                                            fontWeight: 600,
-                                                        }}
+                                                        size="small"
+                                                        label={`Diff: ${parseFloat(trade.diff) > 0 ? '+' : ''}${formatCurrency(parseFloat(trade.diff).toFixed(2))}`}
+                                                        color={parseFloat(trade.diff) > 0 ? 'primary' : parseFloat(trade.diff) < 0 ? 'success' : 'default'}
+                                                        sx={{ fontWeight: 600 }}
                                                     />
                                                 </Box>
                                             </Box>
@@ -373,9 +419,11 @@ const TradeHistory = () => {
                                                     <IconButton
                                                         onClick={() => handleLoadTrade(trade)}
                                                         sx={{
-                                                            color: '#8b4513',
+                                                            color: accentColor,
                                                             '&:hover': {
-                                                                backgroundColor: 'rgba(139, 69, 19, 0.08)',
+                                                                backgroundColor: isDark
+                                                                    ? 'rgba(200, 113, 55, 0.15)'
+                                                                    : 'rgba(139, 69, 19, 0.08)'
                                                             }
                                                         }}
                                                     >
@@ -384,7 +432,7 @@ const TradeHistory = () => {
                                                 </Tooltip>
                                                 <Tooltip title="Delete this trade">
                                                     <IconButton
-                                                        onClick={() => handleDelete(trade.id)}
+                                                        onClick={() => setConfirmDeleteTrade(trade)}
                                                         disabled={deletingId === trade.id}
                                                         sx={{
                                                             color: 'error.main',
@@ -409,9 +457,46 @@ const TradeHistory = () => {
                     )}
                 </Paper>
             </Container>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={Boolean(confirmDeleteTrade)}
+                onClose={() => setConfirmDeleteTrade(null)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>Delete Trade?</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        "{confirmDeleteTrade?.name}" will be permanently removed from your history.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setConfirmDeleteTrade(null)}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete error feedback */}
+            <Snackbar
+                open={Boolean(deleteError)}
+                autoHideDuration={4000}
+                onClose={() => setDeleteError('')}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setDeleteError('')}
+                    severity="error"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {deleteError}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
 
 export default TradeHistory;
-

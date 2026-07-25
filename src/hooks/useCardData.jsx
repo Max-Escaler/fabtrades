@@ -1,5 +1,6 @@
 // CardDataContext.js
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { fetchCatalog } from '../services/fabDb.js';
 // Create context
 const CardDataContext = createContext();
 
@@ -81,10 +82,10 @@ const getIntegerValue = (row, possibleKeys, defaultValue = 0) => {
     return isNaN(parsed) ? defaultValue : parsed;
 };
 
-// Function to create a standardized card object from a JSON record
+// Function to create a standardized card object from a catalog row.
 const createCardObject = (row) => {
-    // Since the JSON data already has the correct structure from the CSV consolidation,
-    // we mainly need to ensure proper data types and create the display name
+    // Rows arrive from the database already mapped to the legacy TCGCSV
+    // column names, so we mainly ensure proper data types and display name.
     const card = {
         // Core properties - convert strings to appropriate types where needed
         productId: row.productId || '',
@@ -128,8 +129,8 @@ const createCardObject = (row) => {
         color: row.color || '',
         artist: row.artist || '',
 
-        // Metadata from consolidation
-        _sourceFile: row._sourceFile || '',
+        // Metadata
+        _setName: row._setName || '',
         _setNumber: row._setNumber || 0,
         _uniqueId: row._uniqueId || '',
 
@@ -144,51 +145,6 @@ const createCardObject = (row) => {
     card.displayName = edition ? `${name} (${edition})` : name;
 
     return card;
-};
-
-// Function to check if consolidated JSON is available
-const checkConsolidatedData = async () => {
-    try {
-        const response = await fetch('/price-guide/consolidated-data.json');
-        if (!response.ok) {
-            return { available: false, reason: 'No consolidated data file found' };
-        }
-
-        // Check if it's a valid JSON by trying to parse just the beginning
-        const text = await response.text();
-        const data = JSON.parse(text);
-        
-        return {
-            available: true,
-            totalRecords: data.metadata?.totalRecords || 0,
-            totalFiles: data.metadata?.totalFiles || 0,
-            generatedAt: data.metadata?.generatedAt || null,
-            dataSize: text.length
-        };
-    } catch (error) {
-        return { available: false, reason: error.message };
-    }
-};
-
-// Function to load consolidated JSON data
-const loadConsolidatedData = async () => {
-    try {
-        const response = await fetch('/price-guide/consolidated-data.json');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch consolidated data: ${response.status}`);
-        }
-
-        const consolidatedData = await response.json();
-        
-        if (!consolidatedData.data || !Array.isArray(consolidatedData.data)) {
-            throw new Error('Invalid consolidated data format');
-        }
-
-        return consolidatedData;
-    } catch (error) {
-        console.error('Error loading consolidated data:', error);
-        throw error;
-    }
 };
 
 // Function to process JSON records and filter for actual cards
@@ -284,35 +240,30 @@ export const CardDataProvider = ({ children }) => {
                 setLoading(true);
                 setError(null);
 
-                // Check if consolidated JSON is available
-                const consolidatedStatus = await checkConsolidatedData();
+                // Load the full catalog (cards + prices) from the shared
+                // Supabase database. Rows arrive pre-mapped to the legacy
+                // consolidated-data column names.
+                const { rows, pricesUpdatedAt } = await fetchCatalog();
+                setDataSource('supabase');
+                setMetadata({
+                    totalRecords: rows.length,
+                    generatedAt: pricesUpdatedAt,
+                    source: 'supabase'
+                });
 
-                if (consolidatedStatus.available) {
-                    setDataSource('consolidated-json');
+                const allCards = processJsonData(rows);
+                const enhancedCards = enhanceDisplayNames(allCards);
 
-                    // Load consolidated JSON data
-                    const consolidatedData = await loadConsolidatedData();
-                    
-                    // Store metadata
-                    setMetadata(consolidatedData.metadata);
+                // Create unique ID lookup map
+                const idLookup = {};
+                enhancedCards.forEach(card => {
+                    if (card._uniqueId) {
+                        idLookup[card._uniqueId] = card;
+                    }
+                });
 
-                    // Process the JSON data
-                    const allCards = processJsonData(consolidatedData.data);
-                    const enhancedCards = enhanceDisplayNames(allCards);
-
-                    // Create unique ID lookup map
-                    const idLookup = {};
-                    enhancedCards.forEach(card => {
-                        if (card._uniqueId) {
-                            idLookup[card._uniqueId] = card;
-                        }
-                    });
-
-                    setCards(enhancedCards);
-                    setCardIdLookup(idLookup);
-                } else {
-                    throw new Error(`Consolidated data not available: ${consolidatedStatus.reason}`);
-                }
+                setCards(enhancedCards);
+                setCardIdLookup(idLookup);
 
             } catch (err) {
                 console.error('Error loading card data:', err);

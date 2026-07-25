@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
 import Home from './pages/Home.jsx';
 import TradeHistory from './pages/TradeHistory.jsx';
 import SetList from './pages/SetList.jsx';

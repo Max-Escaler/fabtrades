@@ -16,6 +16,51 @@ function base64ToUtf8(b64) {
   return new TextDecoder().decode(bytes);
 }
 
+// Encode a JS string into base64 of its UTF-8 bytes (inverse of base64ToUtf8).
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Encodes the current trade as a shareable URL.
+ *
+ * Produces the exact payload `decodeTradeFromURL` expects: base64 JSON
+ * `{ v: 1, t: <minutes>, h: [[uniqueId|name, price, quantity], ...], w: [...] }`.
+ *
+ * @param {Array} haveList - Cards on the "Cards I Have" side
+ * @param {Array} wantList - Cards on the "Cards I Want" side
+ * @returns {string|null} Absolute URL, or null when the trade is empty
+ */
+export function encodeTradeToURL(haveList = [], wantList = []) {
+  const toMinimal = (list) =>
+    (Array.isArray(list) ? list : []).map((card) => [
+      card.uniqueId || card.name,
+      Number(card.price) || 0,
+      card.quantity || 1
+    ]);
+
+  const have = toMinimal(haveList);
+  const want = toMinimal(wantList);
+  if (have.length === 0 && want.length === 0) return null;
+
+  const payload = {
+    v: 1,
+    t: Math.round(Date.now() / 60000),
+    h: have,
+    w: want
+  };
+
+  const encoded = utf8ToBase64(JSON.stringify(payload));
+  const url = new URL(window.location.origin);
+  url.searchParams.set('trade', encoded);
+  return url.toString();
+}
+
 /**
  * Decodes trade data from URL
  * @returns {Object|null} Trade data or null if invalid

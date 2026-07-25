@@ -127,8 +127,11 @@ The GitHub Action ([`../../.github/workflows/update-prices.yml`](../../.github/w
 runs the pipeline daily at 06:00 UTC, upserting current prices and appending a
 `price_history` row per card. See [`../pipeline/README.md`](../pipeline/README.md) to run it manually.
 
-## Migrating the existing web app
-Point the web app at `cards_with_prices` instead of `public/price-guide/consolidated-data.json`.
-Field mapping: `marketPrice`→`tcg_market`, `lowPrice`→`tcg_low`, `cardmarketTrend`→`cm_trend`,
-`cardmarketLow`→`cm_low`, `imageUrl`→`image_url`, `extRarity`→`rarity`, `extNumber`→`collector_number`,
-`subTypeName`→`sub_type_name`, `_setName`→`set_name`.
+## Web app (migrated)
+The web app reads from this database too — no price data is committed to the repo anymore.
+`src/services/fabDb.js` loads the catalog from `fab_cards_with_prices` and the set list from
+`fab_sets`, mapping DB columns back to the legacy TCGCSV names the UI uses
+(`tcg_market`→`marketPrice`, `tcg_low`→`lowPrice`, `image_url`→`imageUrl`, `rarity`→`extRarity`,
+`collector_number`→`extNumber`, `sub_type_name`→`subTypeName`, `set_name`→`_setName`).
+`fab_sets` also carries browse metadata for the set list: `abbreviation`, `published_on`,
+`is_supplemental`, `modified_on` (kept current by the pipeline from the TCGCSV groups feed).

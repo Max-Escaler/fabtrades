@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logic/set_sort.dart';
 import '../models/card_model.dart';
+import 'set_published_on.dart';
 
 enum CardSort {
   nameAsc('Name (A–Z)'),
@@ -616,6 +617,17 @@ class CardRepository {
     return (rows as List)
         .map((r) => CardModel.fromMap(r as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Set release dates from `fab_sets.published_on` (group id → date).
+  Future<SetPublishedOnMap> fetchSetPublishedOn() async {
+    final rows = await _client
+        .from('fab_sets')
+        .select('group_id, published_on')
+        .not('published_on', 'is', null);
+    return SetPublishedOnMap.fromRows(
+      (rows as List).map((r) => Map<String, dynamic>.from(r as Map)),
+    );
   }
 
   /// The distinct set names present in [cards], ordered for browsing: Main

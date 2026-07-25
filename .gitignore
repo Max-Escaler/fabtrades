@@ -96,11 +96,5 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
-# Auto-generated price guide files (prevent merge conflicts)
-# Note: consolidated-data.json is kept in git for deployment
-public/price-guide/diff-cache.json
-public/price-guide/last-update.json
-public/price-guide/manifest.json
-
 # Scraper debug output
 scripts/_set-logos-scrape.json

@@ -15,8 +15,12 @@ const ART_VARIANT_RULES = [
     { test: /cc\s*tag/i, abbr: 'CC' },
 ];
 
-/** Set codes like MST001, DYN234, WTR001 — not pitch colors or art variants. */
-const SET_CODE_RE = /^[A-Z]{1,5}\d{1,4}[A-Za-z]?$/;
+/**
+ * Set codes like MST001, DYN234, WTR001 — not pitch colors or art variants.
+ * Some sets lead with a digit (1HP360, 2HP123 History Pack), hence the
+ * optional leading digit.
+ */
+const SET_CODE_RE = /^\d?[A-Z]{1,5}\d{1,4}[A-Za-z]?$/;
 
 /**
  * Map foil subtype to Discord shorthand (CF / RF / NF / …).

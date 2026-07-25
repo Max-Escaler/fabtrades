@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
+import StyleIcon from '@mui/icons-material/Style';
+import Tooltip from '@mui/material/Tooltip';
 import { formatCurrency } from "../../utils/helpers.js";
 import { getCardGradient } from "../../utils/searchUtils.js";
 import { SearchInput, SearchDialog } from "../search";
@@ -161,6 +163,32 @@ const CardList = ({
                 )}
             </ListItem>
 
+            {/* Empty state: keep the big panel from feeling broken before any card is added */}
+            {cards.length === 0 && (
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    py: { xs: 3, sm: 5 },
+                    px: 2,
+                    textAlign: 'center'
+                }}>
+                    <StyleIcon sx={{
+                        fontSize: 36,
+                        color: isDark ? 'rgba(212, 165, 116, 0.35)' : 'rgba(139, 69, 19, 0.25)'
+                    }} />
+                    <Typography variant="body2" sx={{
+                        color: isDark ? 'rgba(212, 165, 116, 0.6)' : 'rgba(93, 58, 26, 0.55)',
+                        maxWidth: '28ch'
+                    }}>
+                        {disabled
+                            ? 'Loading card prices…'
+                            : 'Search above to add cards to this side of the trade'}
+                    </Typography>
+                </Box>
+            )}
+
             {cards.map((card, index) => {
                 const gradient = getCardGradient(card.subTypeName, isDark);
                 return (
@@ -285,15 +313,18 @@ const CardList = ({
                                 gap: 0.15,
                                 minWidth: 'fit-content'
                             }}>
-                                <Chip
-                                    label={formatPrice(card.price || 0)}
-                                    color="primary"
-                                    size="small"
-                                    sx={{
-                                        fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem', lg: '0.8rem', xl: '0.875rem' },
-                                        minWidth: 'fit-content'
-                                    }}
-                                />
+                                <Tooltip title={card.price ? '' : 'No market price available — not counted in totals'}>
+                                    <Chip
+                                        label={card.price ? formatPrice(card.price) : 'No price'}
+                                        color={card.price ? 'primary' : 'default'}
+                                        variant={card.price ? 'filled' : 'outlined'}
+                                        size="small"
+                                        sx={{
+                                            fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem', lg: '0.8rem', xl: '0.875rem' },
+                                            minWidth: 'fit-content'
+                                        }}
+                                    />
+                                </Tooltip>
                                 {card.lowPrice != null && Number(card.lowPrice) > 0 && (
                                     <Typography
                                         component="span"

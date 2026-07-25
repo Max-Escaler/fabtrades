@@ -10,7 +10,6 @@ const UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 const ROOT = path.join(__dirname, '..');
-const GROUPS_PATH = path.join(ROOT, 'public', 'productgroups.json');
 const OUT_PATH = path.join(ROOT, 'public', 'setLogos.json');
 const MOBILE_OUT_PATH = path.join(
     ROOT,
@@ -164,8 +163,23 @@ function pageUrlFromSlug(slugOrPath) {
     return `https://fabtcg.com/digital-assets/${slugOrPath}/`;
 }
 
+// Set list comes from the shared Supabase card database (public read-only;
+// see mobile/docs/DATABASE.md).
+const FAB_DB_URL = 'https://tenrvaghaspwdvnwvgrh.supabase.co';
+const FAB_DB_KEY = 'sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr';
+
+async function fetchGroups() {
+    const r = await fetch(
+        `${FAB_DB_URL}/rest/v1/fab_sets?select=group_id,name&order=group_id.asc`,
+        { headers: { apikey: FAB_DB_KEY, Authorization: `Bearer ${FAB_DB_KEY}` } }
+    );
+    if (!r.ok) throw new Error(`Failed to fetch fab_sets: ${r.status}`);
+    const rows = await r.json();
+    return rows.map((row) => ({ groupId: row.group_id, name: row.name }));
+}
+
 (async () => {
-    const groups = JSON.parse(fs.readFileSync(GROUPS_PATH, 'utf8')).results || [];
+    const groups = await fetchGroups();
 
     const xml = await get('https://fabtcg.com/digital-assets-sitemap.xml');
     const sitemapSlugs = new Set(

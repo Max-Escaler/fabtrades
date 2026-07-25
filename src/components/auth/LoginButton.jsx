@@ -116,7 +116,7 @@ const LoginButton = () => {
                             fontSize: '0.9rem',
                             px: { xs: 2, sm: 2.5 },
                             py: 1,
-                            borderRadius: '3px',
+                            borderRadius: 2,
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
                             '&:hover': {
                                 backgroundColor: '#4752C4',

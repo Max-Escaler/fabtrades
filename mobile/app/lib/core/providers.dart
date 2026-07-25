@@ -121,10 +121,38 @@ final setLogoMapProvider = FutureProvider<SetLogoMap>((ref) async {
   return map;
 });
 
-/// Set release dates (TCGplayer group id → publishedOn), bundled as an asset
-/// so the browse list can sort newest-first within each section offline.
+/// Set release dates from `fab_sets.published_on`, cached locally so browse
+/// can sort newest-first within each section offline. Serves the cache
+/// immediately and refreshes from Supabase in the background.
+class SetPublishedOnNotifier extends AsyncNotifier<SetPublishedOnMap> {
+  @override
+  Future<SetPublishedOnMap> build() async {
+    final store = SetPublishedOnRepository(ref.watch(sharedPreferencesProvider));
+    final cached = store.load();
+    if (cached != null && !cached.isEmpty) {
+      _refreshInBackground();
+      return cached;
+    }
+    final map = await ref.watch(cardRepositoryProvider).fetchSetPublishedOn();
+    await store.save(map);
+    return map;
+  }
+
+  Future<void> _refreshInBackground() async {
+    try {
+      final map = await ref.read(cardRepositoryProvider).fetchSetPublishedOn();
+      await SetPublishedOnRepository(ref.read(sharedPreferencesProvider))
+          .save(map);
+      state = AsyncData(map);
+    } catch (_) {
+      // Keep serving the cached dates if the refresh fails.
+    }
+  }
+}
+
 final setPublishedOnMapProvider =
-    FutureProvider<SetPublishedOnMap>((ref) => loadSetPublishedOnMap());
+    AsyncNotifierProvider<SetPublishedOnNotifier, SetPublishedOnMap>(
+        SetPublishedOnNotifier.new);
 
 /// Catalog keyed by printing id, for O(1) lookups (used by the scanner to
 /// resolve hash-match ids to cards on every frame).

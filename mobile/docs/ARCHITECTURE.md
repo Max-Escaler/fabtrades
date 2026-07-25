@@ -210,6 +210,7 @@ because search + trade balancing deliver most of the value first.
 - **Publisher compliance:** card art comes from the TCGplayer CDN. Legend Story Studios'
   guidelines may prefer official assets for published apps; track as a pre-launch legal
   item, especially for store submission.
-- **Web app migration:** repoint it from `consolidated-data.json` to the Supabase view
-  (field mapping in [`DATABASE.md`](DATABASE.md)); you mentioned doing this later.
+- **Web app migration:** done — the web app now reads from the Supabase views via
+  `src/services/fabDb.js`; no price data is committed to the repo anymore
+  (details in [`DATABASE.md`](DATABASE.md)).
 ```

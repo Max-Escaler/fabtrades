@@ -239,9 +239,10 @@ export const getCardGradient = (subTypeName, isDark = false) => {
                 backgroundHover: 'linear-gradient(135deg, #2a3a4a 0%, #3a4a5a 20%, #2a4050 40%, #3a5060 60%, #2a4555 80%, #3a4a5a 100%)'
             };
         }
+        // Soft metallic blue: reads as cold foil without shouting over the page
         return {
-            background: 'linear-gradient(135deg, #4da6ff 0%, #ffffff 20%, #3399ff 40%, #e6f5ff 60%, #1a8cff 80%, #ffffff 100%)',
-            backgroundHover: 'linear-gradient(135deg, #3399ff 0%, #f2f9ff 20%, #2680e6 40%, #cce6ff 60%, #0073e6 80%, #e6f5ff 100%)'
+            background: 'linear-gradient(135deg, #c5e0f5 0%, #ffffff 20%, #b3d6f0 40%, #eaf4fc 60%, #a6cdeb 80%, #ffffff 100%)',
+            backgroundHover: 'linear-gradient(135deg, #b3d6f0 0%, #f2f9ff 20%, #9cc8e8 40%, #ddeefa 60%, #8fc0e4 80%, #eaf4fc 100%)'
         };
     }
     

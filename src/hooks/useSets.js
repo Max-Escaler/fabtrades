@@ -4,9 +4,10 @@ import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
 import { compareSetsByBrowseOrder } from '../utils/setSort.js';
 import { resolveSetAbbreviation } from '../utils/setAbbreviation.js';
 import { loadSetLogoMap } from '../utils/setLogos.js';
+import { fetchSetGroups } from '../services/fabDb.js';
 
-// Module-level cache so the product groups JSON is only fetched once even
-// when multiple components mount `useSets` on the same page.
+// Module-level cache so the set list is only fetched from the database once
+// even when multiple components mount `useSets` on the same page.
 let groupsCache = null;
 let groupsPromise = null;
 
@@ -14,14 +15,13 @@ const loadGroupsCached = async () => {
     if (groupsCache) return groupsCache;
     if (groupsPromise) return groupsPromise;
     groupsPromise = (async () => {
-        const response = await fetch('/productgroups.json');
-        if (!response.ok) {
+        try {
+            groupsCache = await fetchSetGroups();
+            return groupsCache;
+        } catch (err) {
             groupsPromise = null;
-            throw new Error(`Failed to load product groups: ${response.status}`);
+            throw err;
         }
-        const data = await response.json();
-        groupsCache = Array.isArray(data?.results) ? data.results : [];
-        return groupsCache;
     })();
     return groupsPromise;
 };

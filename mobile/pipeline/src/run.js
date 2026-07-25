@@ -43,6 +43,10 @@ async function main() {
     group_id: parseInt(g.groupId, 10),
     name: g.name,
     set_number: i + 1,
+    abbreviation: g.abbreviation || null,
+    published_on: g.publishedOn || null,
+    is_supplemental: !!g.isSupplemental,
+    modified_on: g.modifiedOn || null,
     updated_at: new Date().toISOString()
   }));
 

@@ -1,70 +1,37 @@
 # FAB Trades
 
-An app to balance Flesh and Blood card trades with efficient CSV data management.
+An app to balance Flesh and Blood card trades.
 
 ## Features
 
-- **Smart CSV Diffing**: Only downloads files that have actually changed, saving bandwidth and time
-- **Automatic Data Management**: Downloads and processes TCGPlayer CSV data automatically
 - **Trade Balancing**: Helps balance card trades by analyzing market prices
-- **Real-time Price Data**: Uses up-to-date pricing information from TCGPlayer
+- **Real-time Price Data**: Up-to-date TCGplayer pricing from the shared card database
 - **Discord Authentication**: Sign in with Discord to access personal features
 - **Trade History**: Save and load trades from your personal history (requires authentication)
 - **Trade Sharing**: Share trades via URL with anyone
 
-## CSV Data Management
+## Card & Price Data
 
-The app includes an intelligent CSV downloader that uses multiple strategies to determine if files need to be updated:
+All card and price data lives in a shared Supabase Postgres database (see
+[mobile/docs/DATABASE.md](./mobile/docs/DATABASE.md)). No price data is committed to this
+repository.
 
-### Diffing Strategies
-
-1. **ETag Comparison**: Most reliable method - compares ETag headers from the server
-2. **Last-Modified Check**: Compares Last-Modified headers to detect changes
-3. **Content Length**: Fallback method using file size comparison
-4. **Local Hash Verification**: MD5 hash comparison for local file integrity
-
-### Usage
-
-```bash
-# Download only changed files (recommended)
-node scripts/downloadCSVs.js
-
-# Force download all files
-node scripts/downloadCSVs.js --force
-
-# Clear diff cache and download all files
-node scripts/downloadCSVs.js --clear-cache
-
-# Show detailed status only
-node scripts/downloadCSVs.js --status
-
-# Show help
-node scripts/downloadCSVs.js --help
-```
-
-### Benefits
-
-- **Efficiency**: Only downloads files that have actually changed
-- **Speed**: Subsequent runs are much faster
-- **Bandwidth Savings**: Reduces unnecessary downloads
-- **Reliability**: Multiple fallback strategies ensure data integrity
-
-### Cache Management
-
-The diffing system maintains a cache file (`public/price-guide/diff-cache.json`) that stores:
-- ETag values
-- Last-Modified timestamps
-- Content lengths
-- Local file hashes
-- Check timestamps
-
-You can clear this cache anytime with `--clear-cache` to force a full download.
+- The **Update FAB Prices** GitHub Action
+  ([.github/workflows/update-prices.yml](./.github/workflows/update-prices.yml)) runs the
+  ingest pipeline ([mobile/pipeline](./mobile/pipeline)) daily, fetching TCGplayer data from
+  tcgcsv.com and publishing it to the database only.
+- The web app reads the catalog from the `fab_cards_with_prices` view and set metadata from
+  `fab_sets` via [src/services/fabDb.js](./src/services/fabDb.js).
+- The Flutter mobile app ([mobile/app](./mobile/app)) reads from the same database.
+- SEO pages are pre-rendered at build time from the same database
+  ([scripts/generateSeoPages.js](./scripts/generateSeoPages.js)), so production builds need
+  network access to Supabase.
 
 ## Development
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
 
 ### Installation
@@ -91,21 +58,6 @@ npm run build
 # Run tests
 npm test
 ```
-
-### Testing Diffing Functionality
-
-```bash
-# Test the diffing system
-node scripts/testDiffing.js
-```
-
-## Data Sources
-
-The app downloads CSV data from TCGPlayer via tcgcsv.com, including:
-- Product information
-- Current market prices
-- Historical price data
-- Card metadata
 
 ## License
 

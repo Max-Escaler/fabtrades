@@ -18,11 +18,33 @@ import {
     Warning as WarningIcon,
     Clear as ClearIcon,
     ContentCopy as ContentCopyIcon,
-    Forum as ForumIcon
+    Forum as ForumIcon,
+    Link as LinkIcon,
+    BookmarkAdd as BookmarkAddIcon
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { generateTradeOffer } from "../../utils/tradeOffer.js";
+import { encodeTradeToURL } from "../../utils/urlEncoding.js";
+import { saveTradeToHistory } from "../../services/tradeHistory.js";
+import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
+
+// Copy text to the clipboard with a fallback for non-secure contexts.
+const copyTextToClipboard = async (text) => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
 
 const TotalStack = ({ market, low, color, size, isDark, isLandscape }) => {
     const muted = isDark ? 'rgba(212, 165, 116, 0.7)' : 'rgba(93, 58, 26, 0.55)';
@@ -72,10 +94,15 @@ const TradeSummary = ({
     hasLoadedFromURL,
 }) => {
     const { isDark } = useThemeMode();
+    const { user } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showTradeOffer, setShowTradeOffer] = useState(false);
     const [tradeOfferText, setTradeOfferText] = useState('');
-    const [copyFeedback, setCopyFeedback] = useState(false);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [tradeName, setTradeName] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [shareLinkFallback, setShareLinkFallback] = useState(null);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     // Calculate total card count including quantities
     const getTotalCardCount = (cardList) => {
@@ -106,23 +133,48 @@ const TradeSummary = ({
 
     const handleCopyTradeOffer = async () => {
         try {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(tradeOfferText);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = tradeOfferText;
-                textarea.setAttribute('readonly', '');
-                textarea.style.position = 'absolute';
-                textarea.style.left = '-9999px';
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-            }
-            setCopyFeedback(true);
+            await copyTextToClipboard(tradeOfferText);
+            setSnackbar({ open: true, message: 'Copied — send it to the trade poster', severity: 'success' });
         } catch (err) {
             console.error('Failed to copy trade offer:', err);
+            setSnackbar({ open: true, message: 'Could not copy — select the text and copy it manually', severity: 'error' });
         }
+    };
+
+    const handleShareLink = async () => {
+        const url = encodeTradeToURL(haveList, wantList);
+        if (!url) return;
+        try {
+            await copyTextToClipboard(url);
+            setSnackbar({ open: true, message: 'Trade link copied — anyone can open it to see this trade', severity: 'success' });
+        } catch (err) {
+            // Clipboard can be blocked (permissions, unfocused window):
+            // show the link so the user can copy it themselves.
+            console.error('Failed to copy trade link:', err);
+            setShareLinkFallback(url);
+        }
+    };
+
+    const handleOpenSaveDialog = () => {
+        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        setTradeName(`Trade ${today}`);
+        setShowSaveDialog(true);
+    };
+
+    const handleSaveTrade = async () => {
+        setSaving(true);
+        const { error } = await saveTradeToHistory(tradeName, haveList, wantList, {
+            haveTotal,
+            wantTotal,
+            diff
+        });
+        setSaving(false);
+        if (error) {
+            setSnackbar({ open: true, message: error.message || 'Failed to save trade', severity: 'error' });
+            return;
+        }
+        setShowSaveDialog(false);
+        setSnackbar({ open: true, message: 'Trade saved — find it under Trade History', severity: 'success' });
     };
 
     const formatAge = (ageInDays) => {
@@ -262,33 +314,14 @@ const TradeSummary = ({
                     </Box>
                 </Box>
 
-                {/* Clear Button - on the right side for portrait mode */}
-                {!isLandscape && hasLoadedFromURL && urlTradeData && (
+                {/* Clear loaded-from-URL trade data */}
+                {hasLoadedFromURL && urlTradeData && (
                     <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
-                        ml: 1
-                    }}>
-                        <Tooltip title="Clear loaded trade data from URL">
-                            <IconButton
-                                size="small"
-                                onClick={() => setShowClearConfirm(true)}
-                                sx={{ color: 'warning.main', p: 0.5 }}
-                            >
-                                <ClearIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                )}
-
-                {/* Clear Button for landscape mode */}
-                {isLandscape && hasLoadedFromURL && urlTradeData && (
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        mt: 1
+                        ml: isLandscape ? 0 : 1,
+                        mt: isLandscape ? 1 : 0
                     }}>
                         <Tooltip title="Clear loaded trade data from URL">
                             <IconButton
@@ -349,6 +382,72 @@ const TradeSummary = ({
                     </Typography>
                 </Box>
             )}
+
+            {/* Share / save actions */}
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 1,
+                px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
+                py: isLandscape ? 1.25 : { xs: 0.75, sm: 1 },
+                width: '100%',
+                boxSizing: 'border-box',
+                borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
+            }}>
+                <Tooltip title="Copy a link that opens this trade">
+                    <span>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<LinkIcon />}
+                            onClick={handleShareLink}
+                            disabled={!canGenerateTradeOffer}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                px: 1.5,
+                                py: 0.5,
+                                color: isDark ? '#e4c09c' : '#8b4513',
+                                borderColor: isDark ? 'rgba(212, 165, 116, 0.4)' : 'rgba(139, 69, 19, 0.35)',
+                                '&:hover': {
+                                    borderColor: isDark ? '#d4a574' : '#8b4513',
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.06)'
+                                }
+                            }}
+                        >
+                            Share Link
+                        </Button>
+                    </span>
+                </Tooltip>
+                {user && (
+                    <Tooltip title="Save this trade to your history">
+                        <span>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<BookmarkAddIcon />}
+                                onClick={handleOpenSaveDialog}
+                                disabled={!canGenerateTradeOffer}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    px: 1.5,
+                                    py: 0.5,
+                                    color: isDark ? '#e4c09c' : '#8b4513',
+                                    borderColor: isDark ? 'rgba(212, 165, 116, 0.4)' : 'rgba(139, 69, 19, 0.35)',
+                                    '&:hover': {
+                                        borderColor: isDark ? '#d4a574' : '#8b4513',
+                                        backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.06)'
+                                    }
+                                }}
+                            >
+                                Save
+                            </Button>
+                        </span>
+                    </Tooltip>
+                )}
+            </Box>
 
             {/* Purple Discord trade offer */}
             <Box sx={{
@@ -466,19 +565,85 @@ const TradeSummary = ({
             </DialogActions>
         </Dialog>
 
+        {/* Share link fallback when the clipboard is unavailable */}
+        <Dialog
+            open={Boolean(shareLinkFallback)}
+            onClose={() => setShareLinkFallback(null)}
+            fullWidth
+            maxWidth="sm"
+        >
+            <DialogTitle sx={{ pb: 1 }}>Share Trade Link</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    Copying automatically didn't work — select the link below and copy it.
+                </Typography>
+                <TextField
+                    value={shareLinkFallback || ''}
+                    fullWidth
+                    InputProps={{ readOnly: true }}
+                    onFocus={(e) => e.target.select()}
+                    autoFocus
+                />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+                <Button onClick={() => setShareLinkFallback(null)}>Close</Button>
+            </DialogActions>
+        </Dialog>
+
+        {/* Save Trade Dialog */}
+        <Dialog
+            open={showSaveDialog}
+            onClose={() => !saving && setShowSaveDialog(false)}
+            fullWidth
+            maxWidth="xs"
+        >
+            <DialogTitle>Save Trade</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Name this trade so you can find it in your history.
+                </Typography>
+                <TextField
+                    autoFocus
+                    fullWidth
+                    label="Trade name"
+                    value={tradeName}
+                    onChange={(e) => setTradeName(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && tradeName.trim() && !saving) {
+                            handleSaveTrade();
+                        }
+                    }}
+                    disabled={saving}
+                />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+                <Button onClick={() => setShowSaveDialog(false)} disabled={saving}>
+                    Cancel
+                </Button>
+                <Button
+                    variant="contained"
+                    onClick={handleSaveTrade}
+                    disabled={saving || !tradeName.trim()}
+                    startIcon={<BookmarkAddIcon />}
+                >
+                    {saving ? 'Saving…' : 'Save Trade'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+
         <Snackbar
-            open={copyFeedback}
-            autoHideDuration={2500}
-            onClose={() => setCopyFeedback(false)}
+            open={snackbar.open}
+            autoHideDuration={3000}
+            onClose={() => setSnackbar(s => ({ ...s, open: false }))}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
             <Alert
-                onClose={() => setCopyFeedback(false)}
-                severity="success"
+                onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+                severity={snackbar.severity}
                 variant="filled"
                 sx={{ width: '100%' }}
             >
-                Copied — send it to the trade poster
+                {snackbar.message}
             </Alert>
         </Snackbar>
         </>

@@ -4,8 +4,8 @@
  * Vite outputs a single client-rendered index.html, which means every route
  * ships the same empty shell + generic <title>. Search engines therefore see
  * no unique content for the per-set price guides. This script runs AFTER
- * `vite build` and, using the same local data the app loads at runtime,
- * pre-renders a real, crawlable HTML document for:
+ * `vite build` and, using the same Supabase card database the app loads at
+ * runtime, pre-renders a real, crawlable HTML document for:
  *
  *   - each set price guide      -> dist/sets/<slug>/index.html
  *   - the "browse sets" page    -> dist/sets/index.html
@@ -27,6 +27,11 @@ import { buildSetSlugMap } from '../src/utils/setSlug.js';
 import { resolveSetAbbreviation } from '../src/utils/setAbbreviation.js';
 import { compareSetsByBrowseOrder } from '../src/utils/setSort.js';
 import {
+    fetchCatalogRows,
+    fetchSetGroups,
+    fetchPricesUpdatedAt
+} from '../src/services/fabDb.js';
+import {
     privacySections,
     PRIVACY_EFFECTIVE_DATE
 } from '../src/content/privacyPolicy.js';
@@ -34,7 +39,6 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
-const PUBLIC = path.join(ROOT, 'public');
 
 // Netlify exposes the primary site URL as `URL` during builds; allow an
 // explicit override via SITE_URL. Trailing slash is stripped for consistency.
@@ -112,13 +116,12 @@ const buildImageUrl = (row) => {
 // ---------------------------------------------------------------------------
 
 const loadData = async () => {
-    const groupsRaw = JSON.parse(await readFile(path.join(PUBLIC, 'productgroups.json'), 'utf8'));
-    const consolidated = JSON.parse(
-        await readFile(path.join(PUBLIC, 'price-guide', 'consolidated-data.json'), 'utf8')
-    );
-    const groups = Array.isArray(groupsRaw?.results) ? groupsRaw.results : [];
-    const rows = Array.isArray(consolidated?.data) ? consolidated.data : [];
-    return { groups, rows, metadata: consolidated?.metadata || {} };
+    const [groups, rows, pricesUpdatedAt] = await Promise.all([
+        fetchSetGroups(),
+        fetchCatalogRows(),
+        fetchPricesUpdatedAt()
+    ]);
+    return { groups, rows, metadata: { generatedAt: pricesUpdatedAt } };
 };
 
 const buildSets = ({ groups, rows }) => {
