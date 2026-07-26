@@ -74,6 +74,9 @@ dev_dependencies:
   # stub the image cache. Declared explicitly rather than leaning on it being a
   # transitive dependency of flutter_test.
   file: ^7.0.1
+  # Lets test/core/data/auth_repository_test.dart stand in for the browser, so
+  # the OAuth handoff can be checked without a device.
+  url_launcher_platform_interface: ^2.3.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
