@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+// Only the dismissal. `LaunchMode` would clash with the one supabase_flutter
+// re-exports, and nothing here needs it.
+import 'package:url_launcher/url_launcher.dart' show closeInAppWebView;
 
 import '../config/auth_config.dart';
 import '../models/account.dart';
@@ -21,10 +25,22 @@ import '../models/account.dart';
 /// Callers should not care which is which — they react to the auth state stream
 /// either way. The distinction only exists so the UI can stop showing a spinner
 /// when control has left the app.
+///
+/// The browser flows leave this object holding a listener until the deep link
+/// comes back, because whoever opened the browser is the only one who can close
+/// it again. Call [dispose] to give that up early.
 class AuthRepository {
   AuthRepository(this._auth);
 
   final GoTrueClient _auth;
+
+  /// Long enough for someone to make a Discord account or fetch a 2FA code
+  /// part-way through, short enough that an abandoned attempt does not leave a
+  /// listener running for the rest of the session.
+  static const _browserRoundTrip = Duration(minutes: 10);
+
+  StreamSubscription<AuthState>? _returnFromBrowser;
+  Timer? _returnFromBrowserTimeout;
 
   /// Session restored from disk at startup, or null when signed out. Reading
   /// this synchronously means the first frame already knows.
@@ -124,6 +140,16 @@ class AuthRepository {
   /// Browser-based OAuth. Returns as soon as the browser is open; the session
   /// arrives via the deep link configured in [AuthConfig.redirectUrl].
   Future<SignInOutcome> _signInWithRedirect(OAuthProvider provider) async {
+    // Armed before the page opens rather than after. Opening the browser does
+    // not report back until the provider's page has finished loading, and on a
+    // slow connection that can be later than we want to start listening.
+    _closeBrowserOnReturn();
+    final outcome = await _openProviderPage(provider);
+    if (outcome is! SignInPending) _stopWaitingForReturn();
+    return outcome;
+  }
+
+  Future<SignInOutcome> _openProviderPage(OAuthProvider provider) async {
     try {
       final launched = await _auth.signInWithOAuth(
         provider,
@@ -142,6 +168,56 @@ class AuthRepository {
       return const SignInFailed("Couldn't sign in. Please try again.");
     }
   }
+
+  /// Dismisses the sign-in browser once the deep link has been dealt with.
+  ///
+  /// iOS shows the provider's page in a Safari view controller that belongs to
+  /// this app, and the custom-scheme redirect does not take it down: the
+  /// session lands, the app behind it updates, and the customer is still
+  /// looking at a finished-looking web page with no sign anything worked.
+  /// Whoever opened that browser is the only one who can close it, and neither
+  /// `supabase_flutter` nor `url_launcher` does so on our behalf.
+  ///
+  /// Either ending counts. A session means the exchange worked; a stream error
+  /// means the deep link carried a refusal or a bad code, which is just as much
+  /// a reason to get out of the browser and let the app show what happened.
+  void _closeBrowserOnReturn() {
+    _stopWaitingForReturn();
+    _returnFromBrowser = authStateChanges.listen(
+      (state) {
+        if (state.event == AuthChangeEvent.signedIn) {
+          unawaited(_dismissBrowser());
+        }
+      },
+      onError: (Object _) => unawaited(_dismissBrowser()),
+    );
+    _returnFromBrowserTimeout = Timer(
+      _browserRoundTrip,
+      _stopWaitingForReturn,
+    );
+  }
+
+  Future<void> _dismissBrowser() async {
+    _stopWaitingForReturn();
+    try {
+      await closeInAppWebView();
+    } catch (e) {
+      // An Android custom tab has nothing to close this way, and under
+      // `flutter test` the platform channel is absent altogether. Neither is
+      // worth surfacing: the sign-in itself has already succeeded.
+      debugPrint('Auth: could not close the sign-in browser — $e');
+    }
+  }
+
+  void _stopWaitingForReturn() {
+    _returnFromBrowserTimeout?.cancel();
+    _returnFromBrowserTimeout = null;
+    unawaited(_returnFromBrowser?.cancel());
+    _returnFromBrowser = null;
+  }
+
+  /// Releases the listener left behind by an unfinished browser sign-in.
+  void dispose() => _stopWaitingForReturn();
 
   /// Signs out on this device only.
   ///

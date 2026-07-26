@@ -9,10 +9,16 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
+        <!-- launchMode is singleTask rather than singleTop because of the
+             sign-in flow below. The browser tab opens inside this task and
+             sits above this activity, so a singleTop callback would stack a
+             second copy of the app on top of it: the app restarts, and the tab
+             is still waiting one back press away. singleTask reuses this
+             instance and finishes everything above it, taking the tab down. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

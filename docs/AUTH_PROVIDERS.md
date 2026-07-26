@@ -52,6 +52,25 @@ from receiving a session.
 `supabase_flutter` picks the link up on its own — `detectSessionInUri` defaults to
 true — so no manual link handling is needed in `main.dart`.
 
+## Getting out of the browser again
+
+Arriving back at the app is only half the round trip. The redirect delivers the
+session, but it does not take the browser down, and both platforms need help with
+that in a different way:
+
+- **iOS** shows the provider's page in a Safari view controller owned by this app.
+  Left alone it stays up over everything, so sign-in looks like it hung on a
+  finished page — closing it by hand reveals an app that signed in some time ago.
+  `AuthRepository` watches the auth state stream for the duration of the handoff and
+  calls `closeInAppWebView` as soon as the deep link resolves, either into a session
+  or into an error.
+- **Android** opens a custom tab inside this app's task. `closeInAppWebView` cannot
+  reach it — `url_launcher` only closes its own web view — so `MainActivity` is
+  declared `singleTask` instead. Reusing the existing instance finishes everything
+  stacked above it, which disposes of the tab. Under `singleTop` the callback would
+  instead start a second copy of the app on top of the tab, restarting the UI and
+  leaving the tab one back press away.
+
 ## Dashboard setup
 
 ### Redirect URLs
@@ -86,6 +105,13 @@ In the Apple Developer portal:
 3. Keys → create a **Sign in with Apple** key. Supabase needs the resulting client
    secret JWT, which expires after at most six months, so this is a recurring
    maintenance task rather than a one-off.
+4. Profiles → regenerate the App Store profile for `com.fabtrades.app`, then replace
+   the stored copy in Codemagic → Team settings → codemagic.yaml settings → Code
+   signing identities. Enabling a capability leaves existing profiles untouched, and
+   the iOS workflow signs with the copy Codemagic has stored rather than whatever the
+   portal holds now, so skipping this fails the archive with *"Provisioning profile
+   doesn't include the Sign In with Apple capability"* no matter how many times the
+   build is re-run.
 
 Apple sends a name only on the very first authorization and never again, and Hide My
 Email accounts may supply no usable name at all. `Account.label` handles both by
@@ -118,5 +144,8 @@ are worth checking by hand once per environment:
 - Cancel the Apple sheet — no error should appear, since cancelling is not a failure.
 - Complete Google sign-in and confirm the app foregrounds itself with the account
   shown in Settings.
+- Complete Discord sign-in on a device of each kind and confirm the browser goes away
+  on its own. Only a real Safari view controller or custom tab can show this;
+  `flutter test` can prove the dismissal was requested but not that it landed.
 - Sign out on mobile and confirm a web session in another browser survives it. Mobile
   signs out with `SignOutScope.local` precisely so it does not.
