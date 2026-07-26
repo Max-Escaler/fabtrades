@@ -50,6 +50,49 @@ const double kGuideMaxHeightFraction = 0.92;
 /// Physical trading-card aspect ratio (63 mm × 88 mm).
 const double kCardAspect = 63 / 88;
 
+/// Fraction of the guide height treated as the printed-name band.
+///
+/// Flesh and Blood card names are printed across the top of the card, so
+/// restricting the OCR name read to this band rejects a neighbouring card's
+/// title bleeding into the bottom of the guide.
+const double kCardTitleBandFraction = 0.22;
+
+/// Card guide rectangle in upright (rotated) frame coordinates — the same
+/// region the scan overlay draws and [hashCameraFrame] samples.
+///
+/// Mirrors the UI contract: BoxFit.cover into a [kViewportAspect] viewport,
+/// then a centered guide of [kGuideWidthFraction] of the *visible* width,
+/// clamped by [kGuideMaxHeightFraction] of the visible height.
+({double left, double top, double width, double height}) guideRectInRotatedFrame({
+  required double rotatedWidth,
+  required double rotatedHeight,
+}) {
+  // Region of the rotated frame visible after BoxFit.cover into the viewport.
+  double visW, visH;
+  if (rotatedWidth / rotatedHeight > kViewportAspect) {
+    visH = rotatedHeight;
+    visW = rotatedHeight * kViewportAspect;
+  } else {
+    visW = rotatedWidth;
+    visH = rotatedWidth / kViewportAspect;
+  }
+
+  // The card guide, centered in the visible region.
+  var guideW = kGuideWidthFraction * visW;
+  var guideH = guideW / kCardAspect;
+  final maxH = kGuideMaxHeightFraction * visH;
+  if (guideH > maxH) {
+    guideH = maxH;
+    guideW = guideH * kCardAspect;
+  }
+  return (
+    left: (rotatedWidth - guideW) / 2,
+    top: (rotatedHeight - guideH) / 2,
+    width: guideW,
+    height: guideH,
+  );
+}
+
 /// Cosine tables for the 64-point DCT, indexed `[u * kGraySide + x]`.
 /// Only the first [kHashSide] frequencies are ever needed.
 final Float64List _dctTable = _buildDctTable();

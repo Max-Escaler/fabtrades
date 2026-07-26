@@ -9,14 +9,38 @@ import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 
 /// A search screen that returns the picked [CardModel] via Navigator.pop.
+///
+/// Pass [onPick] (via [showMulti]) to keep the screen open after each add so
+/// several cards can be picked in one visit.
 class CardPickerScreen extends ConsumerStatefulWidget {
-  const CardPickerScreen({super.key, this.title = 'Add a card'});
+  const CardPickerScreen({super.key, this.title = 'Add a card', this.onPick});
   final String title;
+
+  /// When set, each tap invokes this instead of popping. Return false to close
+  /// the picker (e.g. free-tier cap); true to stay open for another add.
+  final Future<bool> Function(CardModel card)? onPick;
 
   static Future<CardModel?> show(BuildContext context, {String? title}) {
     return Navigator.of(context).push<CardModel>(
       MaterialPageRoute(
         builder: (_) => CardPickerScreen(title: title ?? 'Add a card'),
+      ),
+    );
+  }
+
+  /// Opens the picker in multi-add mode: the screen stays open after each
+  /// pick so several cards can be added in one visit. [onPick] returns false
+  /// when the add was rejected (e.g. a free-tier cap), which closes the picker
+  /// so the reason isn't buried behind it.
+  static Future<void> showMulti(
+    BuildContext context, {
+    String? title,
+    required Future<bool> Function(CardModel card) onPick,
+  }) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            CardPickerScreen(title: title ?? 'Add a card', onPick: onPick),
       ),
     );
   }
@@ -30,6 +54,11 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
   Timer? _debounce;
   String _query = '';
   bool _foilOnly = false;
+  bool _adding = false;
+  int _addedCount = 0;
+  final Set<String> _recentlyAdded = {};
+
+  bool get _multi => widget.onPick != null;
 
   @override
   void dispose() {
@@ -45,12 +74,57 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
     });
   }
 
+  Future<void> _onCardTap(CardModel card) async {
+    final onPick = widget.onPick;
+    if (onPick == null) {
+      Navigator.of(context).pop(card);
+      return;
+    }
+    if (_adding) return;
+    setState(() => _adding = true);
+    try {
+      final ok = await onPick(card);
+      if (!mounted) return;
+      if (!ok) {
+        Navigator.of(context).pop();
+        return;
+      }
+      setState(() {
+        _addedCount++;
+        _recentlyAdded.add(card.id);
+      });
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pricing = ref.watch(pricingProvider);
     final catalog = ref.watch(catalogProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          if (_multi) ...[
+            if (_addedCount > 0)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(
+                    '$_addedCount added',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Done'),
+            ),
+          ],
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -81,8 +155,7 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
             child: catalog.when(
               loading: () =>
                   const Center(child: CircularProgressIndicator.adaptive()),
-              error: (e, _) =>
-                  Center(child: Text('Could not load cards.\n$e')),
+              error: (e, _) => Center(child: Text('Could not load cards.\n$e')),
               data: (all) {
                 final cards = filterCards(
                   all,
@@ -101,12 +174,15 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
                       const Divider(height: 1, indent: 72),
                   itemBuilder: (context, i) {
                     final card = cards[i];
+                    final added = _recentlyAdded.contains(card.id);
                     return CardRow(
                       card: card,
                       priceLabel: pricing.priceLabel(card),
                       secondaryLabel: pricing.lowPriceLabel(card),
-                      trailing: const Icon(Icons.add_circle),
-                      onTap: () => Navigator.of(context).pop(card),
+                      trailing: added
+                          ? Icon(Icons.check_circle, color: scheme.primary)
+                          : const Icon(Icons.add_circle),
+                      onTap: () => _onCardTap(card),
                     );
                   },
                 );

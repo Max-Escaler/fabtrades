@@ -28,8 +28,13 @@ double Function(double u, double v) _synthCard(int seed) {
   };
 }
 
-Uint8List _hashAt(double Function(double, double) card, int w, int h,
-    {double gain = 1, double bias = 0}) {
+Uint8List _hashAt(
+  double Function(double, double) card,
+  int w,
+  int h, {
+  double gain = 1,
+  double bias = 0,
+}) {
   return phashOfImage(
     width: w,
     height: h,
@@ -58,6 +63,55 @@ void main() {
       final b = _hashAt(_synthCard(4), 200, 280);
       expect(hammingDistance(a, b), greaterThan(80));
     });
+
+    test('guideRectInRotatedFrame is centred with card aspect', () {
+      const rotatedW = 720.0, rotatedH = 1280.0;
+      final guide = guideRectInRotatedFrame(
+        rotatedWidth: rotatedW,
+        rotatedHeight: rotatedH,
+      );
+      expect(guide.left + guide.width / 2, closeTo(rotatedW / 2, 0.01));
+      expect(guide.top + guide.height / 2, closeTo(rotatedH / 2, 0.01));
+      expect(guide.width / guide.height, closeTo(kCardAspect, 1e-9));
+    });
+
+    test('guideRectInRotatedFrame width is kGuideWidthFraction of visible', () {
+      // Frame matches viewport aspect, so the whole frame is visible.
+      const rotatedW = 720.0;
+      const rotatedH = rotatedW / kViewportAspect; // 960
+      final guide = guideRectInRotatedFrame(
+        rotatedWidth: rotatedW,
+        rotatedHeight: rotatedH,
+      );
+      expect(guide.width, closeTo(kGuideWidthFraction * rotatedW, 0.01));
+    });
+
+    test(
+      'guideRectInRotatedFrame clamps height by kGuideMaxHeightFraction',
+      () {
+        // Tall/narrow frame → BoxFit.cover is width-limited. The visible crop
+        // always has kViewportAspect, so with current constants the
+        // width-derived guide (~75% of visH) sits under the 92% cap; the clamp
+        // is still applied as min(unclamped, max) and must not be exceeded.
+        const rotatedW = 400.0;
+        const rotatedH = 2000.0;
+        final visW = rotatedW;
+        final visH = rotatedW / kViewportAspect;
+        final unclampedH = (kGuideWidthFraction * visW) / kCardAspect;
+        final maxH = kGuideMaxHeightFraction * visH;
+        final expectedH = unclampedH < maxH ? unclampedH : maxH;
+
+        final guide = guideRectInRotatedFrame(
+          rotatedWidth: rotatedW,
+          rotatedHeight: rotatedH,
+        );
+        expect(guide.height, closeTo(expectedH, 0.01));
+        expect(guide.height, lessThanOrEqualTo(maxH + 1e-9));
+        expect(guide.width, closeTo(expectedH * kCardAspect, 0.01));
+        expect(guide.left + guide.width / 2, closeTo(rotatedW / 2, 0.01));
+        expect(guide.top + guide.height / 2, closeTo(rotatedH / 2, 0.01));
+      },
+    );
 
     test('90°-rotated frame sampling matches the upright hash', () {
       final card = _synthCard(5);
@@ -105,7 +159,8 @@ void main() {
         for (var i = 0; i < n; i++)
           CardHashEntry(
             hash: Uint8List.fromList(
-                List.generate(kHashBytes, (_) => rng.nextInt(256))),
+              List.generate(kHashBytes, (_) => rng.nextInt(256)),
+            ),
             cardIds: ['card-$i'],
           ),
       ]);
@@ -129,14 +184,16 @@ void main() {
       final rng = math.Random(8);
       final index = buildIndex(400, rng);
       final probe = Uint8List.fromList(
-          List.generate(kHashBytes, (_) => rng.nextInt(256)));
+        List.generate(kHashBytes, (_) => rng.nextInt(256)),
+      );
       expect(index.match(probe), isEmpty);
     });
 
     test('parses the real bundled asset', () async {
       TestWidgetsFlutterBinding.ensureInitialized();
-      final jsonText =
-          await rootBundle.loadString('assets/scan/card_hashes.json');
+      final jsonText = await rootBundle.loadString(
+        'assets/scan/card_hashes.json',
+      );
       final index = CardHashIndex.fromJson(jsonText);
       expect(index.entries.length, greaterThan(5000));
       expect(index.entries.first.hash.length, kHashBytes);
@@ -162,8 +219,10 @@ void main() {
       final parsed = CardHashIndex.fromJson(jsonText);
       expect(parsed.entries.length, 3);
       for (var i = 0; i < 3; i++) {
-        expect(hammingDistance(parsed.entries[i].hash, index.entries[i].hash),
-            0);
+        expect(
+          hammingDistance(parsed.entries[i].hash, index.entries[i].hash),
+          0,
+        );
         expect(parsed.entries[i].cardIds, index.entries[i].cardIds);
       }
     });

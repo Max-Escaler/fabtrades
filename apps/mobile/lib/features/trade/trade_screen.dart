@@ -269,11 +269,24 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
 }
 
 Future<void> _pick(BuildContext context, WidgetRef ref, TradeSide side) async {
-  final card = await CardPickerScreen.show(context,
-      title: side == TradeSide.have ? 'Add my cards' : 'Add their cards');
-  if (card != null) {
-    ref.read(tradeDraftProvider.notifier).addCard(side, card);
-  }
+  await CardPickerScreen.showMulti(
+    context,
+    title: side == TradeSide.have ? 'Add my cards' : 'Add their cards',
+    onPick: (card) async {
+      ref.read(tradeDraftProvider.notifier).addCard(side, card);
+      if (!context.mounted) return true;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Added ${card.name} to trade'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return true;
+    },
+  );
 }
 
 Future<void> _scan(BuildContext context, WidgetRef ref, TradeSide side) {

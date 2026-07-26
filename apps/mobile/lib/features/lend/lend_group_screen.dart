@@ -81,10 +81,30 @@ class LendGroupScreen extends ConsumerWidget {
 
   Future<void> _addCard(
       BuildContext context, WidgetRef ref, LendGroup group) async {
-    final card = await CardPickerScreen.show(context,
-        title: group.isBorrowing ? 'Add borrowed card' : 'Add lent card');
-    if (card == null || !context.mounted) return;
-    await addToLendOrUpsell(context, ref, groupId: group.id, card: card);
+    await CardPickerScreen.showMulti(
+      context,
+      title: group.isBorrowing ? 'Add borrowed card' : 'Add lent card',
+      onPick: (card) async {
+        final ok = await addToLendOrUpsell(
+          context,
+          ref,
+          groupId: group.id,
+          card: card,
+        );
+        if (!ok) return false;
+        if (!context.mounted) return true;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Added ${card.name}'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        return true;
+      },
+    );
   }
 
   Future<void> _editName(

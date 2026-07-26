@@ -69,10 +69,17 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
   }
 
   Future<void> _defaultAdd(BuildContext context) async {
-    final card =
-        await CardPickerScreen.show(context, title: 'Add to Want List');
-    if (card == null || !context.mounted) return;
-    await addToBinderOrUpsell(context, ref, card, isWanted: true);
+    await CardPickerScreen.showMulti(
+      context,
+      title: 'Add to Want List',
+      onPick: (card) => addToBinderOrUpsell(
+        context,
+        ref,
+        card,
+        isWanted: true,
+        successMessage: 'Added ${card.name} to Want List',
+      ),
+    );
   }
 }
 

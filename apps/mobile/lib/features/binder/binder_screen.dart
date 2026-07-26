@@ -123,10 +123,18 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
   }
 
   Future<void> _addBySearch({required bool isWanted}) async {
-    final card = await CardPickerScreen.show(context,
-        title: isWanted ? 'Add to Want List' : 'Add to Binder');
-    if (card == null || !mounted) return;
-    await addToBinderOrUpsell(context, ref, card, isWanted: isWanted);
+    await CardPickerScreen.showMulti(
+      context,
+      title: isWanted ? 'Add to Want List' : 'Add to Binder',
+      onPick: (card) => addToBinderOrUpsell(
+        context,
+        ref,
+        card,
+        isWanted: isWanted,
+        successMessage:
+            'Added ${card.name} to ${isWanted ? 'Want List' : 'Binder'}',
+      ),
+    );
   }
 }
 
@@ -184,10 +192,16 @@ class _BinderListState extends ConsumerState<_BinderList> {
           if (context.mounted) ScanScreen.forBinder(context);
         },
         onSearch: () async {
-          final card =
-              await CardPickerScreen.show(context, title: 'Add to Binder');
-          if (card == null || !context.mounted) return;
-          await addToBinderOrUpsell(context, ref, card);
+          await CardPickerScreen.showMulti(
+            context,
+            title: 'Add to Binder',
+            onPick: (card) => addToBinderOrUpsell(
+              context,
+              ref,
+              card,
+              successMessage: 'Added ${card.name} to Binder',
+            ),
+          );
         },
       );
     }

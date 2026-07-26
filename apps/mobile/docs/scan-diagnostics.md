@@ -25,11 +25,13 @@ Key files:
 |---|---|
 | `lib/features/scan/scan_screen.dart` | UI, camera lifecycle, per-frame pipeline, diagnostics |
 | `lib/core/scan/frame_hasher.dart` | camera frame → luma sampler → guide-rect crop → pHash |
-| `lib/core/scan/phash.dart` | pure-Dart pHash + shared guide/viewport geometry constants |
+| `lib/core/scan/phash.dart` | pure-Dart pHash + shared guide/viewport geometry (`guideRectInRotatedFrame`) |
+| `lib/core/scan/ocr_guide_filter.dart` | pure-Dart filter: keep OCR lines inside the guide / title band |
 | `lib/core/scan/rectify.dart` | card-outline (quad) detection inside the guide |
 | `lib/core/scan/card_hash_index.dart` | hash asset loading + matching (z-score gate) |
 | `lib/core/data/card_repository.dart` | `identifyCards`, `parseScanNumbers`, `fuseScanCandidates` |
 | `test/core/scan/frame_hasher_test.dart` | synthetic-CameraImage regression tests (see below) |
+| `test/core/scan/ocr_guide_filter_test.dart` | guide / title-band OCR line selection |
 
 ## Enabling the debug overlay
 
@@ -58,7 +60,7 @@ produced by the `onGrid` callback of `hashCameraFrame` and rendered via
 ### 2. Per-frame stats line
 
 ```
-f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") 720x1280 bpr=2880 hashMs=11 ocrMs=80 totalMs=95
+f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") ocrLines=14/3/1 tier=title boxMax=700x1200 rotFrame=720x1280 720x1280 bpr=2880 hashMs=11 ocrMs=80 totalMs=95
 ```
 
 | Field | Meaning | Healthy value |
@@ -71,10 +73,18 @@ f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") 720x1
 | `z=` | How many std-devs `best` is below the mean distance (match confidence gate) | high (≥ ~8) on a real match |
 | `vis=` | Candidate cards from the visual signal | > 0 with a card in the guide |
 | `ocr=` | Candidate cards from OCR; the parenthetical is the OCR note | > 0 when name/number legible |
-| OCR note | `"text…"` = what ML Kit read; `empty` = ran but read nothing; `input=null …` = frame rejected before ML Kit (format/planes); `err=…` = ML Kit threw (incl. `TimeoutException` — see below); `skip` = not attempted | text snippet |
+| OCR note | `"text…"` = **in-guide** snippet that drives matching (full-frame only when nothing landed in the guide); `empty` = ran but read nothing; `input=null …` = frame rejected before ML Kit (format/planes); `err=…` = ML Kit threw (incl. `TimeoutException` — see below); `skip` = not attempted | text snippet |
+| `ocrLines=T/G/B` | Total OCR lines / lines whose centre landed inside the (inflated) guide / lines in the title band | `G` and `B` > 0 with a card filling the guide. **If `G` is 0 on every frame, the guide rect and ML Kit's coordinate space have drifted apart** — matching silently falls back to full-frame text (`tier=full`) |
+| `tier=` | Which text fed `identifyCards`: `title` (top band), `guide` (all in-guide; title band empty or yielded no candidates), `full` (nothing in guide → legacy full-frame) | `title` when aiming at a card |
+| `boxMax=WxH` | Max right/bottom of any OCR bounding box this frame | Should be in the same ballpark as `rotFrame` |
+| `rotFrame=WxH` | Upright frame size used for the guide (`hashRotation` swap of buffer WxH) | Matches `boxMax` order of magnitude; a large mismatch (e.g. `boxMax` much larger than `rotFrame`, or all boxes clustered in a corner) means the ML Kit coordinate-space assumption is wrong on this platform |
 | `WxH` | Streamed buffer dimensions. iOS portrait upright ⇒ e.g. `720x1280`; Android sensor-oriented ⇒ e.g. `1280x720` | |
 | `bpr=` | `bytesPerRow` of plane 0 (detects row padding; iOS BGRA tight = width×4) | `2880` at 720 wide |
 | `hashMs/ocrMs/totalMs` | Stage timings | total well under 350 ms |
+
+OCR is cropped to the same guide rectangle as the visual hasher (with a ~2%
+inflate and a title-band preference for the printed name). Collector numbers
+still use all in-guide text — they are printed at the bottom of the card.
 
 ### 3. Liveness counters
 

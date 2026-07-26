@@ -14,7 +14,9 @@ export 'phash.dart'
         kGuideWidthFraction,
         kGuideMaxHeightFraction,
         kCardAspect,
-        kGraySide;
+        kCardTitleBandFraction,
+        kGraySide,
+        guideRectInRotatedFrame;
 
 /// Turns live camera frames into perceptual hashes of the card inside the
 /// on-screen guide rectangle, ready to match against [CardHashIndex].
@@ -45,26 +47,14 @@ Uint8List? hashCameraFrame(CameraImage image, int rotationDegrees,
   final rotatedW = (swap ? rawH : rawW).toDouble();
   final rotatedH = (swap ? rawW : rawH).toDouble();
 
-  // Region of the rotated frame visible after BoxFit.cover into the viewport.
-  double visW, visH;
-  if (rotatedW / rotatedH > kViewportAspect) {
-    visH = rotatedH;
-    visW = rotatedH * kViewportAspect;
-  } else {
-    visW = rotatedW;
-    visH = rotatedW / kViewportAspect;
-  }
-
-  // The card guide, centered in the visible region.
-  var guideW = kGuideWidthFraction * visW;
-  var guideH = guideW / kCardAspect;
-  final maxH = kGuideMaxHeightFraction * visH;
-  if (guideH > maxH) {
-    guideH = maxH;
-    guideW = guideH * kCardAspect;
-  }
-  final left = (rotatedW - guideW) / 2;
-  final top = (rotatedH - guideH) / 2;
+  final guide = guideRectInRotatedFrame(
+    rotatedWidth: rotatedW,
+    rotatedHeight: rotatedH,
+  );
+  final left = guide.left;
+  final top = guide.top;
+  final guideW = guide.width;
+  final guideH = guide.height;
 
   // Prefer the card's actual outline: find its four edges inside (and a little
   // beyond) the guide and sample that quad, recovering offset, scale and modest

@@ -17,6 +17,7 @@ import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
 import '../../core/scan/frame_hasher.dart';
+import '../../core/scan/ocr_guide_filter.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../paywall/pro_limits.dart';
 
@@ -365,9 +366,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       // Signal 2: OCR of the printed name + collector number.
       // Isolated from visual so an ML Kit / format failure on Android cannot
       // discard a successful hash match (that used to silently kill scanning).
+      // Name matching is restricted to the guide (title band preferred) so a
+      // neighbouring card's title under the guide does not win the fuse.
       var ocr = const <CardModel>[];
       var ocrNumbers = const <ScanNumber>[];
       var ocrNote = 'skip';
+      var ocrLinesNote = '';
       final ocrSw = Stopwatch()..start();
       final input = _toInputImage(image, rotation);
       if (input == null) {
@@ -386,12 +390,78 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
               .processImage(input)
               .timeout(const Duration(seconds: 3));
           if (!mounted || _locked) return;
-          ocr = identifyCards(catalog, result.text);
-          ocrNumbers = parseScanNumbers(result.text);
-          final snippet = result.text.replaceAll('\n', ' ').trim();
+
+          // Same upright space as the hasher — use hashRotation, not ML Kit's
+          // metadata rotation (iOS buffers are already upright).
+          final swap = hashRotation == 90 || hashRotation == 270;
+          final rotatedW = (swap ? image.height : image.width).toDouble();
+          final rotatedH = (swap ? image.width : image.height).toDouble();
+          final guide = guideRectInRotatedFrame(
+            rotatedWidth: rotatedW,
+            rotatedHeight: rotatedH,
+          );
+
+          final lines = <OcrLine>[
+            for (final block in result.blocks)
+              for (final line in block.lines)
+                (
+                  left: line.boundingBox.left,
+                  top: line.boundingBox.top,
+                  right: line.boundingBox.right,
+                  bottom: line.boundingBox.bottom,
+                  text: line.text,
+                ),
+          ];
+
+          // Max box extents vs rotated frame size — mismatch means ML Kit's
+          // coordinate space has drifted from the hasher's assumption.
+          var maxR = 0.0, maxB = 0.0;
+          for (final line in lines) {
+            if (line.right > maxR) maxR = line.right;
+            if (line.bottom > maxB) maxB = line.bottom;
+          }
+
+          final filtered = textInsideGuide(
+            lines: lines,
+            guideLeft: guide.left,
+            guideTop: guide.top,
+            guideWidth: guide.width,
+            guideHeight: guide.height,
+          );
+
+          // Prefer title-band text; fall back to all in-guide lines; if
+          // nothing lands in the guide, keep today's full-frame behaviour.
+          final String tier;
+          if (filtered.linesInGuide == 0) {
+            tier = 'full';
+            ocr = identifyCards(catalog, result.text);
+            ocrNumbers = parseScanNumbers(result.text);
+          } else {
+            ocrNumbers = parseScanNumbers(filtered.guideText);
+            final titleCandidates = filtered.titleBandText.trim().isEmpty
+                ? const <CardModel>[]
+                : identifyCards(catalog, filtered.titleBandText);
+            if (titleCandidates.isNotEmpty) {
+              tier = 'title';
+              ocr = titleCandidates;
+            } else {
+              tier = 'guide';
+              ocr = identifyCards(catalog, filtered.guideText);
+            }
+          }
+
+          final snippet =
+              (filtered.linesInGuide > 0 ? filtered.guideText : result.text)
+                  .replaceAll('\n', ' ')
+                  .trim();
           ocrNote = snippet.isEmpty
               ? 'empty'
               : '"${snippet.length > 40 ? '${snippet.substring(0, 40)}…' : snippet}"';
+          ocrLinesNote =
+              'ocrLines=${lines.length}/${filtered.linesInGuide}/'
+              '${filtered.linesInTitleBand} tier=$tier '
+              'boxMax=${maxR.toStringAsFixed(0)}x${maxB.toStringAsFixed(0)} '
+              'rotFrame=${rotatedW.toStringAsFixed(0)}x${rotatedH.toStringAsFixed(0)}';
         } catch (e) {
           // Full exception — PlatformException.message is the useful part.
           ocrNote = 'err=$e fmt=${image.format.group}/${image.format.raw} '
@@ -408,6 +478,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         'hash=${hashOk ? 'ok' : 'null'} '
         'best=$bestDist z=${zScore.toStringAsFixed(1)} '
         'vis=${visual.length} ocr=${ocr.length} ($ocrNote) '
+        '${ocrLinesNote.isEmpty ? '' : '$ocrLinesNote '}'
         '${image.width}x${image.height} '
         'bpr=${image.planes.isEmpty ? 0 : image.planes.first.bytesPerRow} '
         'hashMs=$hashMs ocrMs=$ocrMs totalMs=${frameSw.elapsedMilliseconds}',
@@ -697,22 +768,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           const AppMenuAction(),
         ],
       ),
-      body: Column(
-        children: [
-          _buildViewport(),
-          if (_statusMessage != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: Text(
-                _statusMessage!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ),
-          Expanded(child: _buildMatches()),
-        ],
-      ),
+      body: _buildBody(),
       floatingActionButton: (_cameraAvailable && _locked)
           ? FloatingActionButton.extended(
               heroTag: 'scanAgainFab',
@@ -722,6 +778,74 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  /// Camera available: Stack so the match list can cover the preview.
+  /// Camera unavailable: plain Column — nothing useful to overlay.
+  Widget _buildBody() {
+    final showSheet = _cameraAvailable && _matches.isNotEmpty;
+    final column = Column(
+      children: [
+        _buildViewport(),
+        if (_statusMessage != null && !showSheet)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: Text(
+              _statusMessage!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ),
+        Expanded(child: showSheet ? const SizedBox.shrink() : _buildMatches()),
+      ],
+    );
+    if (!_cameraAvailable) return column;
+    return Stack(children: [column, if (showSheet) _buildMatchSheet()]);
+  }
+
+  Widget _buildMatchSheet() {
+    final multi = _matches.length > 1;
+    return DraggableScrollableSheet(
+      initialChildSize: multi ? 0.6 : 0.35,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        final scheme = Theme.of(context).colorScheme;
+        return Material(
+          color: scheme.surface,
+          elevation: 8,
+          shadowColor: Colors.black54,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              if (_statusMessage != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Text(
+                    _statusMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              Expanded(
+                child: _buildMatches(scrollController: scrollController),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -864,7 +988,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     );
   }
 
-  Widget _buildMatches() {
+  Widget _buildMatches({ScrollController? scrollController}) {
     if (_matches.isEmpty) {
       return Center(
         child: Padding(
@@ -882,7 +1006,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     }
     final pricing = ref.watch(pricingProvider);
     return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 88),
+      controller: scrollController,
+      padding: const EdgeInsets.only(bottom: 96),
       itemCount: _matches.length,
       separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
       itemBuilder: (context, i) {
