@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
+import '../../app/widgets.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
 
@@ -86,6 +87,24 @@ class _TradeCard extends ConsumerWidget {
                 ),
               ],
             ),
+            if (trade.haveItems.isNotEmpty || trade.haveCash > 0) ...[
+              const SizedBox(height: 12),
+              _sideLabel(theme, 'Gave', AppTheme.haveAccent),
+              const SizedBox(height: 4),
+              for (final item in trade.haveItems)
+                _HistoryItemRow(item: item, symbol: symbol),
+              if (trade.haveCash > 0)
+                _CashRow(amount: trade.haveCash, symbol: symbol),
+            ],
+            if (trade.wantItems.isNotEmpty || trade.wantCash > 0) ...[
+              const SizedBox(height: 10),
+              _sideLabel(theme, 'Got', AppTheme.wantAccent),
+              const SizedBox(height: 4),
+              for (final item in trade.wantItems)
+                _HistoryItemRow(item: item, symbol: symbol),
+              if (trade.wantCash > 0)
+                _CashRow(amount: trade.wantCash, symbol: symbol),
+            ],
             const SizedBox(height: 10),
             Align(
               alignment: Alignment.center,
@@ -112,6 +131,16 @@ class _TradeCard extends ConsumerWidget {
     );
   }
 
+  Widget _sideLabel(ThemeData theme, String label, Color accent) {
+    return Text(
+      label,
+      style: theme.textTheme.labelMedium?.copyWith(
+        color: accent,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+
   Widget _sideSummary(ThemeData theme, String label, String count, double total,
       String symbol, Color accent,
       {bool alignEnd = false}) {
@@ -127,6 +156,103 @@ class _TradeCard extends ConsumerWidget {
                 ?.copyWith(fontWeight: FontWeight.w800, color: accent)),
         Text(count, style: theme.textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+class _HistoryItemRow extends StatelessWidget {
+  const _HistoryItemRow({required this.item, required this.symbol});
+  final TradeItem item;
+  final String symbol;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          CardThumbnail(
+            url: item.card.imageUrl,
+            foil: item.card.isFoil,
+            width: 28,
+            height: 39,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        item.card.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    if (item.card.finishBadgeShort != null) ...[
+                      const SizedBox(width: 6),
+                      FinishBadge(card: item.card, compact: true),
+                    ],
+                  ],
+                ),
+                Text(
+                  '×${item.quantity} · $symbol${item.priceEach.toStringAsFixed(2)} ea',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$symbol${item.lineTotal.toStringAsFixed(2)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CashRow extends StatelessWidget {
+  const _CashRow({required this.amount, required this.symbol});
+  final double amount;
+  final String symbol;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(Icons.payments_outlined,
+              size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Cash',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+          Text(
+            '$symbol${amount.toStringAsFixed(2)}',
+            style: theme.textTheme.bodySmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
     );
   }
 }

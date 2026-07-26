@@ -35,6 +35,7 @@ import { fetchLastUpdatedTimestamp } from '../services/api';
 import { FreeLimits } from '../utils/freeLimits.js';
 import { formatCurrency } from '../utils/helpers.js';
 import { normalizeTradeList, tradeDisplayName } from '../utils/tradeItems.js';
+import { CardThumbnail } from '../components/ui/CardImagePreview.jsx';
 import Header from '../components/elements/Header.jsx';
 
 const TradeHistory = () => {
@@ -124,30 +125,6 @@ const TradeHistory = () => {
             return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
         }
         return date.toLocaleDateString();
-    };
-
-    const formatTradeSummary = (haveList, wantList) => {
-        const maxCards = 5; // Show up to 5 total cards
-        const allCards = [];
-
-        // Have side (cards you give) prefixed with −, want side (cards you get) with +
-        normalizeTradeList(haveList).forEach(card => {
-            allCards.push(`-${card.quantity} ${card.name}`);
-        });
-
-        normalizeTradeList(wantList).forEach(card => {
-            allCards.push(`+${card.quantity} ${card.name}`);
-        });
-
-        // Show first maxCards, then indicate if there are more
-        const displayCards = allCards.slice(0, maxCards);
-        const remaining = allCards.length - maxCards;
-
-        if (remaining > 0) {
-            return displayCards.join('  ') + `  ... (+${remaining} more)`;
-        }
-
-        return displayCards.join('  ');
     };
 
     const filteredTrades = trades.filter(trade =>
@@ -414,27 +391,19 @@ const TradeHistory = () => {
                                                     {formatDate(trade.created_at)}
                                                 </Typography>
 
-                                                {/* Trade Summary */}
-                                                <Typography
-                                                    variant="body2"
-                                                    sx={{
-                                                        color: mutedColor,
-                                                        mb: 1.5,
-                                                        fontStyle: 'italic',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        display: '-webkit-box',
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: 'vertical',
-                                                    }}
-                                                >
-                                                    {formatTradeSummary(trade.have_list, trade.want_list)}
-                                                </Typography>
+                                                <TradeCardLists
+                                                    haveList={trade.have_list}
+                                                    wantList={trade.want_list}
+                                                    haveCash={trade.have_cash}
+                                                    wantCash={trade.want_cash}
+                                                    textColor={textColor}
+                                                    mutedColor={mutedColor}
+                                                />
 
                                                 {/* Diff colors match the trade calculator:
                                                     positive = your side is worth more (primary),
                                                     negative = their side is worth more (success) */}
-                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.5 }}>
                                                     <Chip
                                                         size="small"
                                                         label={`Diff: ${parseFloat(trade.diff) > 0 ? '+' : ''}${formatCurrency(parseFloat(trade.diff).toFixed(2))}`}
@@ -528,5 +497,105 @@ const TradeHistory = () => {
         </Box>
     );
 };
+
+function TradeCardLists({ haveList, wantList, haveCash, wantCash, textColor, mutedColor }) {
+    const haveCards = normalizeTradeList(haveList);
+    const wantCards = normalizeTradeList(wantList);
+    const cashHave = Number(haveCash) || 0;
+    const cashWant = Number(wantCash) || 0;
+
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 0.5 }}>
+            {(haveCards.length > 0 || cashHave > 0) && (
+                <TradeSideList
+                    label="Gave"
+                    cards={haveCards}
+                    cash={cashHave}
+                    textColor={textColor}
+                    mutedColor={mutedColor}
+                />
+            )}
+            {(wantCards.length > 0 || cashWant > 0) && (
+                <TradeSideList
+                    label="Got"
+                    cards={wantCards}
+                    cash={cashWant}
+                    textColor={textColor}
+                    mutedColor={mutedColor}
+                />
+            )}
+        </Box>
+    );
+}
+
+function TradeSideList({ label, cards, cash, textColor, mutedColor }) {
+    return (
+        <Box>
+            <Typography
+                variant="caption"
+                sx={{
+                    color: mutedColor,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.4,
+                    display: 'block',
+                    mb: 0.75,
+                }}
+            >
+                {label}
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                {cards.map((card, index) => (
+                    <Box
+                        key={`${card.uniqueId || card.name}-${index}`}
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}
+                    >
+                        <CardThumbnail
+                            imageUrl={card.imageUrl}
+                            fallbackUrl={card.imageUrlFallback}
+                            alt={card.name}
+                            size={28}
+                        />
+                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: textColor,
+                                    fontWeight: 600,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    lineHeight: 1.3,
+                                }}
+                            >
+                                {card.quantity}× {card.name}
+                                {card.subTypeName ? ` (${card.subTypeName})` : ''}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: mutedColor }}>
+                                {formatCurrency(Number(card.price || 0).toFixed(2))} ea
+                            </Typography>
+                        </Box>
+                        <Typography
+                            variant="body2"
+                            sx={{ color: textColor, fontWeight: 700, flexShrink: 0 }}
+                        >
+                            {formatCurrency((Number(card.price || 0) * Number(card.quantity || 1)).toFixed(2))}
+                        </Typography>
+                    </Box>
+                ))}
+                {cash > 0 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                        <Typography variant="body2" sx={{ color: textColor, fontWeight: 600, flexGrow: 1 }}>
+                            Cash
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: textColor, fontWeight: 700 }}>
+                            {formatCurrency(cash.toFixed(2))}
+                        </Typography>
+                    </Box>
+                )}
+            </Box>
+        </Box>
+    );
+}
 
 export default TradeHistory;
