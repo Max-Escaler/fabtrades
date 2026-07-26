@@ -118,16 +118,46 @@ class AppMenuAction extends StatelessWidget {
 }
 
 Future<void> _showAppMenu(BuildContext context) async {
-  await showModalBottomSheet<void>(
+  // Capture the caller's navigator: the drawer's context is unmounted after pop.
+  final parentContext = context;
+  await showGeneralDialog<void>(
     context: context,
-    showDragHandle: true,
-    // Capture the caller's navigator: the sheet's context is unmounted after pop.
-    builder: (_) => _AppMenuSheet(parentContext: context),
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 250),
+    pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      final width = MediaQuery.sizeOf(dialogContext).width;
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Material(
+          color: Theme.of(dialogContext).colorScheme.surface,
+          elevation: 16,
+          child: SizedBox(
+            width: width < 360 ? width * 0.85 : 304,
+            height: double.infinity,
+            child: _AppMenuDrawer(parentContext: parentContext),
+          ),
+        ),
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        )),
+        child: child,
+      );
+    },
   );
 }
 
-class _AppMenuSheet extends ConsumerWidget {
-  const _AppMenuSheet({required this.parentContext});
+class _AppMenuDrawer extends ConsumerWidget {
+  const _AppMenuDrawer({required this.parentContext});
 
   final BuildContext parentContext;
 
@@ -137,7 +167,7 @@ class _AppMenuSheet extends ConsumerWidget {
 
     return SafeArea(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
             leading: Icon(
