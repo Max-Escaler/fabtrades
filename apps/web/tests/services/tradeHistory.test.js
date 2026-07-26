@@ -215,6 +215,48 @@ describe('saveTradeToHistory', () => {
       expect(trimmed).toBe(0);
     });
 
+    test('trims nothing when the count read comes back empty', async () => {
+      asUser();
+      // A null data payload with no error: the save still succeeds, and the
+      // sweep must treat "no rows" as nothing to trim rather than crash on it.
+      mockTables({
+        trades: [
+          { data: { id: 'newest' }, error: null },
+          { data: null, error: null },
+        ],
+        entitlements: asFree(),
+      });
+
+      const { data, error, trimmed } = await saveTradeToHistory('My Trade', [], [], totals);
+
+      expect(data).toEqual({ id: 'newest' });
+      expect(error).toBeNull();
+      expect(trimmed).toBe(0);
+    });
+
+    test('keeps the trade when the tombstone write itself fails', async () => {
+      asUser();
+      // Read finds a surplus, but the update that tombstones it fails. The save
+      // already succeeded, so this must be swallowed to a log, not surfaced.
+      const chains = mockTables({
+        trades: [
+          { data: { id: 'newest' }, error: null },
+          existingTrades(FreeLimits.savedTrades + 1),
+          { error: { message: 'tombstone failed' } },
+        ],
+        entitlements: asFree(),
+      });
+
+      const { data, error, trimmed } = await saveTradeToHistory('My Trade', [], [], totals);
+
+      expect(data).toEqual({ id: 'newest' });
+      expect(error).toBeNull();
+      expect(trimmed).toBe(0);
+      // The write was attempted — the surplus was correctly identified — it just
+      // did not land.
+      expect(chains.trades[2].update).toHaveBeenCalled();
+    });
+
     test('does not trim on an entitlement read the app could not complete', async () => {
       asUser();
       const chains = mockTables({
@@ -262,6 +304,16 @@ describe('getUserTrades', () => {
 
     expect(chains.trades[0].is).toHaveBeenCalledWith('deleted_at', null);
   });
+
+  test('reports a database error rather than throwing it at the caller', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'offline' } }] });
+
+    const { data, error } = await getUserTrades();
+
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'offline' });
+  });
 });
 
 describe('getTradeById', () => {
@@ -274,6 +326,27 @@ describe('getTradeById', () => {
     expect(data).toEqual({ id: 'xyz' });
     expect(chains.trades[0].eq).toHaveBeenCalledWith('id', 'xyz');
     expect(chains.trades[0].eq).toHaveBeenCalledWith('user_id', 'user-3');
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+
+    const { data, error } = await getTradeById('xyz');
+
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    // A signed-out reader must never reach the row, whatever id they name.
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  test('reports a database error rather than throwing it at the caller', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'not found' } }] });
+
+    const { data, error } = await getTradeById('xyz');
+
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'not found' });
   });
 });
 
@@ -289,6 +362,27 @@ describe('updateTrade', () => {
     expect(chains.trades[0].update).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'New', updated_at: expect.any(String) })
     );
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    // No write is issued for a signed-out caller.
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  test('reports a database error rather than throwing it at the caller', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'conflict' } }] });
+
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'conflict' });
   });
 });
 
@@ -315,5 +409,16 @@ describe('deleteTrade', () => {
     const { data, error } = await deleteTrade('d1');
     expect(data).toBeNull();
     expect(error).toEqual({ message: 'nope' });
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+
+    const { data, error } = await deleteTrade('d1');
+
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    // A signed-out caller must not be able to tombstone anyone's trade.
+    expect(supabase.from).not.toHaveBeenCalled();
   });
 });
