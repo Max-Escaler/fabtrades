@@ -105,6 +105,13 @@ In the Apple Developer portal:
 3. Keys → create a **Sign in with Apple** key. Supabase needs the resulting client
    secret JWT, which expires after at most six months, so this is a recurring
    maintenance task rather than a one-off.
+4. Profiles → regenerate the App Store profile for `com.fabtrades.app`, then replace
+   the stored copy in Codemagic → Team settings → codemagic.yaml settings → Code
+   signing identities. Enabling a capability leaves existing profiles untouched, and
+   the iOS workflow signs with the copy Codemagic has stored rather than whatever the
+   portal holds now, so skipping this fails the archive with *"Provisioning profile
+   doesn't include the Sign In with Apple capability"* no matter how many times the
+   build is re-run.
 
 Apple sends a name only on the very first authorization and never again, and Hide My
 Email accounts may supply no usable name at all. `Account.label` handles both by

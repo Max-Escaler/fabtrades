@@ -101,6 +101,63 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: xcode-project use-profiles
 
+      # Xcode only notices a profile missing a capability once the archive is
+      # already built, and it names the profile without saying which copy it
+      # used. Inspect what was actually fetched instead, so a profile predating
+      # Sign In with Apple fails here rather than ten minutes later.
+      - name: Check fetched profiles against Runner.entitlements
+        script: |
+          set -e
+          profiles="$HOME/Library/MobileDevice/Provisioning Profiles"
+          shopt -s nullglob
+          found=("$profiles"/*.mobileprovision)
+          if [ ${#found[@]} -eq 0 ]; then
+            echo "No provisioning profiles were fetched into $profiles"
+            exit 1
+          fi
+          stale=0
+          matched=0
+          for profile in "${found[@]}"; do
+            plist=$(mktemp)
+            security cms -D -i "$profile" > "$plist"
+            app_id=$(/usr/libexec/PlistBuddy -c \
+              'Print :Entitlements:application-identifier' "$plist" 2>/dev/null || true)
+            # The machine can hold profiles for other apps on the account; only
+            # the ones Xcode could choose between for this target matter.
+            case "$app_id" in
+              *.com.fabtrades.app) ;;
+              *) continue ;;
+            esac
+            matched=$((matched + 1))
+            name=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$plist")
+            uuid=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$plist")
+            created=$(/usr/libexec/PlistBuddy -c 'Print :CreationDate' "$plist")
+            if /usr/libexec/PlistBuddy -c \
+                'Print :Entitlements:com.apple.developer.applesignin' "$plist" >/dev/null 2>&1; then
+              echo "ok       $name — $uuid — created $created"
+            else
+              echo "NO APPLESIGNIN  $name — $uuid — created $created"
+              stale=1
+            fi
+          done
+          if [ "$matched" -eq 0 ]; then
+            echo "None of the fetched profiles are for com.fabtrades.app — check that an"
+            echo "App Store profile for that bundle id is stored in Codemagic Code signing"
+            echo "identities."
+            exit 1
+          fi
+          if [ "$stale" -ne 0 ]; then
+            echo
+            echo "That profile was generated before Sign In with Apple was enabled on the"
+            echo "com.fabtrades.app App ID. Enabling a capability does not update profiles"
+            echo "that already exist, and this workflow signs with the copy stored in"
+            echo "Codemagic rather than whatever the portal holds now, so re-running alone"
+            echo "will fetch the same stale file. Regenerate it in the Apple Developer"
+            echo "portal, then replace the stored copy under Codemagic — Team settings —"
+            echo "codemagic.yaml settings — Code signing identities. See docs/AUTH_PROVIDERS.md."
+            exit 1
+          fi
+
       - name: Set build number
         script: |
           # After the first TestFlight upload, this auto-increments. Before that,
