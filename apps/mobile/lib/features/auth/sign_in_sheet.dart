@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/account.dart';
 import '../../core/providers.dart';
+import 'auth_provider_icons.dart';
 
 /// Shows the sign-in sheet and resolves to true once an account is signed in.
 ///
@@ -172,17 +173,9 @@ class _ProviderButton extends StatelessWidget {
                 height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Icon(_icon, size: 20),
+            : authProviderIcon(provider, size: 20),
         label: Text('Continue with ${provider.label}'),
       ),
     );
   }
-
-  /// Material has no brand marks, and shipping unofficial ones risks breaching
-  /// each provider's brand guidelines, so these are neutral stand-ins.
-  IconData get _icon => switch (provider) {
-        AuthProviderKind.apple => Icons.apple,
-        AuthProviderKind.google => Icons.g_mobiledata,
-        AuthProviderKind.discord => Icons.chat_bubble_outline,
-      };
 }

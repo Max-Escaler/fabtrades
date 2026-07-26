@@ -58,6 +58,7 @@ dependencies:
   # SHA-256 for the Apple sign-in nonce. Apple gets the hash, Supabase gets the
   # raw value, and comparing them is what stops a replayed identity token.
   crypto: ^3.0.7
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
