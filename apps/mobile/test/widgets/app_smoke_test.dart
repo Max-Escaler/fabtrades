@@ -27,6 +27,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
         cardRepositoryProvider.overrideWithValue(mockRepo),
         // Skip the remote update check in headless smoke tests.

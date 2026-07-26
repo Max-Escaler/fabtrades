@@ -26,6 +26,8 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
+        // Exercise free-tier paths even on the no-paywalls build.
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
         subscriptionProvider.overrideWith(() => _FakeSubscription(isPro: isPro)),
       ],

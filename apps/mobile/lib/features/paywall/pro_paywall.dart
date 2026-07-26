@@ -33,6 +33,8 @@ Future<bool> presentProPaywall(
   Offering? offering,
   bool onlyIfNeeded = true,
 }) async {
+  if (ref.read(paywallsRemovedProvider)) return true;
+
   if (!ref.read(purchasesAvailableProvider)) {
     _showMessage(context, 'Subscriptions are unavailable in this build.');
     return ref.read(isProProvider);
@@ -98,6 +100,8 @@ Future<void> presentProCustomerCenter(
   BuildContext context,
   WidgetRef ref,
 ) async {
+  if (ref.read(paywallsRemovedProvider)) return;
+
   if (!ref.read(purchasesAvailableProvider)) {
     _showMessage(context, 'Subscriptions are unavailable in this build.');
     return;
@@ -131,6 +135,8 @@ Future<void> presentProCustomerCenter(
 /// Required by App Review for anything non-consumable, and the fix for the most
 /// common support ticket a no-account app gets: "I paid on my old phone."
 Future<bool> restoreProPurchases(BuildContext context, WidgetRef ref) async {
+  if (ref.read(paywallsRemovedProvider)) return true;
+
   if (!ref.read(purchasesAvailableProvider)) {
     _showMessage(context, 'Subscriptions are unavailable in this build.');
     return false;

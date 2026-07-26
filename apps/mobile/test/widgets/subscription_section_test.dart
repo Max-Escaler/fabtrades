@@ -2,7 +2,7 @@ import 'package:fabtrades/core/models/entitlement.dart';
 import 'package:fabtrades/core/models/subscription_status.dart';
 import 'package:fabtrades/core/providers.dart';
 import 'package:fabtrades/features/paywall/pro_gate.dart';
-import 'package:fabtrades/features/settings/settings_screen.dart';
+import 'package:fabtrades/features/settings/account_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,6 +42,8 @@ Future<ProviderContainer> _pumpSettings(
 
   final container = ProviderContainer(
     overrides: [
+      // Subscription UI is hidden on the no-paywalls build; keep it on here.
+      paywallsRemovedProvider.overrideWithValue(false),
       sharedPreferencesProvider.overrideWithValue(prefs),
       cardRepositoryProvider.overrideWithValue(cards),
       purchasesAvailableProvider.overrideWithValue(purchasesAvailable),
@@ -55,17 +57,28 @@ Future<ProviderContainer> _pumpSettings(
       // Overridden rather than left to read Supabase, which has no client under
       // `flutter test`.
       serverEntitlementProvider.overrideWith((ref) async => server),
-      // Settings also renders an account block; keep it signed out so this test
+      // Account also renders an account block; keep it signed out so this test
       // stays about subscriptions.
       accountProvider.overrideWith((ref) => Stream.value(null)),
     ],
   );
   addTearDown(container.dispose);
 
+  // Resolve entitlement sources before asserting Pro — otherwise
+  // `isProProvider` still reads the free fallback.
+  if (status != null) {
+    await container.read(subscriptionProvider.future);
+  } else {
+    try {
+      await container.read(subscriptionProvider.future);
+    } catch (_) {}
+  }
+  await container.read(serverEntitlementProvider.future);
+
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: SettingsScreen()),
+      child: const MaterialApp(home: AccountScreen()),
     ),
   );
   await tester.pumpAndSettle();
@@ -186,7 +199,7 @@ void main() {
 
     expect(find.text('SUBSCRIPTION'), findsNothing);
     expect(find.text('See plans'), findsNothing);
-    // The rest of Settings is unaffected.
-    expect(find.text('PRICE SOURCE'), findsOneWidget);
+    // The rest of My Account is unaffected.
+    expect(find.text('ACCOUNT'), findsOneWidget);
   });
 }

@@ -23,6 +23,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
         if (cardRepository != null)
           cardRepositoryProvider.overrideWithValue(cardRepository),
@@ -148,12 +149,14 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final c1 = ProviderContainer(overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ]);
       c1.read(binderProvider.notifier).add(buildCard(id: 'persist'));
       c1.dispose();
 
       final c2 = ProviderContainer(overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ]);
       addTearDown(c2.dispose);
@@ -361,6 +364,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       // Seed the cache directly through the repository.
       final container = ProviderContainer(overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
         cardRepositoryProvider.overrideWithValue(mockRepo),
       ]);

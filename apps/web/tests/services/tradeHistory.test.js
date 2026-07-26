@@ -5,6 +5,11 @@ jest.mock('../../src/lib/supabase.js', () => {
   return { supabase };
 });
 
+// Keep free-window trimming testable on the no-paywalls build.
+jest.mock('../../src/config/paywall.js', () => ({
+  PAYWALLS_REMOVED: false,
+}));
+
 import { supabase } from '../../src/lib/supabase.js';
 import {
   saveTradeToHistory,

@@ -2,6 +2,11 @@ jest.mock('../../src/lib/supabase.js', () => ({
   supabase: { from: jest.fn() },
 }));
 
+// Keep free/paid paths testable on the no-paywalls build.
+jest.mock('../../src/config/paywall.js', () => ({
+  PAYWALLS_REMOVED: false,
+}));
+
 import { supabase } from '../../src/lib/supabase.js';
 import {
   FREE_ENTITLEMENT,

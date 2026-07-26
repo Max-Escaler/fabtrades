@@ -49,6 +49,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [
+        paywallsRemovedProvider.overrideWithValue(false),
         sharedPreferencesProvider.overrideWithValue(prefs),
         subscriptionProvider.overrideWith(_FreeSubscription.new),
       ],

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { PAYWALLS_REMOVED } from '../config/paywall';
 import { useAuth } from './AuthContext';
-import { FREE_ENTITLEMENT, fetchEntitlement } from '../services/entitlements';
+import { FREE_ENTITLEMENT, UNLOCKED_ENTITLEMENT, fetchEntitlement } from '../services/entitlements';
 
 const EntitlementContext = createContext({});
 
@@ -25,13 +26,22 @@ export const useEntitlement = () => useContext(EntitlementContext);
 
 export const EntitlementProvider = ({ children }) => {
     const { user, loading: authLoading } = useAuth();
-    const [entitlement, setEntitlement] = useState(FREE_ENTITLEMENT);
+    const [entitlement, setEntitlement] = useState(
+        PAYWALLS_REMOVED ? UNLOCKED_ENTITLEMENT : FREE_ENTITLEMENT,
+    );
     // Starts true so a gate never flashes "free" at a subscriber on first paint.
-    const [loading, setLoading] = useState(true);
+    // Paywall-free builds skip the lookup entirely.
+    const [loading, setLoading] = useState(!PAYWALLS_REMOVED);
 
     const userId = user?.id ?? null;
 
     const load = useCallback(async () => {
+        if (PAYWALLS_REMOVED) {
+            setEntitlement(UNLOCKED_ENTITLEMENT);
+            setLoading(false);
+            return;
+        }
+
         if (!userId) {
             setEntitlement(FREE_ENTITLEMENT);
             setLoading(false);

@@ -1,3 +1,4 @@
+import { PAYWALLS_REMOVED } from '../config/paywall';
 import { supabase } from '../lib/supabase';
 
 /**
@@ -12,6 +13,12 @@ export const FREE_ENTITLEMENT = Object.freeze({
     expiresAt: null,
     productId: null,
     purchasedFrom: null,
+});
+
+/** Unlocked entitlement used by the paywall-free build. */
+export const UNLOCKED_ENTITLEMENT = Object.freeze({
+    ...FREE_ENTITLEMENT,
+    isPro: true,
 });
 
 const SOURCE_LABELS = {
@@ -58,6 +65,10 @@ export function entitlementFromRow(row) {
  * @returns {Promise<{ entitlement: Object, error: Object|null }>}
  */
 export async function fetchEntitlement(userId) {
+    if (PAYWALLS_REMOVED) {
+        return { entitlement: UNLOCKED_ENTITLEMENT, error: null };
+    }
+
     if (!supabase) {
         return { entitlement: FREE_ENTITLEMENT, error: { message: 'Supabase is not configured' } };
     }

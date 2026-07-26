@@ -36,6 +36,8 @@ Future<ProviderContainer> pumpApp(
 
   final container = ProviderContainer(
     overrides: [
+      // Widget tests cover gated UI; keep free-tier behaviour available.
+      paywallsRemovedProvider.overrideWithValue(false),
       sharedPreferencesProvider.overrideWithValue(prefs),
       cardRepositoryProvider.overrideWithValue(mockRepo),
       accountProvider.overrideWith((ref) => Stream.value(account)),

@@ -7,6 +7,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'config/paywall_config.dart';
 import 'data/app_update_repository.dart';
 import 'data/auth_repository.dart';
 import 'data/card_repository.dart';
@@ -492,16 +493,30 @@ final entitlementProvider = Provider<Entitlement>((ref) {
   );
 });
 
+/// Whether this build has paywalls and free-tier caps removed.
+///
+/// Defaults to [PaywallConfig.removed]. Tests override this to `false` so the
+/// free-tier paths remain covered on the no-paywalls branch.
+final paywallsRemovedProvider = Provider<bool>((_) => PaywallConfig.removed);
+
 /// The single check to gate a Pro feature on. Defaults to locked while the
 /// entitlement is still loading or couldn't be read.
+///
+/// Always unlocked when [paywallsRemovedProvider] is true.
 final isProProvider = Provider<bool>(
-  (ref) => ref.watch(entitlementProvider).isPro,
+  (ref) =>
+      ref.watch(paywallsRemovedProvider) ||
+      ref.watch(entitlementProvider).isPro,
 );
 
 /// Whether to show subscription UI at all — false on builds without a
 /// RevenueCat API key, where nothing could be purchased anyway.
-final purchasesAvailableProvider = Provider<bool>(
-    (ref) => ref.watch(purchasesRepositoryProvider).isConfigured);
+///
+/// Also false when [paywallsRemovedProvider] is true: there is nothing to buy.
+final purchasesAvailableProvider = Provider<bool>((ref) {
+  if (ref.watch(paywallsRemovedProvider)) return false;
+  return ref.watch(purchasesRepositoryProvider).isConfigured;
+});
 
 /// The offering marked **Current** in the dashboard, holding the `yearly` and
 /// `monthly` packages. Prices come from the store, already localized.

@@ -11,7 +11,21 @@ jest.mock('../../src/services/entitlements.js', () => ({
     productId: null,
     purchasedFrom: null,
   }),
+  UNLOCKED_ENTITLEMENT: Object.freeze({
+    isPro: true,
+    isInTrial: false,
+    hasBillingIssue: false,
+    isSandbox: false,
+    expiresAt: null,
+    productId: null,
+    purchasedFrom: null,
+  }),
   fetchEntitlement: jest.fn(),
+}));
+
+// Keep free/paid paths testable on the no-paywalls build.
+jest.mock('../../src/config/paywall.js', () => ({
+  PAYWALLS_REMOVED: false,
 }));
 
 jest.mock('../../src/contexts/AuthContext', () => ({
