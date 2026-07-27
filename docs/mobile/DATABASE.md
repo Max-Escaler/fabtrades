@@ -135,3 +135,23 @@ The web app reads from this database too — no price data is committed to the r
 `collector_number`→`extNumber`, `sub_type_name`→`subTypeName`, `set_name`→`_setName`).
 `fab_sets` also carries browse metadata for the set list: `abbreviation`, `published_on`,
 `is_supplemental`, `modified_on` (kept current by the pipeline from the TCGCSV groups feed).
+
+### The web app does not read this at runtime
+
+Mobile queries the view per search. The web app cannot: it needs the whole catalog
+in memory before search or trade math work, and PostgREST caps a response at 1000
+rows, so that was ~17 paginated requests — none of them cacheable, because Supabase
+sends no `Cache-Control`. Every visit re-downloaded the lot.
+
+So [`apps/web/scripts/generateCatalog.js`](../../apps/web/scripts/generateCatalog.js)
+runs the same queries **at build time** and writes the result to a content-hashed
+`dist/catalog/catalog-<hash>.json`, which `netlify.toml` serves `immutable`. The
+browser fetches one CDN file (~0.35 MB brotli) and makes no database request at all.
+
+The consequence to remember: **fresh prices only reach the website when it rebuilds.**
+`update-prices.yml` pings a Netlify build hook after each daily ingest for exactly
+that reason. If prices look stale on the web but current on mobile, check that hook
+before suspecting the pipeline.
+
+`fetchCatalog()` falls back to reading the database directly when there is no
+snapshot, which is what `vite dev` and a failed generation both look like.

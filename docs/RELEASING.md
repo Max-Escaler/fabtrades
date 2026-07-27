@@ -8,6 +8,12 @@ Netlify builds `main` from `apps/web`. There is nothing to do beyond merging, an
 nothing to coordinate — the web app reads the same `entitlements` row the apps write
 to, so it cannot be out of step with them in any way a customer would notice.
 
+The site also rebuilds on its own once a day: the build bakes the card catalog into
+a static file, so `update-prices.yml` pings a Netlify build hook after each ingest to
+ship the new prices (see [mobile/DATABASE.md](mobile/DATABASE.md)). That hook lives in
+the `NETLIFY_BUILD_HOOK` repository secret; without it the site keeps building on
+merges but its prices freeze at the last deploy.
+
 ## Mobile
 
 ```bash

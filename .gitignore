@@ -99,6 +99,11 @@ jspm_packages/
 # Scraper debug output
 apps/web/scripts/_set-logos-scrape.json
 
+# Build-time card catalog snapshot (regenerated from Supabase by
+# scripts/generateCatalog.js on every build)
+apps/web/public/catalog/
+apps/web/.catalog-snapshot.json
+
 # Supabase CLI local state
 supabase/.branches/
 supabase/.temp/

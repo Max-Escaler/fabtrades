@@ -5,6 +5,16 @@
   command = "npm run build"
   publish = "dist"
 
+# The card catalog snapshot (scripts/generateCatalog.js). Its filename contains a
+# hash of its contents, so a given URL can never change and the browser never has
+# to revalidate it — new prices simply produce a new filename. This is what makes
+# the catalog a single edge-served request instead of ~17 uncacheable ones
+# against Supabase.
+[[headers]]
+  for = "/catalog/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [build.environment]
   NODE_VERSION = "18"
   # Tell Netlify to ignore these environment variables in secret scanning

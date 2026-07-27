@@ -25,3 +25,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run ingest
+
+      # The website serves the catalog as a static file built from these tables
+      # (apps/web/scripts/generateCatalog.js), so fresh prices only reach visitors
+      # once the site is rebuilt. Skipped when the hook secret is unset, which is
+      # what a fork or a pre-Netlify checkout looks like.
+      - name: Trigger website rebuild
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
+            echo "NETLIFY_BUILD_HOOK is not set; skipping the site rebuild."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
+          echo "Requested a Netlify rebuild so the new prices ship to the site."

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Box,
     Container,
@@ -27,8 +27,8 @@ import { Link, useParams } from 'react-router-dom';
 import Header from '../components/elements/Header.jsx';
 import { CardThumbnail, CardImageModal } from '../components/ui/CardImagePreview.jsx';
 import { useSets } from '../hooks/useSets.js';
+import { useCardData } from '../hooks/useCardData.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
-import { fetchLastUpdatedTimestamp } from '../services/api.js';
 import { formatCardType, getCardGradient } from '../utils/searchUtils.js';
 import { useDocumentHead } from '../utils/seo.js';
 
@@ -184,19 +184,15 @@ const PriceCell = ({ label, value, isDark, accent = false }) => (
 const SetDetail = () => {
     const { groupId } = useParams();
     const { getSetById, loading, error } = useSets();
+    const { pricesUpdatedAt: lastUpdatedTimestamp } = useCardData();
     const { isDark } = useThemeMode();
     const theme = useTheme();
     const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
     const [query, setQuery] = useState('');
     const [sortMode, setSortMode] = useState('market-desc');
-    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalCard, setModalCard] = useState(null);
-
-    useEffect(() => {
-        fetchLastUpdatedTimestamp().then(setLastUpdatedTimestamp);
-    }, []);
 
     const set = useMemo(() => getSetById(groupId), [getSetById, groupId]);
 

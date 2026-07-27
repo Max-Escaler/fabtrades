@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useCardData } from "../hooks/useCardData.jsx";
@@ -6,18 +6,23 @@ import { useTradeState } from "../hooks/useTradeState.js";
 import Header from "../components/elements/Header.jsx";
 import CardPanel from "../components/ui/CardPanel.jsx";
 import TradeSummary from "../components/elements/TradeSummary.jsx";
-import { fetchLastUpdatedTimestamp } from "../services/api.js";
 import { useThemeMode } from "../contexts/ThemeContext.jsx";
 
 const Home = () => {
     const location = useLocation();
-    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
     const { isDark } = useThemeMode();
 
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
 
-    const { cardGroups, cardIdLookup, cards, dataReady, error } = useCardData();
+    const {
+        cardGroups,
+        cardIdLookup,
+        cards,
+        dataReady,
+        error,
+        pricesUpdatedAt: lastUpdatedTimestamp
+    } = useCardData();
     
     // Create unique card options that include all editions
     const cardOptions = cards.map(card => ({
@@ -29,15 +34,6 @@ const Home = () => {
     }));
 
     const tradeState = useTradeState(cardGroups, cardIdLookup);
-
-    // Fetch last updated timestamp
-    useEffect(() => {
-        const fetchTimestamp = async () => {
-            const timestamp = await fetchLastUpdatedTimestamp();
-            setLastUpdatedTimestamp(timestamp);
-        };
-        fetchTimestamp();
-    }, []);
 
     // Load trade from navigation state (when coming from history page)
     useEffect(() => {

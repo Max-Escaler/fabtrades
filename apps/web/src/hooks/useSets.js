@@ -4,27 +4,6 @@ import { slugifySetName, buildSetSlugMap } from '../utils/setSlug.js';
 import { compareSetsByBrowseOrder } from '../utils/setSort.js';
 import { resolveSetAbbreviation } from '../utils/setAbbreviation.js';
 import { loadSetLogoMap } from '../utils/setLogos.js';
-import { fetchSetGroups } from '../services/fabDb.js';
-
-// Module-level cache so the set list is only fetched from the database once
-// even when multiple components mount `useSets` on the same page.
-let groupsCache = null;
-let groupsPromise = null;
-
-const loadGroupsCached = async () => {
-    if (groupsCache) return groupsCache;
-    if (groupsPromise) return groupsPromise;
-    groupsPromise = (async () => {
-        try {
-            groupsCache = await fetchSetGroups();
-            return groupsCache;
-        } catch (err) {
-            groupsPromise = null;
-            throw err;
-        }
-    })();
-    return groupsPromise;
-};
 
 // Re-export the shared slug helper so existing importers keep working.
 export { slugifySetName };
@@ -45,40 +24,31 @@ const isActualCard = (card) => {
 };
 
 /**
- * Loads the list of TCGplayer product groups (sets) and joins them with the
- * cards already loaded by `useCardData` so consumers can render set browsers
- * without any additional plumbing.
+ * Joins the set list with the cards already loaded by `useCardData` so consumers
+ * can render set browsers without any additional plumbing.
+ *
+ * The sets themselves come from that same context: they ship inside the catalog
+ * payload, so querying `fab_sets` again here only duplicated a request the app
+ * had already made.
  */
 export const useSets = () => {
-    const { cards, dataReady } = useCardData();
-    const [groups, setGroups] = useState(groupsCache || []);
+    const { cards, sets: groups, dataReady, error: cardError } = useCardData();
     const [logoByGroupId, setLogoByGroupId] = useState({});
-    const [loading, setLoading] = useState(!groupsCache);
-    const [error, setError] = useState(null);
+    const [logosLoading, setLogosLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
-        (async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const [results, logos] = await Promise.all([
-                    loadGroupsCached(),
-                    loadSetLogoMap()
-                ]);
-                if (!cancelled) {
-                    setGroups(results);
-                    setLogoByGroupId(logos);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('Error loading product groups:', err);
-                    setError(err.message);
-                }
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
+        loadSetLogoMap()
+            .then((logos) => {
+                if (!cancelled) setLogoByGroupId(logos);
+            })
+            .catch((err) => {
+                // Logos are decoration; a set browser without them still works.
+                console.error('Error loading set logos:', err);
+            })
+            .finally(() => {
+                if (!cancelled) setLogosLoading(false);
+            });
         return () => {
             cancelled = true;
         };
@@ -181,8 +151,8 @@ export const useSets = () => {
     return {
         sets,
         getSetById,
-        loading: loading || !dataReady,
-        error
+        loading: logosLoading || !dataReady,
+        error: cardError
     };
 };
 

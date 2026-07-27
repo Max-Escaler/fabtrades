@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -8,7 +7,7 @@ import {
 } from '@mui/material';
 import Header from '../components/elements/Header.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
-import { fetchLastUpdatedTimestamp } from '../services/api.js';
+import { useCardData } from '../hooks/useCardData.jsx';
 import { useDocumentHead } from '../utils/seo.js';
 import {
     privacySections,
@@ -41,7 +40,7 @@ const linkify = (text, linkColor) => {
 
 const PrivacyPolicy = () => {
     const { isDark } = useThemeMode();
-    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
+    const { pricesUpdatedAt: lastUpdatedTimestamp } = useCardData();
 
     useDocumentHead({
         title: 'Privacy Policy',
@@ -51,10 +50,6 @@ const PrivacyPolicy = () => {
             'your rights.',
         canonicalPath: '/privacy'
     });
-
-    useEffect(() => {
-        fetchLastUpdatedTimestamp().then(setLastUpdatedTimestamp);
-    }, []);
 
     const bgGradient = isDark
         ? 'linear-gradient(135deg, #0d0806 0%, #1a0f0a 50%, #2c1810 100%)'

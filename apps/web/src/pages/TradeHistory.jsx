@@ -31,7 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEntitlement } from '../contexts/EntitlementContext.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
-import { fetchLastUpdatedTimestamp } from '../services/api';
+import { useCardData } from '../hooks/useCardData.jsx';
 import { FreeLimits } from '../utils/freeLimits.js';
 import { formatCurrency } from '../utils/helpers.js';
 import { normalizeTradeList, tradeDisplayName } from '../utils/tradeItems.js';
@@ -42,6 +42,7 @@ const TradeHistory = () => {
     const navigate = useNavigate();
     const { user, signInWithDiscord } = useAuth();
     const { isPro, loading: entitlementLoading } = useEntitlement();
+    const { pricesUpdatedAt: lastUpdatedTimestamp } = useCardData();
     const { isDark } = useThemeMode();
     const [trades, setTrades] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -50,22 +51,12 @@ const TradeHistory = () => {
     const [deletingId, setDeletingId] = useState(null);
     const [confirmDeleteTrade, setConfirmDeleteTrade] = useState(null);
     const [deleteError, setDeleteError] = useState('');
-    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     useEffect(() => {
         if (user) {
             loadTrades();
         }
     }, [user]);
-
-    // Fetch last updated timestamp
-    useEffect(() => {
-        const fetchTimestamp = async () => {
-            const timestamp = await fetchLastUpdatedTimestamp();
-            setLastUpdatedTimestamp(timestamp);
-        };
-        fetchTimestamp();
-    }, []);
 
     const loadTrades = async () => {
         setLoading(true);

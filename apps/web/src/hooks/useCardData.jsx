@@ -90,17 +90,12 @@ const createCardObject = (row) => {
         // Core properties - convert strings to appropriate types where needed
         productId: row.productId || '',
         name: row.name || '',
-        cleanName: row.cleanName || '',
-        categoryId: row.categoryId || '',
         groupId: row.groupId || '',
         // Prefer the canonical FAB CDN image, but fall back to the source
         // (TCGplayer) image when the CDN has no file for this card (e.g. heroes,
         // tokens, and promos whose set codes the CDN doesn't host).
         imageUrl: buildFabImageUrl(row.extNumber, row.subTypeName) || (row.imageUrl || ''),
         imageUrlFallback: row.imageUrl || '',
-        url: row.url || '',
-        modifiedOn: row.modifiedOn || '',
-        imageCount: getIntegerValue(row, ['imageCount']),
 
         // Price properties - ensure they're numbers
         lowPrice: getNumericValue(row, ['lowPrice']),
@@ -227,6 +222,7 @@ const groupCardsByEdition = (cards) => {
 // Main provider component
 export const CardDataProvider = ({ children }) => {
     const [cards, setCards] = useState([]);
+    const [sets, setSets] = useState([]); // Set metadata, loaded with the catalog
     const [cardIdLookup, setCardIdLookup] = useState({}); // Lookup map for unique IDs
     const [loading, setLoading] = useState(false); // Changed to false for instant page load
     const [dataReady, setDataReady] = useState(false); // New state to track when data is fully loaded
@@ -240,10 +236,12 @@ export const CardDataProvider = ({ children }) => {
                 setLoading(true);
                 setError(null);
 
-                // Load the full catalog (cards + prices) from the shared
-                // Supabase database. Rows arrive pre-mapped to the legacy
-                // consolidated-data column names.
-                const { rows, pricesUpdatedAt } = await fetchCatalog();
+                // Load the full catalog (cards, sets and prices) — from the
+                // build-time snapshot when there is one, otherwise straight from
+                // Supabase. Rows arrive pre-mapped to the legacy
+                // consolidated-data column names either way.
+                const { rows, sets: setGroups, pricesUpdatedAt } = await fetchCatalog();
+                setSets(setGroups || []);
                 setDataSource('supabase');
                 setMetadata({
                     totalRecords: rows.length,
@@ -286,13 +284,17 @@ export const CardDataProvider = ({ children }) => {
     const value = useMemo(() => ({
         cards,
         cardGroups,
+        // Sets and the price timestamp arrive with the catalog, so every consumer
+        // reads them from here rather than issuing its own query.
+        sets,
+        pricesUpdatedAt: metadata?.generatedAt ?? null,
         cardIdLookup,
         loading,
         dataReady,
         error,
         dataSource,
         metadata
-    }), [cards, cardGroups, cardIdLookup, loading, dataReady, error, dataSource, metadata]);
+    }), [cards, cardGroups, sets, cardIdLookup, loading, dataReady, error, dataSource, metadata]);
 
     return (
         <CardDataContext.Provider value={value}>

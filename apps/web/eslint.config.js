@@ -18,6 +18,9 @@ export default defineConfig([
             globals: {
                 ...globals.browser,
                 ...globals.jest,
+                // Substituted by vite.config.js at build time: the URL of the
+                // catalog snapshot, or null when this build has none.
+                __CATALOG_URL__: 'readonly',
             },
             parserOptions: {
                 ecmaVersion: 'latest',

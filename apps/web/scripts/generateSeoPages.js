@@ -37,6 +37,13 @@ import {
     PRIVACY_EFFECTIVE_DATE
 } from '../src/content/privacyPolicy.js';
 
+// Written by scripts/generateCatalog.js earlier in the build.
+const SNAPSHOT_METADATA_FILE = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+    '.catalog-snapshot.json'
+);
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
@@ -124,7 +131,26 @@ const buildImageUrl = (row) => {
 // Data loading + shaping (mirrors src/hooks/useSets.js)
 // ---------------------------------------------------------------------------
 
+/**
+ * The same catalog the app will load, preferring the snapshot generateCatalog.js
+ * already downloaded earlier in the build. Reading it off disk avoids pulling
+ * ~17k rows over the network twice per build, and guarantees these prerendered
+ * pages show exactly what the app shows.
+ */
 const loadData = async () => {
+    try {
+        const { file } = JSON.parse(await readFile(SNAPSHOT_METADATA_FILE, 'utf8'));
+        const snapshot = JSON.parse(await readFile(path.join(DIST, file), 'utf8'));
+        console.log(`[seo] Using catalog snapshot ${file} (${snapshot.rows.length} printings).`);
+        return {
+            groups: snapshot.sets,
+            rows: snapshot.rows,
+            metadata: { generatedAt: snapshot.pricesUpdatedAt }
+        };
+    } catch {
+        console.log('[seo] No catalog snapshot; reading the database directly.');
+    }
+
     const [groups, rows, pricesUpdatedAt] = await Promise.all([
         fetchSetGroups(),
         fetchCatalogRows(),

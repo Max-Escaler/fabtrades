@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Box,
     Container,
@@ -22,8 +22,8 @@ import {
 import { Link } from 'react-router-dom';
 import Header from '../components/elements/Header.jsx';
 import { useSets } from '../hooks/useSets.js';
+import { useCardData } from '../hooks/useCardData.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
-import { fetchLastUpdatedTimestamp } from '../services/api.js';
 import { useDocumentHead } from '../utils/seo.js';
 import { BROWSE_TIER, browseTierLabel, setBrowseTier } from '../utils/setSort.js';
 
@@ -142,9 +142,9 @@ const SetTitle = ({ set, textColor, mutedColor, isDark }) => {
 
 const SetList = () => {
     const { sets, loading, error } = useSets();
+    const { pricesUpdatedAt: lastUpdatedTimestamp } = useCardData();
     const { isDark } = useThemeMode();
     const [query, setQuery] = useState('');
-    const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState(null);
 
     useDocumentHead({
         title: 'Flesh and Blood Card Price Guides by Set',
@@ -153,10 +153,6 @@ const SetList = () => {
             'market prices for each card. Pick a set for its full price guide.',
         canonicalPath: '/sets'
     });
-
-    useEffect(() => {
-        fetchLastUpdatedTimestamp().then(setLastUpdatedTimestamp);
-    }, []);
 
     const filteredSets = useMemo(() => {
         const q = query.trim().toLowerCase();
