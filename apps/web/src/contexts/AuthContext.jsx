@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { posthog } from '../lib/posthog';
 
 const AuthContext = createContext({});
 
@@ -37,6 +38,12 @@ export const AuthProvider = ({ children }) => {
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
+
+            if (session?.user) {
+                posthog.identify(session.user.id, {
+                    discord_username: session.user.user_metadata?.full_name ?? session.user.user_metadata?.name,
+                });
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -46,8 +53,9 @@ export const AuthProvider = ({ children }) => {
         if (!supabase) {
             return { data: null, error: { message: 'Authentication not configured' } };
         }
-        
+
         try {
+            posthog.capture('sign_in_initiated', { provider: 'discord' });
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'discord',
                 options: {
@@ -59,6 +67,7 @@ export const AuthProvider = ({ children }) => {
             return { data, error: null };
         } catch (error) {
             console.error('Error signing in with Discord:', error);
+            posthog.captureException(error, { context: 'sign_in_with_discord' });
             return { data: null, error };
         }
     };
@@ -67,13 +76,16 @@ export const AuthProvider = ({ children }) => {
         if (!supabase) {
             return { error: { message: 'Authentication not configured' } };
         }
-        
+
         try {
+            posthog.capture('sign_out');
+            posthog.reset();
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
             return { error: null };
         } catch (error) {
             console.error('Error signing out:', error);
+            posthog.captureException(error, { context: 'sign_out' });
             return { error };
         }
     };

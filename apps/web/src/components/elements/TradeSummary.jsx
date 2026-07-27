@@ -27,6 +27,7 @@ import { saveTradeToHistory } from "../../services/tradeHistory.js";
 import { FreeLimits } from "../../utils/freeLimits.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
+import { posthog } from "../../lib/posthog.js";
 
 // Copy text to the clipboard with a fallback for non-secure contexts.
 const copyTextToClipboard = async (text) => {
@@ -127,14 +128,23 @@ const TradeSummary = ({
         });
         setTradeOfferText(text);
         setShowTradeOffer(true);
+        posthog.capture('trade_offer_generated', {
+            have_card_count: getTotalCardCount(haveList),
+            want_card_count: getTotalCardCount(wantList),
+            have_total: haveTotal,
+            want_total: wantTotal,
+            diff,
+        });
     };
 
     const handleCopyTradeOffer = async () => {
         try {
             await copyTextToClipboard(tradeOfferText);
             setSnackbar({ open: true, message: 'Copied — send it to the trade poster', severity: 'success' });
+            posthog.capture('trade_offer_copied');
         } catch (err) {
             console.error('Failed to copy trade offer:', err);
+            posthog.captureException(err, { context: 'copy_trade_offer' });
             setSnackbar({ open: true, message: 'Could not copy — select the text and copy it manually', severity: 'error' });
         }
     };
@@ -154,9 +164,18 @@ const TradeSummary = ({
         });
         setSaving(false);
         if (error) {
+            posthog.captureException(new Error(error.message || 'Failed to save trade'), { context: 'save_trade' });
             setSnackbar({ open: true, message: error.message || 'Failed to save trade', severity: 'error' });
             return;
         }
+        posthog.capture('trade_saved', {
+            have_card_count: getTotalCardCount(haveList),
+            want_card_count: getTotalCardCount(wantList),
+            have_total: haveTotal,
+            want_total: wantTotal,
+            diff,
+            history_trimmed: trimmed,
+        });
         setShowSaveDialog(false);
         // Say so when older trades rolled off. A history that silently shortens is
         // indistinguishable from a bug.

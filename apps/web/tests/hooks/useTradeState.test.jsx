@@ -1,4 +1,13 @@
 import { renderHook, act } from '@testing-library/react';
+
+// `lib/posthog.js` reads `import.meta.env`, a Vite construct that babel-jest
+// leaves unevaluated in CommonJS mode. It's an `import.meta` boundary module
+// (like `config/env.js`) and is mocked out of the unit suite by design — see
+// the `collectCoverageFrom` note in jest.config.js.
+jest.mock('../../src/lib/posthog.js', () => ({
+    posthog: { capture: jest.fn() },
+}));
+
 import { useTradeState } from '../../src/hooks/useTradeState.js';
 
 const cardGroups = [
