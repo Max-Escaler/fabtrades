@@ -17,9 +17,16 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # PostHog publishable project key and host. Not secret: like the Supabase
+  # keys below, this is a client-side publishable token gated by PostHog's
+  # own project permissions, so it is safe to bake into the browser bundle.
+  # One PostHog project serves every context, so these live in the base
+  # build environment rather than a per-context block.
+  VITE_POSTHOG_KEY = "phc_vwZeKtRGcGbQjotwKxYDrX2CurGwoCJkA5nfJdzs95EF"
+  VITE_POSTHOG_HOST = "https://us.i.posthog.com"
   # Tell Netlify to ignore these environment variables in secret scanning
-  # These are Supabase public keys that are safe to expose in client-side code
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+  # These are publishable keys that are safe to expose in client-side code
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_POSTHOG_KEY,VITE_POSTHOG_HOST"
 
 # Which Supabase project a deploy talks to is decided here, per context, rather
 # than in code, and the app throws if it is not told. Nothing is secret: these are
