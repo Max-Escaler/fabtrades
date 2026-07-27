@@ -13,6 +13,9 @@ import '../../core/models/app_settings.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
+import '../onboarding/onboarding_keys.dart';
+import '../onboarding/showcase_theme.dart';
+import '../onboarding/tour_copy.dart';
 import '../paywall/pro_gate.dart';
 import '../scan/scan_screen.dart';
 import '../search/card_picker.dart';
@@ -78,41 +81,56 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
                   children: [
                     Expanded(
                       flex: topFlex,
-                      child: _TradeSideList(
-                        side: TradeSide.want,
-                        title: 'Their cards',
-                        accent: AppTheme.wantAccent,
-                        items: trade.wantItems,
-                        symbol: trade.currencySymbol,
-                        addLabel: 'Add their cards',
+                      child: ShowcaseTheme.mark(
+                        key: OnboardingKeys.tradeTheirCards,
+                        title: TourCopy.tradeTheirTitle,
+                        description: TourCopy.tradeTheirBody,
+                        child: _TradeSideList(
+                          side: TradeSide.want,
+                          title: 'Their cards',
+                          accent: AppTheme.wantAccent,
+                          items: trade.wantItems,
+                          symbol: trade.currencySymbol,
+                          addLabel: 'Add their cards',
+                        ),
                       ),
                     ),
-                    _DragBar(
-                      trade: trade,
-                      settings: settings,
-                      pricing: pricing,
-                      fillerLocked: !ref.watch(isProProvider),
-                      onFindFiller: () async {
-                        if (!await ensurePro(context, ref)) return;
-                        if (!context.mounted) return;
-                        await showTradeFillerSheet(context, ref);
-                      },
-                      onDrag: (dy) {
-                        setState(() {
-                          _topFraction = (frac + dy / avail)
-                              .clamp(_minFraction, 1 - _minFraction);
-                        });
-                      },
+                    ShowcaseTheme.mark(
+                      key: OnboardingKeys.tradeDragBar,
+                      title: TourCopy.tradeDragTitle,
+                      description: TourCopy.tradeDragBody,
+                      child: _DragBar(
+                        trade: trade,
+                        settings: settings,
+                        pricing: pricing,
+                        fillerLocked: !ref.watch(isProProvider),
+                        onFindFiller: () async {
+                          if (!await ensurePro(context, ref)) return;
+                          if (!context.mounted) return;
+                          await showTradeFillerSheet(context, ref);
+                        },
+                        onDrag: (dy) {
+                          setState(() {
+                            _topFraction = (frac + dy / avail)
+                                .clamp(_minFraction, 1 - _minFraction);
+                          });
+                        },
+                      ),
                     ),
                     Expanded(
                       flex: 1000 - topFlex,
-                      child: _TradeSideList(
-                        side: TradeSide.have,
-                        title: 'My cards',
-                        accent: AppTheme.haveAccent,
-                        items: trade.haveItems,
-                        symbol: trade.currencySymbol,
-                        addLabel: 'Add my cards',
+                      child: ShowcaseTheme.mark(
+                        key: OnboardingKeys.tradeMyCards,
+                        title: TourCopy.tradeMyTitle,
+                        description: TourCopy.tradeMyBody,
+                        child: _TradeSideList(
+                          side: TradeSide.have,
+                          title: 'My cards',
+                          accent: AppTheme.haveAccent,
+                          items: trade.haveItems,
+                          symbol: trade.currencySymbol,
+                          addLabel: 'Add my cards',
+                        ),
                       ),
                     ),
                   ],
@@ -124,14 +142,19 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48)),
-                  onPressed: isEmpty ? null : () => _confirmTrade(context),
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Confirm Trade'),
+              child: ShowcaseTheme.mark(
+                key: OnboardingKeys.tradeConfirm,
+                title: TourCopy.tradeConfirmTitle,
+                description: TourCopy.tradeConfirmBody,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48)),
+                    onPressed: isEmpty ? null : () => _confirmTrade(context),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Confirm Trade'),
+                  ),
                 ),
               ),
             ),

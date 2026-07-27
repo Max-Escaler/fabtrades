@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/providers.dart';
+import '../onboarding/onboarding_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -86,6 +87,25 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 24),
+          const SettingsSectionLabel('Help'),
+          const SizedBox(height: 8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.school_outlined),
+            title: const Text('Replay tutorial'),
+            subtitle: Text(
+              'Show the welcome tips and feature walkthroughs again.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            onTap: () async {
+              // Pop first so MaterialApp.home can swap to the carousel without
+              // leaving Settings stranded on a disposed HomeShell.
+              Navigator.of(context).popUntil((r) => r.isFirst);
+              await ref.read(onboardingProvider.notifier).resetAll();
+            },
           ),
           const SizedBox(height: 24),
           const SettingsSectionLabel('About'),

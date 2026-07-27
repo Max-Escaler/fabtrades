@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../onboarding/onboarding_provider.dart';
 
 /// Keeps the account's background work running for as long as the app is on
 /// screen: cloud sync, and binding RevenueCat's identity to the Supabase user.
@@ -24,6 +25,7 @@ class SyncHost extends ConsumerStatefulWidget {
 
 class _SyncHostState extends ConsumerState<SyncHost> {
   String? _reported;
+  DateTime? _lastSuppressedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,26 @@ class _SyncHostState extends ConsumerState<SyncHost> {
       // Cleared so a later failure is reported again rather than swallowed as a
       // repeat of this one.
       _reported = null;
+    }
+
+    // An account that just pulled down a stocked binder is not a new user —
+    // suppress every tour so we don't coach them through empty-state tips.
+    final syncedAt = status.lastSyncedAt;
+    if (syncedAt != null &&
+        syncedAt != _lastSuppressedAt &&
+        !status.isSyncing &&
+        error == null) {
+      _lastSuppressedAt = syncedAt;
+      // Deferred: binderProvider needs SharedPreferences, and reading providers
+      // that rebuild during build is a Riverpod footgun.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final hasBinderCards =
+            ref.read(binderProvider).any((e) => !e.isWanted && e.quantity > 0);
+        if (hasBinderCards) {
+          ref.read(onboardingProvider.notifier).markAllSeen();
+        }
+      });
     }
 
     return widget.child;

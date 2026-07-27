@@ -6,7 +6,9 @@ import 'package:fabtrades/core/data/card_repository.dart';
 import 'package:fabtrades/core/models/account.dart';
 import 'package:fabtrades/core/models/card_model.dart';
 import 'package:fabtrades/core/providers.dart';
+import 'package:fabtrades/features/onboarding/onboarding_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import 'sync_stub.dart';
 
@@ -21,6 +23,9 @@ class MockCardRepository extends Mock implements CardRepository {}
 /// Signed out by default. Pass [account] to render the signed-in variants;
 /// either way [accountProvider] is overridden so nothing reaches Supabase Auth,
 /// whose client does not exist under `flutter test`.
+///
+/// Also registers the home [ShowcaseView] scope so screens that wrap widgets in
+/// coach marks can build outside [HomeShell].
 Future<ProviderContainer> pumpApp(
   WidgetTester tester,
   Widget child, {
@@ -43,6 +48,13 @@ Future<ProviderContainer> pumpApp(
     ],
   );
   addTearDown(container.dispose);
+
+  ShowcaseView.register(scope: OnboardingKeys.homeScope, enableShowcase: false);
+  addTearDown(() {
+    try {
+      ShowcaseView.getNamed(OnboardingKeys.homeScope).unregister();
+    } catch (_) {}
+  });
 
   await tester.pumpWidget(
     UncontrolledProviderScope(

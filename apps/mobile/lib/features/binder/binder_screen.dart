@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../../app/app.dart';
 import '../../app/card_filter_bar.dart';
@@ -14,6 +15,12 @@ import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../onboarding/onboarding_keys.dart';
+import '../onboarding/onboarding_provider.dart';
+import '../onboarding/onboarding_repository.dart';
+import '../onboarding/showcase_theme.dart';
+import '../onboarding/tour_controller.dart';
+import '../onboarding/tour_copy.dart';
 import '../paywall/pro_limits.dart';
 import '../scan/scan_screen.dart';
 import '../search/card_picker.dart';
@@ -29,17 +36,59 @@ class BinderScreen extends ConsumerStatefulWidget {
 class _BinderScreenState extends ConsumerState<BinderScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tab = TabController(length: 2, vsync: this);
+  bool _wantTourStarted = false;
 
   @override
   void initState() {
     super.initState();
-    _tab.addListener(() {
-      if (!_tab.indexIsChanging) setState(() {});
+    _tab.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tab.indexIsChanging) return;
+    setState(() {});
+    if (_tab.index == 1) _maybeStartWantListTour();
+  }
+
+  void _maybeStartWantListTour() {
+    if (_wantTourStarted) return;
+    if (ref.read(onboardingProvider).contains(OnboardingTourId.wantList)) {
+      return;
+    }
+
+    // Don't interrupt a home-shell tour already running (e.g. Binder).
+    final home = ShowcaseView.getNamed(OnboardingKeys.homeScope);
+    if (home.isShowcaseRunning) return;
+
+    _wantTourStarted = true;
+    final hasCards =
+        ref.read(binderProvider).any((e) => e.isWanted && e.quantity > 0);
+    final tours = TourController(ref);
+    final keys = tours.wantListKeys(hasCards: hasCards);
+
+    late final void Function(GlobalKey?) onDismiss;
+    void finishTour() {
+      tours.markSeen(OnboardingTourId.wantList);
+      home.removeOnFinishCallback(finishTour);
+      home.removeOnDismissCallback(onDismiss);
+    }
+
+    onDismiss = (GlobalKey? _) => finishTour();
+
+    home.addOnFinishCallback(finishTour);
+    home.addOnDismissCallback(onDismiss);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _tab.index != 1) {
+        finishTour();
+        return;
+      }
+      tours.startHomeTour(keys);
     });
   }
 
   @override
   void dispose() {
+    _tab.removeListener(_onTabChanged);
     _tab.dispose();
     super.dispose();
   }
@@ -55,12 +104,20 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
       appBar: AppBar(
         title: const Text('Binder'),
         actions: const [AppMenuAction()],
-        bottom: TabBar(
-          controller: _tab,
-          tabs: [
-            Tab(text: 'Binder (${_count(binder)})'),
-            Tab(text: 'Want List (${_count(wanted)})'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(46),
+          child: ShowcaseTheme.mark(
+            key: OnboardingKeys.binderTabs,
+            title: TourCopy.binderTabsTitle,
+            description: TourCopy.binderTabsBody,
+            child: TabBar(
+              controller: _tab,
+              tabs: [
+                Tab(text: 'Binder (${_count(binder)})'),
+                Tab(text: 'Want List (${_count(wanted)})'),
+              ],
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -72,13 +129,18 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'binderFab',
-        onPressed: () => _tab.index == 0
-            ? _showBinderAddOptions(context)
-            : _addBySearch(isWanted: true),
-        icon: const Icon(Icons.add),
-        label: Text(_tab.index == 0 ? 'Add card' : 'Add want'),
+      floatingActionButton: ShowcaseTheme.mark(
+        key: OnboardingKeys.binderFab,
+        title: TourCopy.binderFabTitle,
+        description: TourCopy.binderFabBody,
+        child: FloatingActionButton.extended(
+          heroTag: 'binderFab',
+          onPressed: () => _tab.index == 0
+              ? _showBinderAddOptions(context)
+              : _addBySearch(isWanted: true),
+          icon: const Icon(Icons.add),
+          label: Text(_tab.index == 0 ? 'Add card' : 'Add want'),
+        ),
       ),
     );
   }
@@ -214,9 +276,14 @@ class _BinderListState extends ConsumerState<_BinderList> {
 
     return Column(
       children: [
-        _TotalHeader(
-          count: all.fold<int>(0, (s, e) => s + e.quantity),
-          total: pricing.formatValue(total),
+        ShowcaseTheme.mark(
+          key: OnboardingKeys.binderTotal,
+          title: TourCopy.binderTotalTitle,
+          description: TourCopy.binderTotalBody,
+          child: _TotalHeader(
+            count: all.fold<int>(0, (s, e) => s + e.quantity),
+            total: pricing.formatValue(total),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),

@@ -3,6 +3,7 @@ import 'package:fabtrades/features/sync/sync_host.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/sync_stub.dart';
 
@@ -10,10 +11,15 @@ Future<StubSyncNotifier> _pumpHost(
   WidgetTester tester, {
   SyncStatus status = const SyncStatus(),
 }) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
   final sync = StubSyncNotifier(status);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [syncProvider.overrideWith(() => sync)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        syncProvider.overrideWith(() => sync),
+      ],
       child: const MaterialApp(
         home: SyncHost(child: Scaffold(body: Text('Binder'))),
       ),

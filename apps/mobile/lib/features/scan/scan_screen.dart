@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../../app/app.dart';
 import '../../app/card_actions.dart';
@@ -19,6 +20,12 @@ import '../../core/providers.dart';
 import '../../core/scan/frame_hasher.dart';
 import '../../core/scan/ocr_guide_filter.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../onboarding/onboarding_keys.dart';
+import '../onboarding/onboarding_provider.dart';
+import '../onboarding/onboarding_repository.dart';
+import '../onboarding/showcase_theme.dart';
+import '../onboarding/tour_controller.dart';
+import '../onboarding/tour_copy.dart';
 import '../paywall/pro_limits.dart';
 
 /// Where a locked scan match goes when the user taps it.
@@ -200,16 +207,39 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     });
   }
 
+  bool _scanTourStarted = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ShowcaseView.register(
+      scope: OnboardingKeys.scanScope,
+      disableMovingAnimation: true,
+      skipIfTargetNotPresent: true,
+      globalTooltipActionConfig: ShowcaseTheme.actionConfig,
+      globalTooltipActions: ShowcaseTheme.homeActions,
+      onFinish: _finishScanTour,
+      onDismiss: (_) => _finishScanTour(),
+    );
     _initCamera();
+  }
+
+  void _finishScanTour() {
+    ref.read(onboardingProvider.notifier).markSeen(OnboardingTourId.scan);
+  }
+
+  void _maybeStartScanTour() {
+    if (_scanTourStarted) return;
+    if (ref.read(onboardingProvider).contains(OnboardingTourId.scan)) return;
+    _scanTourStarted = true;
+    TourController(ref).startScanTour();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ShowcaseView.getNamed(OnboardingKeys.scanScope).unregister();
     _diagTicker?.cancel();
     _disposeCamera();
     _recognizer.close();
@@ -251,6 +281,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           _initializing = false;
           _cameraAvailable = false;
         });
+        // Permission / device prompt is done; safe to teach framing.
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _maybeStartScanTour());
         return;
       }
       final back = cameras.firstWhere(
@@ -302,6 +335,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         _initializing = false;
         _torchOn = false;
       });
+      // Camera permission has resolved by now — coach marks must not sit
+      // under the OS permission dialog.
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _maybeStartScanTour());
       if (!_locked) await _startStream();
     } catch (e) {
       _recordDiag('camera init failed: $e');
@@ -311,6 +348,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         _initializing = false;
         _cameraAvailable = false;
       });
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _maybeStartScanTour());
     }
   }
 
@@ -958,7 +997,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     final showSheet = _cameraAvailable && _matches.isNotEmpty;
     final column = Column(
       children: [
-        _buildViewport(),
+        // Whole viewport is the framing target so the tip still has a home
+        // when the camera is unavailable (tests / denied permission).
+        ShowcaseTheme.mark(
+          key: OnboardingKeys.scanOverlay,
+          scope: OnboardingKeys.scanScope,
+          title: TourCopy.scanFrameTitle,
+          description: TourCopy.scanFrameBody,
+          child: _buildViewport(),
+        ),
         if (_statusMessage != null && !showSheet)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -1164,13 +1211,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(
-            _cameraAvailable
-                ? 'Hold a card steady inside the frame. It identifies automatically — no button needed.'
-                : 'Use the keyboard icon to find a card by name or collector number.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+          child: ShowcaseTheme.mark(
+            key: OnboardingKeys.scanAutoHint,
+            scope: OnboardingKeys.scanScope,
+            title: TourCopy.scanAutoTitle,
+            description: TourCopy.scanAutoBody,
+            child: Text(
+              _cameraAvailable
+                  ? 'Hold a card steady inside the frame. It identifies automatically — no button needed.'
+                  : 'Use the keyboard icon to find a card by name or collector number.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
           ),
         ),
       );

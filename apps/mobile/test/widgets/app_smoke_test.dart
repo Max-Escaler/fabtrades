@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:fabtrades/app/app.dart';
 import 'package:fabtrades/core/models/trade.dart';
 import 'package:fabtrades/core/providers.dart';
+import 'package:fabtrades/features/onboarding/onboarding_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/fixtures.dart';
@@ -20,7 +23,11 @@ void main() {
   ];
 
   Future<ProviderContainer> launch(WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({});
+    // Skip the welcome carousel so smoke tests exercise the tab shell.
+    SharedPreferences.setMockInitialValues({
+      OnboardingRepository.storageKey:
+          jsonEncode(OnboardingTourId.all.toList()),
+    });
     final prefs = await SharedPreferences.getInstance();
     final mockRepo = MockCardRepository();
     when(() => mockRepo.fetchAll()).thenAnswer((_) async => catalog);

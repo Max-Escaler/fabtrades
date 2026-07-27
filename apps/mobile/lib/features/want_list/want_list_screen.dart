@@ -8,6 +8,9 @@ import '../../core/models/binder_entry.dart';
 import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
+import '../onboarding/onboarding_keys.dart';
+import '../onboarding/showcase_theme.dart';
+import '../onboarding/tour_copy.dart';
 import '../paywall/pro_limits.dart';
 import '../search/card_picker.dart';
 
@@ -36,22 +39,36 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
         ref.watch(binderProvider).where((e) => e.isWanted).toList();
 
     final body = wanted.isEmpty
-        ? _EmptyState(onAdd: widget.onAdd ?? () => _defaultAdd(context))
-        : Column(
-            children: [
-              if (wanted.isNotEmpty)
+        ? ShowcaseTheme.mark(
+            key: OnboardingKeys.wantListPane,
+            title: TourCopy.wantListTitle,
+            description: TourCopy.wantListBody,
+            child: _EmptyState(onAdd: widget.onAdd ?? () => _defaultAdd(context)),
+          )
+        : ShowcaseTheme.mark(
+            key: OnboardingKeys.wantListPane,
+            title: TourCopy.wantListTitle,
+            description: TourCopy.wantListBody,
+            child: Column(
+              children: [
                 Align(
                   alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: Icon(_editing ? Icons.done : Icons.edit_outlined),
-                    tooltip: _editing ? 'Done' : 'Edit',
-                    onPressed: () => setState(() => _editing = !_editing),
+                  child: ShowcaseTheme.mark(
+                    key: OnboardingKeys.wantListEdit,
+                    title: TourCopy.wantListEditTitle,
+                    description: TourCopy.wantListEditBody,
+                    child: IconButton(
+                      icon: Icon(_editing ? Icons.done : Icons.edit_outlined),
+                      tooltip: _editing ? 'Done' : 'Edit',
+                      onPressed: () => setState(() => _editing = !_editing),
+                    ),
                   ),
                 ),
-              Expanded(
-                child: _WantGrid(entries: wanted, editing: _editing),
-              ),
-            ],
+                Expanded(
+                  child: _WantGrid(entries: wanted, editing: _editing),
+                ),
+              ],
+            ),
           );
 
     if (!widget.showFab) return body;

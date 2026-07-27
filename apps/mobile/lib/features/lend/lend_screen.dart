@@ -7,6 +7,9 @@ import '../../app/widgets.dart';
 import '../../core/logic/pricing.dart';
 import '../../core/models/lend_group.dart';
 import '../../core/providers.dart';
+import '../onboarding/onboarding_keys.dart';
+import '../onboarding/showcase_theme.dart';
+import '../onboarding/tour_copy.dart';
 import 'lend_group_screen.dart';
 import 'person_name_dialog.dart';
 
@@ -39,12 +42,20 @@ class _LendScreenState extends ConsumerState<LendScreen>
       appBar: AppBar(
         title: const Text('Lend'),
         actions: const [AppMenuAction()],
-        bottom: TabBar(
-          controller: _tab,
-          tabs: [
-            Tab(text: 'Lent out (${lentOut.length})'),
-            Tab(text: 'Borrowing (${borrowing.length})'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(46),
+          child: ShowcaseTheme.mark(
+            key: OnboardingKeys.lendTabs,
+            title: TourCopy.lendTabsTitle,
+            description: TourCopy.lendTabsBody,
+            child: TabBar(
+              controller: _tab,
+              tabs: [
+                Tab(text: 'Lent out (${lentOut.length})'),
+                Tab(text: 'Borrowing (${borrowing.length})'),
+              ],
+            ),
+          ),
         ),
       ),
       body: TabBarView(
@@ -56,6 +67,7 @@ class _LendScreenState extends ConsumerState<LendScreen>
             isBorrowing: false,
             emptyText: "You haven't lent out any cards yet.",
             onAdd: () => _newGroup(context, isBorrowing: false),
+            showcaseNewBatch: true,
           ),
           _GroupList(
             groups: borrowing,
@@ -91,6 +103,7 @@ class _GroupList extends ConsumerWidget {
     required this.isBorrowing,
     required this.emptyText,
     required this.onAdd,
+    this.showcaseNewBatch = false,
   });
 
   final List<LendGroup> groups;
@@ -99,8 +112,16 @@ class _GroupList extends ConsumerWidget {
   final String emptyText;
   final VoidCallback onAdd;
 
+  /// Only the Lent-out tab hosts the coach-mark target so IndexedStack does
+  /// not register the same key twice.
+  final bool showcaseNewBatch;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final addRow = AddListRow(
+      label: isBorrowing ? 'New borrow batch' : 'New loan batch',
+      onTap: onAdd,
+    );
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
@@ -119,10 +140,15 @@ class _GroupList extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 10),
             child: _GroupCard(group: g, pricing: pricing),
           ),
-        AddListRow(
-          label: isBorrowing ? 'New borrow batch' : 'New loan batch',
-          onTap: onAdd,
-        ),
+        if (showcaseNewBatch)
+          ShowcaseTheme.mark(
+            key: OnboardingKeys.lendNewBatch,
+            title: TourCopy.lendNewBatchTitle,
+            description: TourCopy.lendNewBatchBody,
+            child: addRow,
+          )
+        else
+          addRow,
       ],
     );
   }
