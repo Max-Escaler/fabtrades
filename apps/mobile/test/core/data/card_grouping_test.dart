@@ -34,6 +34,41 @@ void main() {
     });
   });
 
+  group('nameSetCode / stripNameSetCode', () {
+    test('extracts promo set-code suffixes from real catalog shapes', () {
+      expect(nameSetCode('Leaven Sheath - FAB428'), 'FAB428');
+      expect(nameSetCode('Sap (Yellow) - FAB116'), 'FAB116');
+      expect(nameSetCode('Zipper Hit (Yellow) (Marvel) - TNP029'), 'TNP029');
+      expect(
+        nameSetCode('Victor Goldmane, High and Mighty - HER145'),
+        'HER145',
+      );
+      expect(nameSetCode('Rampant Growth // Life - LGS341'), 'LGS341');
+      expect(nameSetCode('Dash I/O - HER156'), 'HER156');
+    });
+
+    test('does not match hero-style lowercase suffixes or bare codes', () {
+      expect(nameSetCode('Ahri - Inquisitive'), isNull);
+      expect(nameSetCode('Vex - Apathetic'), isNull);
+      expect(nameSetCode('FAB428'), isNull);
+      expect(stripNameSetCode('Ahri - Inquisitive'), 'Ahri - Inquisitive');
+      expect(stripNameSetCode('Vex - Apathetic'), 'Vex - Apathetic');
+      expect(stripNameSetCode('FAB428'), 'FAB428');
+    });
+
+    test('stripNameSetCode removes only the trailing set code', () {
+      expect(stripNameSetCode('Leaven Sheath - FAB428'), 'Leaven Sheath');
+      expect(
+        stripNameSetCode('Victor Goldmane, High and Mighty - HER145'),
+        'Victor Goldmane, High and Mighty',
+      );
+      expect(
+        stripNameSetCode('Zipper Hit (Yellow) (Marvel) - TNP029'),
+        'Zipper Hit (Yellow) (Marvel)',
+      );
+    });
+  });
+
   group('nameQualifier', () {
     test('extracts trailing parenthetical', () {
       expect(nameQualifier('Ahri - Inquisitive (Overnumbered)'), 'Overnumbered');
@@ -41,6 +76,13 @@ void main() {
 
     test('returns null when there is no qualifier', () {
       expect(nameQualifier('Ahri - Inquisitive'), isNull);
+    });
+
+    test('strips set code before reading the art qualifier', () {
+      expect(
+        nameQualifier('Zipper Hit (Yellow) (Marvel) - TNP029'),
+        'Marvel',
+      );
     });
   });
 
@@ -69,6 +111,15 @@ void main() {
 
     test('strips art qualifiers but keeps the pitch color', () {
       expect(baseCardName('Sink Below (Red) (Extended Art)'), 'Sink Below (Red)');
+    });
+
+    test('strips promo set-code suffixes so promos join their base card', () {
+      expect(baseCardName('Leaven Sheath - FAB428'), 'Leaven Sheath');
+      // Code first, then art qualifier, pitch kept.
+      expect(
+        baseCardName('Zipper Hit (Yellow) (Marvel) - TNP029'),
+        'Zipper Hit (Yellow)',
+      );
     });
   });
 
@@ -102,6 +153,36 @@ void main() {
       expect(groups.single.name, 'Vex');
       expect(groups.single.versions.length, 3);
       expect(groups.single.hasMultiple, isTrue);
+    });
+
+    test('merges name-embedded promo set codes into the base card group', () {
+      final cards = [
+        buildCard(
+          id: '664629-normal',
+          name: 'Leaven Sheath',
+          setName: 'Compendium of Rathe',
+          collectorNumber: 'PEN208',
+        ),
+        buildCard(
+          id: '664629-rainbow-foil',
+          name: 'Leaven Sheath',
+          setName: 'Compendium of Rathe',
+          isFoil: true,
+          collectorNumber: 'PEN208',
+        ),
+        buildCard(
+          id: '664630-rainbow-foil',
+          name: 'Leaven Sheath - FAB428',
+          setName: 'Flesh and Blood: Promo Cards',
+          rarity: 'Promo',
+          isFoil: true,
+          collectorNumber: 'FAB428',
+        ),
+      ];
+      final groups = groupCardsByName(cards, CardSort.nameAsc);
+      expect(groups.length, 1);
+      expect(groups.single.name, 'Leaven Sheath');
+      expect(groups.single.versions.map((c) => c.id), contains('664630-rainbow-foil'));
     });
 
     test('representative is the non-foil base printing', () {
@@ -143,6 +224,25 @@ void main() {
       ];
       final printings = printingsForCard(catalog, target);
       expect(printings.map((c) => c.id), ['n', 'f']);
+    });
+
+    test('includes FAB428 promo when starting from a PEN208 printing', () {
+      final pen = buildCard(
+        id: '664629-normal',
+        name: 'Leaven Sheath',
+        setName: 'Compendium of Rathe',
+        collectorNumber: 'PEN208',
+      );
+      final promo = buildCard(
+        id: '664630-rainbow-foil',
+        name: 'Leaven Sheath - FAB428',
+        setName: 'Flesh and Blood: Promo Cards',
+        rarity: 'Promo',
+        isFoil: true,
+        collectorNumber: 'FAB428',
+      );
+      final printings = printingsForCard([pen, promo], pen);
+      expect(printings.map((c) => c.id), contains('664630-rainbow-foil'));
     });
 
     test('falls back to the card itself when not in catalog', () {

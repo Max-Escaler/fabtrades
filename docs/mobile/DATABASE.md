@@ -65,7 +65,7 @@ WHERE id = 1;
   separate rows since they share `product_id`); use this to key collections/trades
 - `product_id` — TCGplayer id (NOT unique across finishes); `unique_id` — `SSSNNNN` convenience id
 - `name`, `clean_name`, `rarity`, `sub_type_name`, `is_foil`, `is_sealed`
-- `collector_number` — e.g. `"147/219"` (the OCR **scan key**)
+- `collector_number` — e.g. `"FAB428"`, `"PEN208"` (set codes; the confirming OCR scan signal — name OCR is primary)
 - `image_url` — TCGplayer CDN card art
 - `cardmarket_id` — `null` when no EU price match
 
@@ -113,7 +113,7 @@ final rows = await supabase
 const { data } = await supabase
   .from('cards_with_prices')
   .select('*')
-  .eq('collector_number', '147/219');
+  .eq('collector_number', 'FAB428');
 ```
 
 ### REST (any language)

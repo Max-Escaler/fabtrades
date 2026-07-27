@@ -182,6 +182,14 @@ final tokenNameKeysProvider = Provider<Set<String>>((ref) {
   return tokenNameKeys(cards);
 });
 
+/// Catalog printings indexed by every set-code key they can be recognized
+/// under ([buildSetCodeIndex]). Memoized like [tokenNameKeysProvider] — the
+/// builder walks ~16k rows, so it must never run on the per-frame scan path.
+final setCodeIndexProvider = Provider<SetCodeIndex>((ref) {
+  final cards = ref.watch(catalogProvider).asData?.value ?? const <CardModel>[];
+  return buildSetCodeIndex(cards);
+});
+
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------

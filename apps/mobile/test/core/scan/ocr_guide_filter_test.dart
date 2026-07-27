@@ -88,6 +88,43 @@ void main() {
       },
     );
 
+    test(
+      'wide number inflate keeps a set-code line the tight pass drops',
+      () {
+        // Centre just outside the 0.02-inflated guide but inside the 0.12
+        // number/code pass — the bottom-left set code under imperfect framing.
+        final tightMarginY = guide.height * 0.02;
+        final wideMarginY = guide.height * kNumberGuideInflateFraction;
+        final cy = guide.top + guide.height + tightMarginY +
+            (wideMarginY - tightMarginY) * 0.5;
+        final line = _line(
+          left: guide.left + 10,
+          top: cy - 8,
+          right: guide.left + 80,
+          bottom: cy + 8,
+          text: 'FAB428',
+        );
+        final tight = textInsideGuide(
+          lines: [line],
+          guideLeft: guide.left,
+          guideTop: guide.top,
+          guideWidth: guide.width,
+          guideHeight: guide.height,
+        );
+        final wide = textInsideGuide(
+          lines: [line],
+          guideLeft: guide.left,
+          guideTop: guide.top,
+          guideWidth: guide.width,
+          guideHeight: guide.height,
+          inflateFraction: kNumberGuideInflateFraction,
+        );
+        expect(tight.linesInGuide, 0);
+        expect(wide.linesInGuide, 1);
+        expect(wide.guideText, 'FAB428');
+      },
+    );
+
     test('separates title-band text from lower in-guide text', () {
       final title = _line(
         left: guide.left + 20,

@@ -92,8 +92,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   };
 
   /// Cap OCR to a sustainable rate; running it on every frame floods the
-  /// pipeline and drops UI frames.
+  /// pipeline and drops UI frames. Also the mitigation for trying
+  /// [ResolutionPreset.veryHigh] first (higher res costs OCR CPU per frame).
   static const _throttle = Duration(milliseconds: 350);
+
+  /// Try higher resolution first so the ~6pt bottom-left set code has more
+  /// pixels; fall back if `initialize()` throws. Order is trivially
+  /// revertible — a camera init failure kills scanning entirely.
+  static const _resolutionPresets = [
+    ResolutionPreset.veryHigh,
+    ResolutionPreset.high,
+  ];
 
   CameraController? _controller;
   final _recognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -122,11 +131,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   /// (the "Best matches" section); the rest are other printings of the same
   /// card filled in by [expandScanMatchesToPrintings].
   int _rankedCount = 0;
-  /// OCR text from the most recent successfully processed frame. Used at lock
-  /// time to promote a printing whose printed set code was read — FAB set
-  /// codes like `FAB428` are deliberately not part of matching (see
-  /// [collectorNumberRegex]'s comment) but are a reliable tiebreak once
-  /// identity is known.
+  /// OCR text from the most recent successfully processed frame (the wider
+  /// number/code guide pass — see [kNumberGuideInflateFraction]). Used at lock
+  /// time to promote a printing whose printed set code was read, and fed into
+  /// [parseSetCodes] / [parseScanNumbers] during live fusion.
   String _lastOcrText = '';
   String? _lastNumber;
 
@@ -249,14 +257,40 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => cameras.first,
       );
-      final controller = CameraController(
-        back,
-        ResolutionPreset.high,
-        enableAudio: false,
-        imageFormatGroup:
-            Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
-      );
-      await controller.initialize();
+      final formatGroup = Platform.isAndroid
+          ? ImageFormatGroup.nv21
+          : ImageFormatGroup.bgra8888;
+
+      // Attempt veryHigh first (set code is only a few pixels at 720p); dispose
+      // and fall back to high if initialize throws so a single bad preset
+      // cannot kill scanning entirely.
+      CameraController? controller;
+      Object? lastError;
+      for (final preset in _resolutionPresets) {
+        final candidate = CameraController(
+          back,
+          preset,
+          enableAudio: false,
+          imageFormatGroup: formatGroup,
+        );
+        try {
+          await candidate.initialize();
+          controller = candidate;
+          if (preset != _resolutionPresets.first) {
+            _recordDiag('camera resolution fallback to $preset');
+          } else {
+            _recordDiag('camera resolution=$preset');
+          }
+          break;
+        } catch (e) {
+          lastError = e;
+          _recordDiag('camera preset $preset failed: $e');
+          await candidate.dispose();
+        }
+      }
+      if (controller == null) {
+        throw lastError ?? Exception('No resolution preset initialized');
+      }
       if (!mounted) {
         await controller.dispose();
         return;
@@ -374,13 +408,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       }
       final hashMs = hashSw.elapsedMilliseconds;
 
-      // Signal 2: OCR of the printed name + collector number.
+      // Signal 2: OCR of the printed name + collector number / set code.
       // Isolated from visual so an ML Kit / format failure on Android cannot
       // discard a successful hash match (that used to silently kill scanning).
-      // Name matching is restricted to the guide (title band preferred) so a
-      // neighbouring card's title under the guide does not win the fuse.
+      // Name matching is restricted to the tight guide (title band preferred)
+      // so a neighbouring card's title under the guide does not win the fuse.
+      // Numbers/codes use a second, wider guide pass — see below.
       var ocr = const <CardModel>[];
       var ocrNumbers = const <ScanNumber>[];
+      var ocrCodes = const <String>[];
+      var codeCards = const <CardModel>[];
       var ocrNote = 'skip';
       var ocrLinesNote = '';
       final ocrSw = Stopwatch()..start();
@@ -432,6 +469,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             if (line.bottom > maxB) maxB = line.bottom;
           }
 
+          // Tight pass: names only. A neighbour title bleeding in would win
+          // the fuse — keep inflateFraction at the default 0.02.
           final filtered = textInsideGuide(
             lines: lines,
             guideLeft: guide.left,
@@ -439,6 +478,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             guideWidth: guide.width,
             guideHeight: guide.height,
           );
+
+          // Wide pass: numbers/set codes only. The bottom-left code is the
+          // first line lost to imperfect framing; codes are exact-match so a
+          // wider net is cheap. Pure-Dart loop over ~10 boxes — negligible.
+          final wideFiltered = textInsideGuide(
+            lines: lines,
+            guideLeft: guide.left,
+            guideTop: guide.top,
+            guideWidth: guide.width,
+            guideHeight: guide.height,
+            inflateFraction: kNumberGuideInflateFraction,
+          );
+          final numberText = wideFiltered.linesInGuide > 0
+              ? wideFiltered.guideText
+              : result.text;
 
           // Token name-key set is memoized — identifyCards walks the catalog
           // for it when omitted, and this path can call identify twice/frame.
@@ -449,7 +503,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           // Prefer title-band text; fall back to all in-guide lines; if
           // nothing lands in the guide, derive a pseudo title band from the
           // union of detected OCR boxes so token mentions in rules text still
-          // have a positional gate.
+          // have a positional gate. Name identification always uses the tight
+          // pass (or full-frame fallback) — never the wide number text.
           final String tier;
           if (filtered.linesInGuide == 0) {
             tier = 'full';
@@ -461,9 +516,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
               tokenNames: tokenNames,
               onTokensSuppressed: onTokSup,
             );
-            ocrNumbers = parseScanNumbers(result.text);
           } else {
-            ocrNumbers = parseScanNumbers(filtered.guideText);
             final titleCandidates = filtered.titleBandText.trim().isEmpty
                 ? const <CardModel>[]
                 : identifyCards(
@@ -488,20 +541,25 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             }
           }
 
-          // Same text identification used — keep it for lock-time set-code
-          // promotion. Assign only on the success path so an OCR exception
-          // leaves the previous frame's value alone.
-          final ocrText =
-              filtered.linesInGuide > 0 ? filtered.guideText : result.text;
-          _lastOcrText = ocrText;
-          final snippet = ocrText.replaceAll('\n', ' ').trim();
+          ocrNumbers = parseScanNumbers(numberText);
+          ocrCodes = parseSetCodes(numberText);
+          codeCards = findBySetCodes(ref.read(setCodeIndexProvider), ocrCodes);
+
+          // Wider number/code text for lock-time set-code promotion. Assign
+          // only on the success path so an OCR exception leaves the previous
+          // frame's value alone.
+          _lastOcrText = numberText;
+          final snippet = numberText.replaceAll('\n', ' ').trim();
           ocrNote = snippet.isEmpty
               ? 'empty'
               : '"${snippet.length > 40 ? '${snippet.substring(0, 40)}…' : snippet}"';
+          final codesJoined = ocrCodes.isEmpty ? '-' : ocrCodes.join(',');
           ocrLinesNote =
               'ocrLines=${lines.length}/${filtered.linesInGuide}/'
               '${filtered.linesInTitleBand} tier=$tier '
               'tokSup=$tokensSuppressed '
+              'codes=${ocrCodes.length}/$codesJoined '
+              'wideLines=${wideFiltered.linesInGuide} '
               'boxMax=${maxR.toStringAsFixed(0)}x${maxB.toStringAsFixed(0)} '
               'rotFrame=${rotatedW.toStringAsFixed(0)}x${rotatedH.toStringAsFixed(0)}';
         } catch (e) {
@@ -513,13 +571,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       }
       final ocrMs = ocrSw.elapsedMilliseconds;
 
-      final matches =
-          fuseScanCandidates(visual: visual, ocr: ocr, ocrNumbers: ocrNumbers);
+      final matches = fuseScanCandidates(
+        visual: visual,
+        ocr: ocr,
+        code: codeCards,
+        ocrNumbers: ocrNumbers,
+        ocrCodes: ocrCodes,
+      );
       _recordDiag(
         'f=$_framesProcessed rot=$rotation hashRot=$hashRotation '
         'hash=${hashOk ? 'ok' : 'null'} '
         'best=$bestDist z=${zScore.toStringAsFixed(1)} '
-        'vis=${visual.length} ocr=${ocr.length} ($ocrNote) '
+        'vis=${visual.length} ocr=${ocr.length} code=${codeCards.length} '
+        '($ocrNote) '
         '${ocrLinesNote.isEmpty ? '' : '$ocrLinesNote '}'
         '${image.width}x${image.height} '
         'bpr=${image.planes.isEmpty ? 0 : image.planes.first.bytesPerRow} '
@@ -574,13 +638,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   /// Stable identity for the two-frame confirmation gate. Strips every
-  /// parenthetical (including FAB pitch colors) so OCR returning Red/Yellow/
-  /// Blue or foil variants of the same card still counts as consecutive hits.
-  /// Printing id is too unstable: the fused list's top entry flips between
-  /// variants every frame and the gate never reaches 2.
+  /// parenthetical (including FAB pitch colors) and any trailing
+  /// ` - <SETCODE>` promo suffix so OCR returning Red/Yellow/Blue, foil, or
+  /// set-promoted promo variants of the same card still counts as consecutive
+  /// hits. Printing id is too unstable: the fused list's top entry flips
+  /// between variants every frame and the gate never reaches 2.
+  ///
+  /// The set-code strip is critical once [fuseScanCandidates] can promote a
+  /// promo printing to rank 1 via an exact code hit: without it the key would
+  /// flip between `"leaven sheath fab428"` and `"leaven sheath"` across frames
+  /// and the gate would never reach 2 — the same class of bug printing-id
+  /// keys had for pitch/foil.
   String _scanConfirmKey(CardModel card) {
-    final stripped =
-        card.name.replaceAll(RegExp(r'\s*\([^)]*\)'), ' ').trim();
+    final stripped = stripNameSetCode(card.name)
+        .replaceAll(RegExp(r'\s*\([^)]*\)'), ' ')
+        .trim();
     return stripped.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
   }
 

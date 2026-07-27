@@ -229,11 +229,55 @@ Set<String> tokenNameKeys(List<CardModel> catalog) {
   return keys;
 }
 
+/// Trailing ` - <SETCODE>` that TCGplayer appends to promo card names
+/// (`"Leaven Sheath - FAB428"`, `"Sap (Yellow) - FAB116"`). Letters in the
+/// code must be uppercase so hero-style names (`"Ahri - Inquisitive"`,
+/// `"Vex - Apathetic"`) never match. Optional leading digit covers
+/// `1HB001`-style codes. Verified against the live `fab_cards_with_prices`
+/// catalog: 1,185 of 1,263 names containing `" - "` match this shape, and a
+/// manual review of the 21 rows whose suffix differs from `collector_number`
+/// found zero false positives (only source typos, composites, or finish
+/// suffixes). Parentheticals always precede the code when both are present
+/// (`"Zipper Hit (Yellow) (Marvel) - TNP029"`).
+final RegExp _nameSetCodeSuffixRe =
+    RegExp(r'\s+-\s+([A-Z0-9]*[A-Z]+[0-9]+)\s*$');
+
+/// The trailing ` - <SETCODE>` suffix TCGplayer appends to promo card names
+/// (`"Leaven Sheath - FAB428"`, `"Sap (Yellow) - FAB116"`), or null when the
+/// name carries none.
+///
+/// Of ~16.8k non-sealed catalog rows, 1,185 embed a set code this way — almost
+/// all in "Flesh and Blood: Promo Cards". The shape is capital letters (at
+/// least one) followed by digits, optionally preceded by a digit so codes like
+/// `1HB001` match; lowercase hero-name suffixes (`"Ahri - Inquisitive"`) are
+/// deliberately excluded. When present, the suffix is a catalog convention
+/// that is also printed on the card as the collector number, but it is NOT
+/// part of the card's identity for grouping or name matching.
+String? nameSetCode(String name) =>
+    _nameSetCodeSuffixRe.firstMatch(name.trim())?.group(1);
+
+/// [name] with any trailing ` - <SETCODE>` suffix removed. Returns [name]
+/// unchanged when there is no suffix, or when stripping would leave only
+/// whitespace (a name that is somehow only a code separator).
+///
+/// Used by [baseCardName], [nameQualifier], and [nameTokens] so promo rows
+/// like `"Leaven Sheath - FAB428"` join their base card for Browse grouping,
+/// the printing selector, and scan matching — without requiring OCR to resolve
+/// the tiny bottom-left set code.
+String stripNameSetCode(String name) {
+  final trimmed = name.trim();
+  final stripped = trimmed.replaceFirst(_nameSetCodeSuffixRe, '').trim();
+  return stripped.isEmpty ? trimmed : stripped;
+}
+
 /// The trailing parenthetical qualifier of a variant name, e.g.
 /// "Ahri - Inquisitive (Overnumbered)" -> "Overnumbered", or null when the name
-/// carries no qualifier.
+/// carries no qualifier. A trailing set-code suffix is stripped first so
+/// `"Zipper Hit (Yellow) (Marvel) - TNP029"` yields `"Marvel"` (the art
+/// qualifier chip on the printing selector) rather than null.
 String? nameQualifier(String name) {
-  final match = RegExp(r'\(([^)]*)\)\s*$').firstMatch(name.trim());
+  final match =
+      RegExp(r'\(([^)]*)\)\s*$').firstMatch(stripNameSetCode(name).trim());
   return match?.group(1);
 }
 
@@ -243,13 +287,20 @@ String? nameQualifier(String name) {
 const Set<String> _pitchQualifiers = {'red', 'yellow', 'blue'};
 
 /// The base card name shared by every art/finish variant of a card, produced by
-/// stripping trailing parenthetical qualifiers like "(Alternate Art)",
-/// "(Extended Art)" or "(1st Edition)" — catalog conventions that are not part
-/// of the real card name. Pitch-color qualifiers ("(Red)", "(Yellow)",
-/// "(Blue)") are deliberately KEPT so the three pitch versions of a card stay
-/// distinct groups.
+/// first stripping any trailing ` - <SETCODE>` promo suffix (see
+/// [stripNameSetCode]), then stripping trailing parenthetical qualifiers like
+/// "(Alternate Art)", "(Extended Art)" or "(1st Edition)" — catalog conventions
+/// that are not part of the real card name. Pitch-color qualifiers ("(Red)",
+/// "(Yellow)", "(Blue)") are deliberately KEPT so the three pitch versions of a
+/// card stay distinct groups.
+///
+/// Order matters: set codes come after parentheticals in real names
+/// (`"Zipper Hit (Yellow) (Marvel) - TNP029"`), so stripping the code first
+/// leaves `"(Marvel)"` for the art-qualifier loop and keeps `"(Yellow)"` as
+/// pitch. Without the code strip, 1,185 promo rows were orphaned from their
+/// base card in Browse grouping, [printingsForCard], and scan expansion.
 String baseCardName(String name) {
-  var s = name.trim();
+  var s = stripNameSetCode(name);
   final re = RegExp(r'\s*\(([^)]*)\)\s*$');
   while (true) {
     final m = re.firstMatch(s);
@@ -417,11 +468,21 @@ const Set<String> _nameStopwords = {
   'the', 'of', 'a', 'an', 'and', 'to', 'in', 'for', 'with',
 };
 
-/// The distinctive lowercase tokens of a card name, with any parenthetical
-/// qualifier (e.g. "(Overnumbered)", "(Metal)") removed — those tags are a
-/// catalog convention and are NOT printed on the physical card.
+/// The distinctive lowercase tokens of a card name, with any trailing
+/// ` - <SETCODE>` promo suffix and any parenthetical qualifier (e.g.
+/// "(Overnumbered)", "(Metal)") removed — those tags are catalog conventions
+/// and are NOT (or not reliably) printed as part of the card's title.
+///
+/// WHY the set code is stripped here: [identifyCards] requires 100% token
+/// overlap, and without this strip `"Leaven Sheath - FAB428"` tokenizes to
+/// `["leaven","sheath","fab428"]`. The name is then matchable ONLY when OCR
+/// also resolves the ~6pt bottom-left set code — which is exactly the
+/// reported promo-scan failure mode. Stripping makes the promo matchable from
+/// the printed title alone; set-code agreement is handled separately as an
+/// additive fusion bonus (see [fuseScanCandidates] / [parseSetCodes]).
 List<String> nameTokens(String name) {
-  final withoutParens = name.replaceAll(RegExp(r'\([^)]*\)'), ' ');
+  final withoutCode = stripNameSetCode(name);
+  final withoutParens = withoutCode.replaceAll(RegExp(r'\([^)]*\)'), ' ');
   final normalized =
       withoutParens.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ');
   return normalized
@@ -619,25 +680,38 @@ bool _hasTokenCreationCue(String text, List<String> nameTokens) {
   return false;
 }
 
-/// Fuses the scanner's two candidate lists — visual (perceptual-hash) matches
-/// and OCR (name/collector-number) matches — into one ranking using Reciprocal
-/// Rank Fusion: score(card) = Σ 1/(k + rank in each list). A card found by
-/// BOTH signals therefore outranks one found by either alone, which is how
-/// production scanners disambiguate near-identical printings.
+/// Fuses the scanner's candidate lists — visual (perceptual-hash), OCR
+/// (name / fractional collector-number), and optional set-code matches — into
+/// one ranking using Reciprocal Rank Fusion: score(card) = Σ 1/(k + rank in
+/// each list). A card found by BOTH visual and OCR therefore outranks one
+/// found by either alone, which is how production scanners disambiguate
+/// near-identical printings.
 ///
-/// When [ocrNumbers] holds collector numbers read off the card, any candidate
-/// whose own collector number agrees gets a [numberBonus] — the collector
-/// number is the strongest disambiguator between near-identical printings, so a
-/// visual match confirmed by the printed number should outrank one that isn't
-/// (the "bonus weight for collector-number matches" pattern from qtran1018/TCG).
+/// When [ocrNumbers] holds fractional collector numbers read off the card, any
+/// candidate whose own collector number agrees gets a [numberBonus].
+///
+/// When [ocrCodes] holds set-code keys (from [parseSetCodes]), any candidate
+/// whose [collectorNumberKey] or [nameSetCode]-derived key agrees gets a
+/// [setCodeBonus]. Default `1.0` is sized so an exact code agreement decisively
+/// outranks a card found by both visual and OCR: with `k = 3.0` a both-signals
+/// card at rank 0 in each list scores `1/3 + 1/3 ≈ 0.667`, so `+1.0` wins.
+/// Set codes are matched by exact equality against catalog keys, so OCR
+/// garbage matches nothing and can never *replace* the name signal — only
+/// boost a candidate already (or newly) in the fusion pool via [code].
+///
+/// [code] and [ocrCodes] default empty so every existing caller and test keeps
+/// today's ranking unchanged.
 List<CardModel> fuseScanCandidates({
   required List<CardModel> visual,
   required List<CardModel> ocr,
+  List<CardModel> code = const [],
   List<ScanNumber> ocrNumbers = const [],
+  List<String> ocrCodes = const [],
   double numberBonus = 0.5,
+  double setCodeBonus = 1.0,
   int limit = 12,
 }) {
-  if (visual.isEmpty && ocr.isEmpty) return const [];
+  if (visual.isEmpty && ocr.isEmpty && code.isEmpty) return const [];
 
   const k = 3.0;
   final scores = <String, double>{};
@@ -652,6 +726,7 @@ List<CardModel> fuseScanCandidates({
 
   addList(visual);
   addList(ocr);
+  addList(code);
 
   if (ocrNumbers.isNotEmpty) {
     for (final entry in byId.entries) {
@@ -661,6 +736,24 @@ List<CardModel> fuseScanCandidates({
           n.number == parsed.number &&
           (n.total == null || parsed.total == null || n.total == parsed.total));
       if (agrees) scores[entry.key] = (scores[entry.key] ?? 0) + numberBonus;
+    }
+  }
+
+  if (ocrCodes.isNotEmpty) {
+    final codeSet = ocrCodes.toSet();
+    for (final entry in byId.entries) {
+      final card = entry.value;
+      final cnKey = collectorNumberKey(card.collectorNumber);
+      if (cnKey != null && codeSet.contains(cnKey)) {
+        scores[entry.key] = (scores[entry.key] ?? 0) + setCodeBonus;
+        continue;
+      }
+      final fromName = nameSetCode(card.name);
+      if (fromName == null) continue;
+      final nameKey = collectorNumberKey(fromName);
+      if (nameKey != null && codeSet.contains(nameKey)) {
+        scores[entry.key] = (scores[entry.key] ?? 0) + setCodeBonus;
+      }
     }
   }
 
@@ -693,11 +786,11 @@ String? collectorNumberKey(String? raw) {
 /// True when [key] looks like a FAB set-code collector number OCR can read as
 /// one verbatim word (e.g. `fab428`, `wtr001`, `1hb007`): at least 4
 /// characters with both a letter and a digit. This restricts OCR promotion in
-/// [expandScanMatchesToPrintings] to set-code style numbers; fractional
-/// numbers like `147/219` normalize via [collectorNumberKey] to a digit-only
-/// run (`147219`) that never appears as a single OCR word, so promoting on
-/// them would never fire usefully and would risk false hits on unrelated
-/// digit noise.
+/// [expandScanMatchesToPrintings] and [parseSetCodes] to set-code style
+/// numbers; fractional numbers like `147/219` normalize via
+/// [collectorNumberKey] to a digit-only run (`147219`) that never appears as a
+/// single OCR word, so promoting on them would never fire usefully and would
+/// risk false hits on unrelated digit noise.
 bool _isSetCodeKey(String key) {
   if (key.length < 4) return false;
   var hasLetter = false;
@@ -713,29 +806,125 @@ bool _isSetCodeKey(String key) {
   return hasLetter && hasDigit;
 }
 
+/// Word-boundary set-code tokens in OCR text (`FAB428`, `1HB001`, `ZENO29`).
+/// Case-insensitive; kept keys must also pass [_isSetCodeKey] so short/plain
+/// words and bare digit runs never enter the fusion pool.
+final RegExp _setCodeTokenRe =
+    RegExp(r'\b[0-9]?[A-Za-z]{2,4}[0-9]{2,4}\b', caseSensitive: false);
+
+/// Every set-code-shaped token in [text], normalized to lowercase keys via
+/// [collectorNumberKey], deduplicated, in reading order. Used as an *additive*
+/// scan signal (see [fuseScanCandidates]) — never as a replacement for name
+/// matching. Exact equality against the catalog means OCR garbage matches
+/// nothing.
+///
+/// WHY this exists separately from [parseScanNumbers]: of 16,780 non-sealed
+/// live-catalog rows, **zero** use the `NNN/TTT` fractional format that
+/// [collectorNumberRegex] looks for (16,171 are set codes like `FAB428` /
+/// `PEN208` / `1HB001`). The fractional collector-number branch of
+/// [identifyCards] has therefore been dead code in production; set codes are
+/// the real printed identifier.
+List<String> parseSetCodes(String text) {
+  final seen = <String>{};
+  final result = <String>[];
+  for (final m in _setCodeTokenRe.allMatches(text)) {
+    final key = collectorNumberKey(m.group(0));
+    if (key == null || !_isSetCodeKey(key)) continue;
+    if (seen.add(key)) result.add(key);
+  }
+  return result;
+}
+
+/// Catalog printings indexed by every normalized collector-number key they can
+/// be recognized under. Built once per catalog load (see
+/// `setCodeIndexProvider`) — walking ~16k rows must never run per camera frame.
+typedef SetCodeIndex = Map<String, List<CardModel>>;
+
+/// Leading set-code segment inside a normalized collector-number key, used so
+/// finish-suffixed numbers like `lss003cf` (`LSS003-CF`) remain findable as
+/// `lss003` — the form OCR actually reads off the card.
+final RegExp _leadingSetCodeKeyRe = RegExp(r'^([0-9]?[a-z]{2,4}[0-9]{2,4})');
+
+/// Builds a [SetCodeIndex] for [catalog]. Each non-[isNonCardProduct] row is
+/// indexed under: its full [collectorNumberKey]; each `//`-separated part
+/// (so `"LGS125 // LGS126"` is findable as both `lgs125` and `lgs126`); the
+/// leading set-code segment when a trailing finish suffix remains after
+/// normalization (`"LSS003-CF"` → `lss003cf` also under `lss003`); and the
+/// code parsed from the row's own name via [nameSetCode] — 21 live rows have a
+/// name suffix that is the code printed on the card while `collector_number`
+/// carries a typo, and OCR will see the printed code.
+SetCodeIndex buildSetCodeIndex(List<CardModel> catalog) {
+  final index = <String, List<CardModel>>{};
+  void add(String? key, CardModel card) {
+    if (key == null || !_isSetCodeKey(key)) return;
+    final list = index[key];
+    if (list == null) {
+      index[key] = [card];
+    } else if (!list.any((c) => c.id == card.id)) {
+      list.add(card);
+    }
+  }
+
+  for (final card in catalog) {
+    if (isNonCardProduct(card)) continue;
+    final raw = card.collectorNumber;
+    final full = collectorNumberKey(raw);
+    add(full, card);
+    if (raw != null && raw.contains('//')) {
+      for (final part in raw.split('//')) {
+        add(collectorNumberKey(part.trim()), card);
+      }
+    }
+    if (full != null) {
+      final leading = _leadingSetCodeKeyRe.firstMatch(full)?.group(1);
+      if (leading != null && leading != full) add(leading, card);
+    }
+    final fromName = nameSetCode(card.name);
+    if (fromName != null) add(collectorNumberKey(fromName), card);
+  }
+  return index;
+}
+
+/// Cards in [index] matching any of [codes], in code order then index order,
+/// deduplicated by `id`.
+List<CardModel> findBySetCodes(SetCodeIndex index, List<String> codes) {
+  if (codes.isEmpty || index.isEmpty) return const [];
+  final seen = <String>{};
+  final result = <CardModel>[];
+  for (final code in codes) {
+    final list = index[code];
+    if (list == null) continue;
+    for (final card in list) {
+      if (seen.add(card.id)) result.add(card);
+    }
+  }
+  return result;
+}
+
 /// Once the scanner has locked onto a card identity, expand the recognizer's
 /// short candidate list into every catalog printing of that card.
 ///
 /// WHY this exists (and why we do NOT make matching "smarter"): [identifyCards]
 /// and [fuseScanCandidates] both cap at `limit: 12`. Name-token matching strips
-/// parentheticals, so every printing of "Leaven Sheath" — Normal, Foil,
-/// Extended Art promo `FAB428`, … — ties at overlap 1.0 with the same token
-/// count. Among 20+ tied printings, which 12 survive is effectively catalog
-/// order, so the promo the user is holding is routinely truncated away. The
-/// pHash visual signal does not rescue it. Widening the match limit or
-/// teaching the matcher about arts/finishes would either flood the two-frame
-/// confirmation with noise or couple ranking to catalog conventions that are
-/// not printed on the card. Expanding AFTER identity is locked is cheaper and
-/// safer: keep the recognizer's ranking as the "best matches" prefix, then
-/// offer every other printing of the same [baseCardName] (pitch colors kept,
-/// so we never cross Red/Yellow/Blue the recognizer did not surface).
+/// parentheticals and set-code suffixes, so every printing of "Leaven Sheath"
+/// — Normal, Foil, Extended Art promo `FAB428`, … — ties at overlap 1.0 with
+/// the same token count. Among 20+ tied printings, which 12 survive is
+/// effectively catalog order, so the promo the user is holding is routinely
+/// truncated away. The pHash visual signal does not rescue it. Widening the
+/// match limit or teaching the matcher about arts/finishes would either flood
+/// the two-frame confirmation with noise or couple ranking to catalog
+/// conventions that are not printed on the card. Expanding AFTER identity is
+/// locked is cheaper and safer: keep the recognizer's ranking as the "best
+/// matches" prefix, then offer every other printing of the same [baseCardName]
+/// (pitch colors kept, so we never cross Red/Yellow/Blue the recognizer did
+/// not surface).
 ///
 /// When [ocrText] contains a set-code collector number that matches a
 /// printing's [collectorNumberKey] (and passes [_isSetCodeKey]), that printing
-/// is promoted into the ranked prefix — FAB set codes like `FAB428` are
-/// deliberately not part of [identifyCards] matching (see
-/// [collectorNumberRegex]), but once identity is known they are the strongest
-/// available tiebreak for which physical printing the user is holding.
+/// is promoted into the ranked prefix. Set codes are also a live additive
+/// fusion signal (see [parseSetCodes] / [fuseScanCandidates]); post-lock
+/// promotion remains the safety net when the code was only readable on a later
+/// frame or only matches an expanded printing.
 ///
 /// [limit] caps the expanded list; truncation is `max(limit, ranked.length)`
 /// so a card the recognizer actually matched is never dropped.

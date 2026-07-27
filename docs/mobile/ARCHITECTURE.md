@@ -23,7 +23,7 @@ app). See §3 and [`DATABASE.md`](DATABASE.md).
 - **Trade balancer** — add cards + cash to "Have" / "Want" sides, see live delta.
 - **Trade history** — store completed trades with *at-the-time* prices.
 - **Want lists & collection** — track owned/wanted cards + total value.
-- **Card scanning** — camera → OCR the collector number → identify → add to trade/collection.
+- **Card scanning** — camera → OCR the card name (primary) + set-code collector number (confirming) → identify → add to trade/collection.
 - **Offline-first** — full card DB cached locally; usable at a game store with no signal.
 - **Android + iOS in sync** — one codebase, features ship to both simultaneously.
 
@@ -115,7 +115,7 @@ Dart model maps 1:1 to typed columns:
 | `is_foil`, `sub_type_name` | foil flag / variant | precomputed |
 | `is_sealed` | sealed product? | filter `= false` for real cards |
 | `rarity` | `Common/…/Champion` | |
-| `collector_number` | e.g. `"147/219"` | **the OCR scan key** (§7) |
+| `collector_number` | e.g. `"FAB428"`, `"PEN208"` (set codes; almost never `NNN/TTT`) | confirming OCR scan signal (§7); name OCR is primary |
 | `tcg_low/mid/high/market/direct_low` | TCGplayer USD | `numeric`, `null` if unpriced |
 | `cardmarket_id` | EU id or `null` | `null` ⇒ no EU price |
 | `cm_avg/low/trend` (+ `…_foil`) | CardMarket EUR | `numeric`, `null` if unmatched |
@@ -167,16 +167,19 @@ lib/
 
 ---
 
-## 7. Scanning approach (Phase 5) — OCR the collector number
+## 7. Scanning approach (Phase 5) — OCR the name + set code
 
-Confirmed viable: real cards expose `collector_number` like `"147/219"`.
+Real cards expose `collector_number` as a **set code** like `"FAB428"` or
+`"PEN208"` (of ~16.8k non-sealed rows, essentially none use `NNN/TTT`).
 
 1. Camera frame → **ML Kit text recognition** (on-device, offline, free).
-2. Parse the printed **collector number** (+ name) from the OCR text.
-3. Match against `collector_number` in Supabase / the local cache.
+2. Parse the printed **card name** (primary) and **set-code collector number**
+   (confirming / ranking boost) from the OCR text.
+3. Match name tokens against the local catalog; boost candidates whose set code
+   agrees exactly with OCR.
 4. Confirm with the user (show matched card), then add to trade/collection.
 
-Far more reliable than image matching and correctly distinguishes printings. Ships last
+Name OCR is primary; the set code is an additive confirming signal. Ships last
 because search + trade balancing deliver most of the value first.
 
 ---
@@ -192,7 +195,7 @@ because search + trade balancing deliver most of the value first.
 - **Phase 3 — Trade balancer.** Have/Want + cash, live delta, save trade with at-the-time
   prices; trade history.
 - **Phase 4 — Collection & want lists.** Owned + wanted, totals, sorting.
-- **Phase 5 — Card scanning.** ML Kit OCR of `collector_number` → identify → add.
+- **Phase 5 — Card scanning.** ML Kit OCR of name + set-code `collector_number` → identify → add.
 - **Phase 6 — Cloud sync (optional).** Supabase Auth + RLS for multi-device user data.
 - **Phase 7 — Binder.** Tradeable-stock binder replacing the Collection concept: one
   Binder nav tab (Binder + Want List views), scan/type add paths reusing existing flows,

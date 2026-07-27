@@ -102,21 +102,54 @@ weaker create/creates/created cue fallback), not a confident wrong one.
 Memoize `tokenNameKeys` off the per-frame path; surface suppressions as
 `tokSup=` in the on-device overlay.
 
-### 3.5 Promo / extended-art printings truncated from locked results
+### 3.5 Promo / extended-art printings + set-code matching
 
 Scanning an extended-art promo such as "Leaven Sheath" (`FAB428`) often locked
-onto the card name correctly but only listed normal set printings. Root cause:
-`identifyCards` strips parentheticals for name tokens, so every printing of
-"Leaven Sheath" ties at overlap 1.0; it then sorts by token count and
-`.take(limit)` with `limit = 12`. Among 20+ tied rows, which 12 survive is
-effectively catalog order — the promo is truncated away. `fuseScanCandidates`
-caps at 12 again, and pHash does not rescue it.
+onto the card name correctly but only listed normal set printings — or failed
+to match the promo at all unless framing was perfect. Several stacked catalog
+facts, verified against live `fab_cards_with_prices`:
 
-**Fix (do not widen matching):** after lock, `expandScanMatchesToPrintings`
-expands the recognizer's short list to every catalog printing of the identified
-`baseCardName` (pitch colors kept). Printed set codes like `FAB428` are used
-only as a ranking tiebreak once identity is known — they remain out of
-`identifyCards` matching (see `collectorNumberRegex`).
+1. **`NNN/TTT` does not exist in this catalog.** Of 16,780 non-sealed rows:
+   16,171 are set codes (`FAB428`, `PEN208`, `1HB001`, …), 417 composite/other,
+   192 empty, and **zero** match `NNN/TTT`. `collectorNumberRegex` /
+   `parseScanNumbers` therefore never fire on real data; the
+   collector-number-first branch of `identifyCards` and `numberBonus` in fusion
+   were dead code. Scanning was name-only in production. (ARCHITECTURE.md §7
+   had asserted `"147/219"` was the real format — that assumption was wrong.)
+
+2. **Promo rows embed the set code in `name` with ` - `.** Example:
+   `664629-*` = `"Leaven Sheath"` / `PEN208`; `664630-rainbow-foil` =
+   `"Leaven Sheath - FAB428"` / `FAB428`. **1,185 rows** match
+   ` - [A-Z]+[0-9]+$` (almost all "Flesh and Blood: Promo Cards"); of 1,263
+   names containing `" - "`, only those 1,185 match the shape — hero names like
+   `"Ahri - Inquisitive"` do not. Without stripping that suffix,
+   `baseCardName` / `nameTokens` treated the promo as a different card, so
+   `expandScanMatchesToPrintings`, Browse grouping, and the printing selector
+   orphaned it; name matching also required OCR of the ~6pt bottom-left code
+   (100% token overlap).
+
+3. **Set codes are near-unique.** Of 9,368 distinct normalized codes, 9,206
+   map to exactly one base card name, 159 to two, 3 to three — safe as an
+   exact-equality confirming signal.
+
+**Fixes:**
+
+- `stripNameSetCode` / `baseCardName` / `nameTokens` drop the trailing
+  ` - <SETCODE>` so promos join their base card and match from the title alone.
+- After lock, `expandScanMatchesToPrintings` still expands to every printing of
+  the identified `baseCardName` (pitch colors kept) when ranking cutoffs
+  truncate the list.
+- Set codes are a **first-class additive fusion signal**: `parseSetCodes` →
+  memoized `setCodeIndexProvider` / `findBySetCodes` → third candidate list +
+  `setCodeBonus` in `fuseScanCandidates`. Exact equality against catalog keys
+  means OCR garbage matches nothing and can never *replace* the name signal
+  (not routed through the dead `NNN/TTT` branch).
+- Number/code OCR uses a wider guide inflate (`kNumberGuideInflateFraction =
+  0.12`) than names (tight `0.02`): the bottom-left code is the first line
+  lost to imperfect framing, while a neighbour title bleeding into names would
+  win the fuse. Camera init tries `ResolutionPreset.veryHigh` first (fallback
+  to `high`); higher res costs OCR CPU per frame — the 350 ms throttle is the
+  mitigation. Diagnostics overlay reports `codes=<n>/<keys> wideLines=<n>`.
 
 ### 3.6 Visual pHash is not phone-ready yet
 
@@ -201,11 +234,13 @@ dart run tool/generate_card_hashes.dart
 
 ### Pipeline (per frame)
 
-1. Throttle (~350 ms).
+1. Throttle (~350 ms); camera prefers `veryHigh` with fallback to `high`.
 2. pHash of guide region (optional rectify) → `CardHashIndex.match` (5σ outlier).
-3. ML Kit OCR → `identifyCards` → `parseScanNumbers`.
-4. `fuseScanCandidates` (RRF + optional number bonus).
-5. Two-frame confirm on `_scanConfirmKey` → lock → show list.
+3. ML Kit OCR → tight guide → `identifyCards`; wide guide → `parseScanNumbers` /
+   `parseSetCodes` → `findBySetCodes`.
+4. `fuseScanCandidates` (RRF + optional number / set-code bonuses).
+5. Two-frame confirm on `_scanConfirmKey` (parentheticals + set-code suffix
+   stripped) → lock → `expandScanMatchesToPrintings` → show list.
 
 ### Geometry contract
 
@@ -221,9 +256,11 @@ don’t regress.
 
 ### Fusion
 
-Visual alone or OCR alone is allowed. Collector-number bonus only applies when
-OCR saw an `NNN/TTT`-style number (many FAB cards use set-code numbers instead,
-so name OCR remains primary).
+Visual alone, OCR alone, or set-code alone is allowed. Name OCR remains
+primary. Set-code bonus (`setCodeBonus = 1.0`) applies on exact catalog-key
+agreement and decisively outranks a both-signals card (`≈0.667` with `k=3`).
+The legacy `NNN/TTT` `numberBonus` is kept for robustness but never fires on
+the live FAB catalog (zero fractional rows).
 
 ---
 

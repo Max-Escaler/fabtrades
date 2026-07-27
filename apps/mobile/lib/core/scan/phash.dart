@@ -57,6 +57,16 @@ const double kCardAspect = 63 / 88;
 /// title bleeding into the bottom of the guide.
 const double kCardTitleBandFraction = 0.22;
 
+/// Extra guide inflation applied only when collecting collector numbers /
+/// set codes from OCR (see `textInsideGuide`'s `inflateFraction`).
+///
+/// Names stay on the tight default (`0.02`): a neighbouring card's title
+/// bleeding in would win the fuse. Set codes sit at the extreme bottom-left
+/// and are the first line lost to imperfect framing, but they are
+/// high-precision exact-match strings against the catalog — a wider net costs
+/// almost no precision. Used by the scanner's second `textInsideGuide` pass.
+const double kNumberGuideInflateFraction = 0.12;
+
 /// Card guide rectangle in upright (rotated) frame coordinates — the same
 /// region the scan overlay draws and [hashCameraFrame] samples.
 ///

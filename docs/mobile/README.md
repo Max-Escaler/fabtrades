@@ -18,7 +18,7 @@ This repo contains two things:
 ## Planned app stack
 - **Flutter** (Dart) — one codebase, Android + iOS in sync
 - **supabase_flutter** for data, **Riverpod** state, **drift** offline cache
-- **ML Kit** on-device OCR for card scanning (reads the collector number)
+- **ML Kit** on-device OCR for card scanning (name primary, set-code collector number confirming)
 
 ## Data: shared Supabase database
 A Node pipeline ingests **TCGCSV** (Flesh and Blood card data + art + USD prices)
@@ -27,7 +27,7 @@ Every app reads one source of truth.
 - Project `FAB Trades` · `https://tenrvaghaspwdvnwvgrh.supabase.co`
 - Tables: `sets`, `cards`, `card_prices`, `price_history` (+ `fab_cards_with_prices` view)
 - Public read-only via RLS; only the pipeline (service role) writes
-- Card art: TCGplayer CDN · Prices: USD + EUR · Scan key: `collector_number` (e.g. `147/219`)
+- Card art: TCGplayer CDN · Prices: USD + EUR · Scan: name OCR + `collector_number` set codes (e.g. `FAB428`)
 
 ## Roadmap (short)
 0. **Done** — shared Supabase DB + daily pipeline (run first ingest to populate)
@@ -35,6 +35,6 @@ Every app reads one source of truth.
 2. Offline cache + background refresh
 3. Trade balancer + history
 4. Collection & want lists
-5. Card scanning (OCR the collector number)
+5. Card scanning (OCR name + set-code collector number)
 6. Optional cloud sync (Supabase Auth + RLS)
 ```

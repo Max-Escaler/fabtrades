@@ -46,6 +46,10 @@ void main() {
     test('drops single-character tokens', () {
       expect(nameTokens('X Marker'), ['marker']);
     });
+
+    test('drops trailing promo set codes so name-only OCR can match', () {
+      expect(nameTokens('Leaven Sheath - FAB428'), ['leaven', 'sheath']);
+    });
   });
 
   group('identifyCards', () {
@@ -96,6 +100,26 @@ void main() {
       final result =
           identifyCards(withShort, 'Ahri Inquisitive appears in the text');
       expect(result.first.id, 'ahri'); // "Ahri - Inquisitive", not bare "Ahri"
+    });
+
+    test('finds a promo from name OCR alone without the set code', () {
+      // Regression: "Leaven Sheath - FAB428" used to require OCR of fab428.
+      final promoCatalog = [
+        buildCard(
+          id: '664629-normal',
+          name: 'Leaven Sheath',
+          collectorNumber: 'PEN208',
+        ),
+        buildCard(
+          id: '664630-rainbow-foil',
+          name: 'Leaven Sheath - FAB428',
+          rarity: 'Promo',
+          isFoil: true,
+          collectorNumber: 'FAB428',
+        ),
+      ];
+      final result = identifyCards(promoCatalog, 'Leaven Sheath');
+      expect(result.map((c) => c.id), contains('664630-rainbow-foil'));
     });
   });
 
@@ -150,6 +174,86 @@ void main() {
 
     test('returns empty when both inputs are empty', () {
       expect(fuseScanCandidates(visual: const [], ocr: const []), isEmpty);
+    });
+
+    test('set-code agreement outranks a card found by both visual and OCR', () {
+      final promo = buildCard(
+        id: 'promo',
+        name: 'Leaven Sheath - FAB428',
+        collectorNumber: 'FAB428',
+      );
+      // ahri is in both lists (score ≈ 0.667); promo is only in code but
+      // agrees with ocrCodes (+1.0) → decisively first.
+      final fused = fuseScanCandidates(
+        visual: [ahri, vex],
+        ocr: [ahri, zed],
+        code: [promo],
+        ocrCodes: ['fab428'],
+      );
+      expect(fused.first.id, 'promo');
+    });
+
+    test('omitting code/ocrCodes preserves the previous ranking', () {
+      final fused = fuseScanCandidates(visual: [vex, ahri], ocr: [ahri, zed]);
+      expect(fused.map((c) => c.id).toList(), ['ahri', 'vex', 'zed']);
+    });
+  });
+
+  group('parseSetCodes', () {
+    test('finds set-code tokens case-insensitively in reading order', () {
+      expect(
+        parseSetCodes('foo FAB428 bar PEN208 1HB001 ZENO29 HER0160'),
+        ['fab428', 'pen208', '1hb001', 'zeno29', 'her0160'],
+      );
+      expect(parseSetCodes('fab428'), ['fab428']);
+    });
+
+    test('ignores short words and bare digit runs', () {
+      expect(parseSetCodes('the of 147 219 AB1 hello'), isEmpty);
+      expect(parseSetCodes('WTR001 no fraction here'), ['wtr001']);
+    });
+  });
+
+  group('buildSetCodeIndex / findBySetCodes', () {
+    test('indexes composite parts, finish suffixes, and name-code typos', () {
+      final composite = buildCard(
+        id: 'comp',
+        name: 'Double Faced',
+        collectorNumber: 'LGS125 // LGS126',
+      );
+      final finish = buildCard(
+        id: 'finish',
+        name: 'Cold Foil Promo',
+        collectorNumber: 'LSS003-CF',
+      );
+      // Name carries the printed code; collector_number has a source typo.
+      final typo = buildCard(
+        id: 'typo',
+        name: 'Hero Card - HER160',
+        collectorNumber: 'HER0160',
+      );
+      final index = buildSetCodeIndex([composite, finish, typo]);
+
+      expect(
+        findBySetCodes(index, ['lgs125']).map((c) => c.id),
+        contains('comp'),
+      );
+      expect(
+        findBySetCodes(index, ['lgs126']).map((c) => c.id),
+        contains('comp'),
+      );
+      expect(
+        findBySetCodes(index, ['lss003']).map((c) => c.id),
+        contains('finish'),
+      );
+      expect(
+        findBySetCodes(index, ['her160']).map((c) => c.id),
+        contains('typo'),
+      );
+      expect(
+        findBySetCodes(index, ['her0160']).map((c) => c.id),
+        contains('typo'),
+      );
     });
   });
 
@@ -234,6 +338,41 @@ void main() {
       );
       expect(result.cards.map((c) => c.id), contains('promo'));
     });
+
+    test(
+      'reported bug: expands name-embedded FAB428 promo from PEN208 matches',
+      () {
+        // Live catalog shape: set printings named "Leaven Sheath" (PEN208)
+        // plus promo named "Leaven Sheath - FAB428". Without stripNameSetCode
+        // in baseCardName, expand never pulled the promo in.
+        final penNormal = buildCard(
+          id: '664629-normal',
+          name: 'Leaven Sheath',
+          setName: 'Compendium of Rathe',
+          collectorNumber: 'PEN208',
+        );
+        final penFoil = buildCard(
+          id: '664629-rainbow-foil',
+          name: 'Leaven Sheath',
+          setName: 'Compendium of Rathe',
+          isFoil: true,
+          collectorNumber: 'PEN208',
+        );
+        final fabPromo = buildCard(
+          id: '664630-rainbow-foil',
+          name: 'Leaven Sheath - FAB428',
+          setName: 'Flesh and Blood: Promo Cards',
+          rarity: 'Promo',
+          isFoil: true,
+          collectorNumber: 'FAB428',
+        );
+        final result = expandScanMatchesToPrintings(
+          [penNormal, penFoil, fabPromo],
+          [penNormal, penFoil],
+        );
+        expect(result.cards.map((c) => c.id), contains('664630-rainbow-foil'));
+      },
+    );
 
     test('preserves match order and rankedCount when ocrText is empty', () {
       final matches = [leavenFoil, leavenNormal];

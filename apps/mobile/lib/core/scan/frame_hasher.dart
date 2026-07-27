@@ -15,6 +15,7 @@ export 'phash.dart'
         kGuideMaxHeightFraction,
         kCardAspect,
         kCardTitleBandFraction,
+        kNumberGuideInflateFraction,
         kGraySide,
         guideRectInRotatedFrame;
 

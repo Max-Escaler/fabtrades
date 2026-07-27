@@ -25,8 +25,9 @@ Reads from a shared **Supabase** DB populated daily by `pipeline/` (Node + GitHu
 ### `cards_with_prices` columns
 `id` (text PK = `<product_id>-<subtype>`), `product_id` (bigint, NOT unique across
 finishes), `set_id`, `unique_id`, `name`, `clean_name`, `image_url`, `tcgplayer_url`,
-`sub_type_name`, `is_foil` (bool), `rarity`, `collector_number` (e.g. `"147/219"`,
-the scan key), `is_sealed` (filter `= false`), `cardmarket_id`, `cardmarket_name`,
+`sub_type_name`, `is_foil` (bool), `rarity`, `collector_number` (e.g. `"FAB428"` /
+`"PEN208"` set codes — confirming OCR signal; name OCR is primary), `is_sealed`
+(filter `= false`), `cardmarket_id`, `cardmarket_name`,
 `modified_on`, `set_name`, `tcg_low/tcg_mid/tcg_high/tcg_market/tcg_direct_low` (USD),
 `cm_avg/cm_low/cm_trend` + `_foil` variants (EUR), `price_updated_at`.
 
