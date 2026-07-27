@@ -152,4 +152,166 @@ void main() {
       expect(fuseScanCandidates(visual: const [], ocr: const []), isEmpty);
     });
   });
+
+  group('collectorNumberKey', () {
+    test('lowercases and strips non-alphanumeric characters', () {
+      expect(collectorNumberKey('FAB428'), 'fab428');
+      expect(collectorNumberKey('147/219'), '147219');
+      expect(collectorNumberKey('WTR-001'), 'wtr001');
+    });
+
+    test('returns null for null or empty-after-strip input', () {
+      expect(collectorNumberKey(null), isNull);
+      expect(collectorNumberKey(''), isNull);
+      expect(collectorNumberKey('///'), isNull);
+    });
+  });
+
+  group('expandScanMatchesToPrintings', () {
+    final leavenNormal = buildCard(
+      id: 'leaven-normal',
+      name: 'Leaven Sheath',
+      setName: 'Heavy Hitters',
+      collectorNumber: '147/219',
+    );
+    final leavenFoil = buildCard(
+      id: 'leaven-foil',
+      name: 'Leaven Sheath',
+      setName: 'Heavy Hitters',
+      isFoil: true,
+      collectorNumber: '147/219',
+    );
+    final leavenPromo = buildCard(
+      id: 'promo',
+      name: 'Leaven Sheath (Extended Art)',
+      setName: 'Promos',
+      rarity: 'Promo',
+      collectorNumber: 'FAB428',
+    );
+    final vex = buildCard(
+      id: 'vex',
+      name: 'Vex - Apathetic',
+      collectorNumber: '020/219',
+    );
+    final vexFoil = buildCard(
+      id: 'vex-foil',
+      name: 'Vex - Apathetic',
+      isFoil: true,
+      collectorNumber: '020/219',
+    );
+    final sinkRed = buildCard(
+      id: 'sink-red',
+      name: 'Sink Below (Red)',
+      collectorNumber: '010/219',
+    );
+    final sinkBlue = buildCard(
+      id: 'sink-blue',
+      name: 'Sink Below (Blue)',
+      collectorNumber: '011/219',
+    );
+    final sealedProduct = buildCard(
+      id: 'sealed',
+      name: 'Origins - Champion Deck',
+      rarity: null,
+      collectorNumber: null,
+    );
+
+    final catalog = [
+      leavenNormal,
+      leavenFoil,
+      leavenPromo,
+      vex,
+      vexFoil,
+      sinkRed,
+      sinkBlue,
+      sealedProduct,
+    ];
+
+    test('includes promo/extended-art printings omitted from matches', () {
+      final result = expandScanMatchesToPrintings(
+        catalog,
+        [leavenNormal, leavenFoil],
+      );
+      expect(result.cards.map((c) => c.id), contains('promo'));
+    });
+
+    test('preserves match order and rankedCount when ocrText is empty', () {
+      final matches = [leavenFoil, leavenNormal];
+      final result = expandScanMatchesToPrintings(catalog, matches);
+      expect(result.cards.take(matches.length).map((c) => c.id).toList(),
+          ['leaven-foil', 'leaven-normal']);
+      expect(result.rankedCount, matches.length);
+    });
+
+    test('does not pull in other cards or unmatched pitch variants', () {
+      final result = expandScanMatchesToPrintings(catalog, [sinkRed]);
+      final ids = result.cards.map((c) => c.id).toSet();
+      expect(ids, isNot(contains('vex')));
+      expect(ids, isNot(contains('vex-foil')));
+      expect(ids, isNot(contains('sink-blue')));
+      expect(ids, contains('sink-red'));
+    });
+
+    test('excludes non-card product rows', () {
+      final result = expandScanMatchesToPrintings(
+        catalog,
+        [leavenNormal],
+      );
+      expect(result.cards.map((c) => c.id), isNot(contains('sealed')));
+    });
+
+    test('promotes a set-code printing read in ocrText into ranked prefix', () {
+      final result = expandScanMatchesToPrintings(
+        catalog,
+        [leavenNormal, leavenFoil],
+        ocrText: 'Leaven Sheath ... FAB428 ...',
+      );
+      expect(result.cards.first.id, 'promo');
+      expect(result.rankedCount, greaterThan(2));
+      expect(
+        result.cards.take(result.rankedCount).map((c) => c.id),
+        contains('promo'),
+      );
+    });
+
+    test('fractional collector numbers in ocrText do not promote', () {
+      final result = expandScanMatchesToPrintings(
+        catalog,
+        [leavenPromo],
+        ocrText: 'Leaven Sheath 147/219',
+      );
+      // Promo was the only match; normal/foil extras must stay in "other"
+      // versions — the fractional number is not a set-code key.
+      expect(result.cards.first.id, 'promo');
+      expect(result.rankedCount, 1);
+      expect(
+        result.cards.skip(result.rankedCount).map((c) => c.id),
+        containsAll(['leaven-normal', 'leaven-foil']),
+      );
+    });
+
+    test('empty matches / empty catalog edge cases', () {
+      expect(
+        expandScanMatchesToPrintings(catalog, const []),
+        same(ScanMatches.empty),
+      );
+
+      final matches = [leavenNormal, leavenFoil];
+      final noCatalog = expandScanMatchesToPrintings(const [], matches);
+      expect(noCatalog.cards.map((c) => c.id).toList(),
+          ['leaven-normal', 'leaven-foil']);
+      expect(noCatalog.rankedCount, matches.length);
+    });
+
+    test('cards contain no duplicate ids', () {
+      // Promo already in matches AND catalog — must appear once.
+      final result = expandScanMatchesToPrintings(
+        catalog,
+        [leavenNormal, leavenPromo],
+        ocrText: 'FAB428',
+      );
+      final ids = result.cards.map((c) => c.id).toList();
+      expect(ids.toSet().length, ids.length);
+    });
+  });
 }

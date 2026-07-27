@@ -38,7 +38,8 @@ enum ScanDestination {
 /// against precomputed hashes of every catalog scan, and ML Kit OCR of the
 /// printed name + collector number — then fuses both candidate lists. Locks
 /// onto a card once the same top match is seen on two consecutive frames, so
-/// a steady aim identifies it hands-free.
+/// a steady aim identifies it hands-free. A locked result lists every catalog
+/// printing of the identified card, best matches first.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({
     super.key,
@@ -117,6 +118,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   String? _statusMessage;
   List<CardModel> _matches = const [];
+  /// How many leading entries of [_matches] the recognizer actually matched
+  /// (the "Best matches" section); the rest are other printings of the same
+  /// card filled in by [expandScanMatchesToPrintings].
+  int _rankedCount = 0;
+  /// OCR text from the most recent successfully processed frame. Used at lock
+  /// time to promote a printing whose printed set code was read — FAB set
+  /// codes like `FAB428` are deliberately not part of matching (see
+  /// [collectorNumberRegex]'s comment) but are a reliable tiebreak once
+  /// identity is known.
+  String _lastOcrText = '';
   String? _lastNumber;
 
   /// On-device diagnostics (bug icon in the app bar) so scan failures can be
@@ -477,10 +488,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             }
           }
 
-          final snippet =
-              (filtered.linesInGuide > 0 ? filtered.guideText : result.text)
-                  .replaceAll('\n', ' ')
-                  .trim();
+          // Same text identification used — keep it for lock-time set-code
+          // promotion. Assign only on the success path so an OCR exception
+          // leaves the previous frame's value alone.
+          final ocrText =
+              filtered.linesInGuide > 0 ? filtered.guideText : result.text;
+          _lastOcrText = ocrText;
+          final snippet = ocrText.replaceAll('\n', ' ').trim();
           ocrNote = snippet.isEmpty
               ? 'empty'
               : '"${snippet.length > 40 ? '${snippet.substring(0, 40)}…' : snippet}"';
@@ -625,17 +639,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     );
   }
 
+  /// Locks the scanner on [matches], then expands that short recognizer list
+  /// into every catalog printing of the identified card via
+  /// [expandScanMatchesToPrintings]. Ranking cutoffs in [identifyCards] /
+  /// [fuseScanCandidates] routinely drop promo and alternate-art printings of
+  /// a correctly identified card; expanding after lock is how the user can
+  /// still pick the printing they're holding.
   Future<void> _lockOn(List<CardModel> matches) async {
     _locked = true;
     await _stopStream();
     if (!mounted) return;
-    final number = matches.first.collectorNumber;
+    final catalog = ref.read(catalogProvider).asData?.value ?? const [];
+    final expanded = expandScanMatchesToPrintings(
+      catalog,
+      matches,
+      ocrText: _lastOcrText,
+    );
     setState(() {
-      _matches = matches;
-      _lastNumber = number;
-      _statusMessage = matches.length == 1
-          ? 'Found ${matches.first.name}.'
-          : 'Found ${matches.length} possible matches — tap the right one.';
+      _matches = expanded.cards;
+      _rankedCount = expanded.rankedCount;
+      _lastNumber = expanded.cards.first.collectorNumber;
+      _statusMessage = expanded.cards.length == 1
+          ? 'Found ${expanded.cards.first.name}.'
+          : 'Found ${baseCardName(expanded.cards.first.name)} — '
+              '${expanded.cards.length} versions, best matches first.';
     });
   }
 
@@ -707,6 +734,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     setState(() {
       _locked = false;
       _matches = const [];
+      _rankedCount = 0;
       _pendingKey = null;
       _pendingHits = 0;
       _pendingMisses = 0;
@@ -761,6 +789,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   /// Resolves free text (a name or a collector number) against the catalog,
   /// falling back to a network lookup by number if the catalog isn't loaded.
+  /// Applies the same printing expansion as [_lockOn] so a typed set code
+  /// (e.g. `FAB428`) also promotes that printing into the best-matches prefix.
   Future<void> _lookup(String text) async {
     _locked = true;
     await _stopStream();
@@ -771,6 +801,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           : _lastNumber;
       _statusMessage = 'Looking up “$text”…';
       _matches = const [];
+      _rankedCount = 0;
     });
     try {
       final catalog = ref.read(catalogProvider).asData?.value ?? const [];
@@ -780,12 +811,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             .read(cardRepositoryProvider)
             .findByCollectorNumber(_lastNumber!);
       }
+      // Empty catalog leaves matches unchanged (network fallback still works).
+      final expanded = expandScanMatchesToPrintings(
+        catalog,
+        matches,
+        ocrText: text,
+      );
       if (!mounted) return;
       setState(() {
-        _matches = matches;
-        _statusMessage = matches.isEmpty
+        _matches = expanded.cards;
+        _rankedCount = expanded.rankedCount;
+        _statusMessage = expanded.cards.isEmpty
             ? 'No card found for “$text”.'
-            : 'Found ${matches.length} match(es).';
+            : expanded.cards.length == 1
+                ? 'Found ${expanded.cards.first.name}.'
+                : 'Found ${baseCardName(expanded.cards.first.name)} — '
+                    '${expanded.cards.length} versions, best matches first.';
       });
     } catch (e) {
       if (mounted) setState(() => _statusMessage = 'Lookup failed: $e');
@@ -1063,13 +1104,45 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       );
     }
     final pricing = ref.watch(pricingProvider);
+    // String = section header; CardModel = card row. Headers only when the
+    // expansion actually appended other printings beyond the ranked prefix.
+    final items = <Object>[];
+    final showHeaders = _rankedCount > 0 && _rankedCount < _matches.length;
+    if (showHeaders) {
+      items.add('Best matches');
+      items.addAll(_matches.take(_rankedCount));
+      items.add('Other versions of this card');
+      items.addAll(_matches.skip(_rankedCount));
+    } else {
+      items.addAll(_matches);
+    }
     return ListView.separated(
       controller: scrollController,
       padding: const EdgeInsets.only(bottom: 96),
-      itemCount: _matches.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, indent: 72),
+      itemCount: items.length,
+      separatorBuilder: (_, i) {
+        if (items[i] is String || items[i + 1] is String) {
+          return const SizedBox.shrink();
+        }
+        return const Divider(height: 1, indent: 72);
+      },
       itemBuilder: (context, i) {
-        final card = _matches[i];
+        final item = items[i];
+        if (item is String) {
+          final theme = Theme.of(context);
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+            child: Text(
+              item.toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+              ),
+            ),
+          );
+        }
+        final card = item as CardModel;
         final quickAdd = widget.destination == ScanDestination.trade ||
             widget.destination == ScanDestination.binder;
         if (quickAdd) {

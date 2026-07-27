@@ -102,7 +102,23 @@ weaker create/creates/created cue fallback), not a confident wrong one.
 Memoize `tokenNameKeys` off the per-frame path; surface suppressions as
 `tokSup=` in the on-device overlay.
 
-### 3.5 Visual pHash is not phone-ready yet
+### 3.5 Promo / extended-art printings truncated from locked results
+
+Scanning an extended-art promo such as "Leaven Sheath" (`FAB428`) often locked
+onto the card name correctly but only listed normal set printings. Root cause:
+`identifyCards` strips parentheticals for name tokens, so every printing of
+"Leaven Sheath" ties at overlap 1.0; it then sorts by token count and
+`.take(limit)` with `limit = 12`. Among 20+ tied rows, which 12 survive is
+effectively catalog order — the promo is truncated away. `fuseScanCandidates`
+caps at 12 again, and pHash does not rescue it.
+
+**Fix (do not widen matching):** after lock, `expandScanMatchesToPrintings`
+expands the recognizer's short list to every catalog printing of the identified
+`baseCardName` (pitch colors kept). Printed set codes like `FAB428` are used
+only as a ranking tiebreak once identity is known — they remain out of
+`identifyCards` matching (see `collectorNumberRegex`).
+
+### 3.6 Visual pHash is not phone-ready yet
 
 Live Pixel stats with a card in the guide:
 
@@ -261,7 +277,7 @@ release, absent in debug.
 | `app/lib/core/scan/frame_hasher.dart` | Camera frame → hash (rectify + fallback) |
 | `app/lib/core/scan/rectify.dart` | Edge/quad detection + quad sampling |
 | `app/lib/core/scan/card_hash_index.dart` | Brute-force Hamming + outlier gate |
-| `app/lib/core/data/card_repository.dart` | `identifyCards`, `fuseScanCandidates`, `parseScanNumbers` |
+| `app/lib/core/data/card_repository.dart` | `identifyCards`, `fuseScanCandidates`, `expandScanMatchesToPrintings`, `parseScanNumbers` |
 | `app/lib/core/scan/ocr_guide_filter.dart` | Guide / title-band OCR line filter (+ pseudo band for full-frame) |
 | `app/tool/evaluate_scan.dart` | Offline accuracy harness |
 | `app/tool/generate_card_hashes.dart` | Rebuild `assets/scan/card_hashes.json` |

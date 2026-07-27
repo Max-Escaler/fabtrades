@@ -669,6 +669,159 @@ List<CardModel> fuseScanCandidates({
   return [for (final e in ranked.take(limit)) byId[e.key]!];
 }
 
+/// The scanner's result list: [cards] is every printing worth offering the
+/// user, best-first, and the leading [rankedCount] entries are the ones the
+/// recognizer actually matched. The remainder are other printings of the same
+/// card, offered because the recognizer's ranking cutoffs routinely drop promo
+/// and alternate-art printings of a correctly identified card.
+class ScanMatches {
+  const ScanMatches({required this.cards, required this.rankedCount});
+  final List<CardModel> cards;
+  final int rankedCount;
+  static const empty = ScanMatches(cards: <CardModel>[], rankedCount: 0);
+}
+
+/// Lowercased alphanumeric key for a collector number, with every
+/// non-alphanumeric character stripped. `"FAB428"` → `"fab428"`,
+/// `"147/219"` → `"147219"`. Returns null when nothing remains.
+String? collectorNumberKey(String? raw) {
+  if (raw == null) return null;
+  final key = raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  return key.isEmpty ? null : key;
+}
+
+/// True when [key] looks like a FAB set-code collector number OCR can read as
+/// one verbatim word (e.g. `fab428`, `wtr001`, `1hb007`): at least 4
+/// characters with both a letter and a digit. This restricts OCR promotion in
+/// [expandScanMatchesToPrintings] to set-code style numbers; fractional
+/// numbers like `147/219` normalize via [collectorNumberKey] to a digit-only
+/// run (`147219`) that never appears as a single OCR word, so promoting on
+/// them would never fire usefully and would risk false hits on unrelated
+/// digit noise.
+bool _isSetCodeKey(String key) {
+  if (key.length < 4) return false;
+  var hasLetter = false;
+  var hasDigit = false;
+  for (var i = 0; i < key.length; i++) {
+    final unit = key.codeUnitAt(i);
+    if (unit >= 0x61 && unit <= 0x7a) {
+      hasLetter = true;
+    } else if (unit >= 0x30 && unit <= 0x39) {
+      hasDigit = true;
+    }
+  }
+  return hasLetter && hasDigit;
+}
+
+/// Once the scanner has locked onto a card identity, expand the recognizer's
+/// short candidate list into every catalog printing of that card.
+///
+/// WHY this exists (and why we do NOT make matching "smarter"): [identifyCards]
+/// and [fuseScanCandidates] both cap at `limit: 12`. Name-token matching strips
+/// parentheticals, so every printing of "Leaven Sheath" — Normal, Foil,
+/// Extended Art promo `FAB428`, … — ties at overlap 1.0 with the same token
+/// count. Among 20+ tied printings, which 12 survive is effectively catalog
+/// order, so the promo the user is holding is routinely truncated away. The
+/// pHash visual signal does not rescue it. Widening the match limit or
+/// teaching the matcher about arts/finishes would either flood the two-frame
+/// confirmation with noise or couple ranking to catalog conventions that are
+/// not printed on the card. Expanding AFTER identity is locked is cheaper and
+/// safer: keep the recognizer's ranking as the "best matches" prefix, then
+/// offer every other printing of the same [baseCardName] (pitch colors kept,
+/// so we never cross Red/Yellow/Blue the recognizer did not surface).
+///
+/// When [ocrText] contains a set-code collector number that matches a
+/// printing's [collectorNumberKey] (and passes [_isSetCodeKey]), that printing
+/// is promoted into the ranked prefix — FAB set codes like `FAB428` are
+/// deliberately not part of [identifyCards] matching (see
+/// [collectorNumberRegex]), but once identity is known they are the strongest
+/// available tiebreak for which physical printing the user is holding.
+///
+/// [limit] caps the expanded list; truncation is `max(limit, ranked.length)`
+/// so a card the recognizer actually matched is never dropped.
+ScanMatches expandScanMatchesToPrintings(
+  List<CardModel> catalog,
+  List<CardModel> matches, {
+  String ocrText = '',
+  int limit = 60,
+}) {
+  if (matches.isEmpty) return ScanMatches.empty;
+  if (catalog.isEmpty) {
+    return ScanMatches(cards: matches, rankedCount: matches.length);
+  }
+
+  final matchIds = <String>{for (final c in matches) c.id};
+
+  // Ordered, deduplicated base names from the recognizer's hits — first-seen
+  // order so a multi-card fuse still expands each identity in the order the
+  // user saw it.
+  final baseNames = <String>[];
+  final baseNameSet = <String>{};
+  for (final c in matches) {
+    final base = baseCardName(c.name);
+    if (baseNameSet.add(base)) baseNames.add(base);
+  }
+
+  final extrasByBase = <String, List<CardModel>>{
+    for (final base in baseNames) base: <CardModel>[],
+  };
+  for (final c in catalog) {
+    if (isNonCardProduct(c)) continue;
+    if (matchIds.contains(c.id)) continue;
+    final base = baseCardName(c.name);
+    final bucket = extrasByBase[base];
+    if (bucket == null) continue;
+    bucket.add(c);
+  }
+  for (final bucket in extrasByBase.values) {
+    bucket.sort(_baseFirst);
+  }
+  final extrasOrdered = <CardModel>[
+    for (final base in baseNames) ...extrasByBase[base]!,
+  ];
+
+  final group1 = <CardModel>[];
+  final inGroup1 = <String>{};
+
+  if (ocrText.trim().isNotEmpty) {
+    final words = _wordSet(ocrText);
+    bool promote(CardModel c) {
+      final key = collectorNumberKey(c.collectorNumber);
+      return key != null && _isSetCodeKey(key) && words.contains(key);
+    }
+
+    // Matches first (scan order), then extras (base-name order, then
+    // _baseFirst) — only printings whose printed set code was read verbatim.
+    for (final c in matches) {
+      if (promote(c) && inGroup1.add(c.id)) group1.add(c);
+    }
+    for (final c in extrasOrdered) {
+      if (promote(c) && inGroup1.add(c.id)) group1.add(c);
+    }
+  }
+
+  // Remaining recognizer hits in their original order.
+  for (final c in matches) {
+    if (inGroup1.add(c.id)) group1.add(c);
+  }
+
+  // Other catalog printings of the same base name(s), not already ranked.
+  final group2 = <CardModel>[
+    for (final c in extrasOrdered)
+      if (!inGroup1.contains(c.id)) c,
+  ];
+
+  final seen = <String>{};
+  final combined = <CardModel>[];
+  for (final c in [...group1, ...group2]) {
+    if (seen.add(c.id)) combined.add(c);
+  }
+  final cap = limit > group1.length ? limit : group1.length;
+  final cards =
+      combined.length <= cap ? combined : combined.sublist(0, cap);
+  return ScanMatches(cards: cards, rankedCount: group1.length);
+}
+
 /// Keeps the best name-matching group of number [candidates]. When the name
 /// could not be read (all overlaps 0), returns the candidates as-is so the user
 /// can disambiguate manually.
