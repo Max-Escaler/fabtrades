@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { posthog } from '../lib/posthog.js';
 import { useEntitlement } from '../contexts/EntitlementContext.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
@@ -58,6 +59,15 @@ const TradeHistory = () => {
         }
     }, [user]);
 
+    useEffect(() => {
+        if (!entitlementLoading && !isPro && trades.length / FreeLimits.savedTrades >= 0.7) {
+            posthog.capture('free_limit_warning_shown', {
+                trades_count: trades.length,
+                trades_limit: FreeLimits.savedTrades,
+            });
+        }
+    }, [entitlementLoading, isPro, trades.length]);
+
     const loadTrades = async () => {
         setLoading(true);
         setError(null);
@@ -82,8 +92,10 @@ const TradeHistory = () => {
         const { error: delError } = await deleteTrade(trade.id);
 
         if (delError) {
+            posthog.captureException(new Error(delError.message || 'Failed to delete trade'), { context: 'delete_trade' });
             setDeleteError(delError.message || 'Failed to delete trade');
         } else {
+            posthog.capture('trade_deleted');
             setTrades(prev => prev.filter(t => t.id !== trade.id));
         }
 
@@ -91,6 +103,7 @@ const TradeHistory = () => {
     };
 
     const handleLoadTrade = (trade) => {
+        posthog.capture('trade_loaded_from_history');
         // Navigate to home with trade data in state
         navigate('/', { state: { loadTrade: trade } });
     };

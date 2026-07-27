@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { calculateTotal, calculateLowTotal, calculateDiff } from "../utils/trade.js";
+import { posthog } from "../lib/posthog.js";
 import { 
     decodeTradeFromURL, 
     reconstructCardsFromURLData,
@@ -66,7 +67,12 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
                 edition = cardGroup.editions[0];
                 subTypeName = edition.subTypeName || 'Normal';
             }
-            
+
+            posthog.capture('card_added', {
+                card_name: cardName,
+                sub_type: subTypeName,
+            });
+
             setList([
                 ...list,
                 {
@@ -133,11 +139,17 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
             const tradeData = decodeTradeFromURL();
             if (tradeData) {
                 setUrlTradeData(tradeData);
-                
+
                 // Reconstruct cards from URL data using ID lookup
                 const reconstructedHave = reconstructCardsFromURLData(tradeData.have, cardGroups, cardIdLookup);
                 const reconstructedWant = reconstructCardsFromURLData(tradeData.want, cardGroups, cardIdLookup);
-                
+
+                posthog.capture('trade_loaded_from_url', {
+                    have_card_count: reconstructedHave.length,
+                    want_card_count: reconstructedWant.length,
+                    age_in_days: tradeData.ageInDays ?? null,
+                });
+
                 setHaveList(reconstructedHave);
                 setWantList(reconstructedWant);
                 setHasLoadedFromURL(true);
