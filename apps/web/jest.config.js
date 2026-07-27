@@ -30,6 +30,7 @@ export default {
         'src/hooks/useTradeState.js',
         'src/hooks/useSearch.js',
         'src/services/tradeHistory.js',
+        'src/services/fabDb.js',
     ],
     testPathIgnorePatterns: [
         '/node_modules/',
