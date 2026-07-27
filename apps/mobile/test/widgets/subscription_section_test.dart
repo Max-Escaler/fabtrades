@@ -2,7 +2,7 @@ import 'package:fabtrades/core/models/entitlement.dart';
 import 'package:fabtrades/core/models/subscription_status.dart';
 import 'package:fabtrades/core/providers.dart';
 import 'package:fabtrades/features/paywall/pro_gate.dart';
-import 'package:fabtrades/features/settings/settings_screen.dart';
+import 'package:fabtrades/features/settings/account_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +29,7 @@ class _UnreadableSubscription extends SubscriptionNotifier {
       throw StateError('the store is unreachable');
 }
 
-Future<ProviderContainer> _pumpSettings(
+Future<ProviderContainer> _pumpAccount(
   WidgetTester tester, {
   SubscriptionStatus? status,
   ServerEntitlement? server,
@@ -55,7 +55,7 @@ Future<ProviderContainer> _pumpSettings(
       // Overridden rather than left to read Supabase, which has no client under
       // `flutter test`.
       serverEntitlementProvider.overrideWith((ref) async => server),
-      // Settings also renders an account block; keep it signed out so this test
+      // Account also renders a sign-in block; keep it signed out so this test
       // stays about subscriptions.
       accountProvider.overrideWith((ref) => Stream.value(null)),
     ],
@@ -65,7 +65,7 @@ Future<ProviderContainer> _pumpSettings(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: SettingsScreen()),
+      child: const MaterialApp(home: AccountScreen()),
     ),
   );
   await tester.pumpAndSettle();
@@ -76,7 +76,7 @@ void main() {
   testWidgets('offers an upgrade when the customer has no entitlement',
       (tester) async {
     final container =
-        await _pumpSettings(tester, status: SubscriptionStatus.free);
+        await _pumpAccount(tester, status: SubscriptionStatus.free);
 
     expect(container.read(isProProvider), isFalse);
     expect(find.text('SUBSCRIPTION'), findsOneWidget);
@@ -87,7 +87,7 @@ void main() {
 
   testWidgets('shows renewal date and Customer Center for a subscriber',
       (tester) async {
-    final container = await _pumpSettings(
+    final container = await _pumpAccount(
       tester,
       status: SubscriptionStatus(
         isPro: true,
@@ -105,7 +105,7 @@ void main() {
   });
 
   testWidgets('warns a subscriber whose payment failed', (tester) async {
-    await _pumpSettings(
+    await _pumpAccount(
       tester,
       status: SubscriptionStatus(
         isPro: true,
@@ -123,7 +123,7 @@ void main() {
 
   testWidgets('says access ends, not renews, after a cancellation',
       (tester) async {
-    await _pumpSettings(
+    await _pumpAccount(
       tester,
       status: SubscriptionStatus(
         isPro: true,
@@ -137,7 +137,7 @@ void main() {
 
   testWidgets('honours a subscription bought on the other platform',
       (tester) async {
-    final container = await _pumpSettings(
+    final container = await _pumpAccount(
       tester,
       status: SubscriptionStatus.free,
       server: ServerEntitlement(
@@ -161,7 +161,7 @@ void main() {
 
   testWidgets('keeps Pro when the store is unreachable but the server says yes',
       (tester) async {
-    final container = await _pumpSettings(
+    final container = await _pumpAccount(
       tester,
       server: ServerEntitlement(
         isActive: true,
@@ -178,7 +178,7 @@ void main() {
 
   testWidgets('hides subscription UI entirely when RevenueCat is unconfigured',
       (tester) async {
-    await _pumpSettings(
+    await _pumpAccount(
       tester,
       status: SubscriptionStatus.free,
       purchasesAvailable: false,
@@ -186,7 +186,7 @@ void main() {
 
     expect(find.text('SUBSCRIPTION'), findsNothing);
     expect(find.text('See plans'), findsNothing);
-    // The rest of Settings is unaffected.
-    expect(find.text('PRICE SOURCE'), findsOneWidget);
+    // The rest of My Account is unaffected.
+    expect(find.text('ACCOUNT'), findsOneWidget);
   });
 }

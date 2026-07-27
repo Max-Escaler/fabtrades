@@ -429,24 +429,51 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
             guideHeight: guide.height,
           );
 
+          // Token name-key set is memoized — identifyCards walks the catalog
+          // for it when omitted, and this path can call identify twice/frame.
+          final tokenNames = ref.read(tokenNameKeysProvider);
+          var tokensSuppressed = 0;
+          void onTokSup(int n) => tokensSuppressed += n;
+
           // Prefer title-band text; fall back to all in-guide lines; if
-          // nothing lands in the guide, keep today's full-frame behaviour.
+          // nothing lands in the guide, derive a pseudo title band from the
+          // union of detected OCR boxes so token mentions in rules text still
+          // have a positional gate.
           final String tier;
           if (filtered.linesInGuide == 0) {
             tier = 'full';
-            ocr = identifyCards(catalog, result.text);
+            final detected = textInsideDetectedBounds(lines);
+            ocr = identifyCards(
+              catalog,
+              result.text,
+              titleText: detected.titleBandText,
+              tokenNames: tokenNames,
+              onTokensSuppressed: onTokSup,
+            );
             ocrNumbers = parseScanNumbers(result.text);
           } else {
             ocrNumbers = parseScanNumbers(filtered.guideText);
             final titleCandidates = filtered.titleBandText.trim().isEmpty
                 ? const <CardModel>[]
-                : identifyCards(catalog, filtered.titleBandText);
+                : identifyCards(
+                    catalog,
+                    filtered.titleBandText,
+                    titleText: filtered.titleBandText,
+                    tokenNames: tokenNames,
+                    onTokensSuppressed: onTokSup,
+                  );
             if (titleCandidates.isNotEmpty) {
               tier = 'title';
               ocr = titleCandidates;
             } else {
               tier = 'guide';
-              ocr = identifyCards(catalog, filtered.guideText);
+              ocr = identifyCards(
+                catalog,
+                filtered.guideText,
+                titleText: filtered.titleBandText,
+                tokenNames: tokenNames,
+                onTokensSuppressed: onTokSup,
+              );
             }
           }
 
@@ -460,6 +487,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           ocrLinesNote =
               'ocrLines=${lines.length}/${filtered.linesInGuide}/'
               '${filtered.linesInTitleBand} tier=$tier '
+              'tokSup=$tokensSuppressed '
               'boxMax=${maxR.toStringAsFixed(0)}x${maxB.toStringAsFixed(0)} '
               'rotFrame=${rotatedW.toStringAsFixed(0)}x${rotatedH.toStringAsFixed(0)}';
         } catch (e) {
@@ -612,37 +640,67 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
   }
 
   /// Adds a scanned card to the trade draft or Binder, confirms with a
-  /// snackbar, and immediately resumes scanning so more cards can be added.
+  /// snackbar (with an "add another" action for multiples), and immediately
+  /// resumes scanning so more cards can be added.
   Future<void> _addLockedCard(CardModel card) async {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
     switch (widget.destination) {
       case ScanDestination.trade:
         final side = widget.tradeSide;
         if (side == null) return;
         ref.read(tradeDraftProvider.notifier).addCard(side, card);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Added ${card.name} to trade'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        _showAddedSnackBar(card, destinationLabel: 'trade');
       case ScanDestination.binder:
         // Stop scanning if the free binder is full — continuing to rack up
         // rejected scans would be worse than surfacing the limit once.
         if (!await addToBinderOrUpsell(context, ref, card)) return;
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Added ${card.name} to Binder'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (!mounted) return;
+        _showAddedSnackBar(card, destinationLabel: 'Binder');
       case ScanDestination.detail:
         return;
     }
     await _scanAgain();
+  }
+
+  /// Confirms a successful add and offers a one-tap path to bump quantity
+  /// again — re-scanning the same card is the hard part of multiples.
+  void _showAddedSnackBar(
+    CardModel card, {
+    required String destinationLabel,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Added ${card.name} to $destinationLabel'),
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'Add another ${card.name}',
+          onPressed: () {
+            unawaited(_addAnotherCopy(card));
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Increments quantity for a card that was just scanned, without locking
+  /// the camera again. Re-shows the snackbar so more copies can be stacked.
+  Future<void> _addAnotherCopy(CardModel card) async {
+    if (!mounted) return;
+    switch (widget.destination) {
+      case ScanDestination.trade:
+        final side = widget.tradeSide;
+        if (side == null) return;
+        ref.read(tradeDraftProvider.notifier).addCard(side, card);
+        _showAddedSnackBar(card, destinationLabel: 'trade');
+      case ScanDestination.binder:
+        if (!await addToBinderOrUpsell(context, ref, card)) return;
+        if (!mounted) return;
+        _showAddedSnackBar(card, destinationLabel: 'Binder');
+      case ScanDestination.detail:
+        return;
+    }
   }
 
   Future<void> _scanAgain() async {

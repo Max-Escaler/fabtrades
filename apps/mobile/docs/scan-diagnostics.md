@@ -60,7 +60,7 @@ produced by the `onGrid` callback of `hashCameraFrame` and rendered via
 ### 2. Per-frame stats line
 
 ```
-f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") ocrLines=14/3/1 tier=title boxMax=700x1200 rotFrame=720x1280 720x1280 bpr=2880 hashMs=11 ocrMs=80 totalMs=95
+f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") ocrLines=14/3/1 tier=title tokSup=0 boxMax=700x1200 rotFrame=720x1280 720x1280 bpr=2880 hashMs=11 ocrMs=80 totalMs=95
 ```
 
 | Field | Meaning | Healthy value |
@@ -75,7 +75,8 @@ f=42 rot=90 hashRot=0 hash=ok best=18 z=9.1 vis=3 ocr=1 ("Snatch 121/225") ocrLi
 | `ocr=` | Candidate cards from OCR; the parenthetical is the OCR note | > 0 when name/number legible |
 | OCR note | `"text…"` = **in-guide** snippet that drives matching (full-frame only when nothing landed in the guide); `empty` = ran but read nothing; `input=null …` = frame rejected before ML Kit (format/planes); `err=…` = ML Kit threw (incl. `TimeoutException` — see below); `skip` = not attempted | text snippet |
 | `ocrLines=T/G/B` | Total OCR lines / lines whose centre landed inside the (inflated) guide / lines in the title band | `G` and `B` > 0 with a card filling the guide. **If `G` is 0 on every frame, the guide rect and ML Kit's coordinate space have drifted apart** — matching silently falls back to full-frame text (`tier=full`) |
-| `tier=` | Which text fed `identifyCards`: `title` (top band), `guide` (all in-guide; title band empty or yielded no candidates), `full` (nothing in guide → legacy full-frame) | `title` when aiming at a card |
+| `tier=` | Which text fed `identifyCards`: `title` (top band), `guide` (all in-guide; title band empty or yielded no candidates), `full` (nothing in guide → full-frame text with a pseudo title band from the union of OCR boxes) | `title` when aiming at a card |
+| `tokSup=` | Token candidates the title-band / creation-cue gate rejected this frame (summed across every `identifyCards` call in the frame) | `0` on a clean name read; `≥1` when rules text mentioned a token the matcher correctly suppressed (e.g. scanning "Read the Runes" and rejecting "Runechant") |
 | `boxMax=WxH` | Max right/bottom of any OCR bounding box this frame | Should be in the same ballpark as `rotFrame` |
 | `rotFrame=WxH` | Upright frame size used for the guide (`hashRotation` swap of buffer WxH) | Matches `boxMax` order of magnitude; a large mismatch (e.g. `boxMax` much larger than `rotFrame`, or all boxes clustered in a corner) means the ML Kit coordinate-space assumption is wrong on this platform |
 | `WxH` | Streamed buffer dimensions. iOS portrait upright ⇒ e.g. `720x1280`; Android sensor-oriented ⇒ e.g. `1280x720` | |

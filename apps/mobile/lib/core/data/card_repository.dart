@@ -182,6 +182,53 @@ bool isNonCardProduct(CardModel c) {
   return noRarity && noNumber;
 }
 
+/// True when this printing is a Flesh and Blood token (Runechant, Frostbite,
+/// Gold, …). `card_type` is a semicolon-delimited multi-value field, so a
+/// double-faced token reads "Hero;Token" or "Token;Weapon".
+///
+/// Rarity alone is not trustworthy: TCGplayer stamps `rarity = 'Token'` on
+/// ordinary playable cards printed on token/deck-insert sheets (Harmonized
+/// Kodachi, Phoenix Flame, Dorinthea, …). Treating that as token-ness poisons
+/// ~255 real card names into [tokenNameKeys], which then forces every scan of
+/// those cards through the title-band gate and makes them unmatchable from
+/// guide OCR. Rarity is consulted only when `card_type` is null/blank, which
+/// recovers a handful of token-only rows (Marked, Fealty) that lack a type.
+bool isTokenCard(CardModel card) {
+  final type = card.cardType;
+  if (type == null || type.trim().isEmpty) {
+    return card.rarity?.toLowerCase() == 'token';
+  }
+  for (final part in type.split(';')) {
+    if (part.trim().toLowerCase() == 'token') return true;
+  }
+  return false;
+}
+
+/// Lowercase alphanumeric key for name-set membership. Built from
+/// [baseCardName] so pitch qualifiers like "(Red)" stay in the key when
+/// present; token names have no pitch, so they collapse to a bare slug
+/// (e.g. "Runechant" → "runechant").
+String _cardNameMatchKey(String name) {
+  return baseCardName(name)
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ');
+}
+
+/// The [baseCardName] keys (normalized via [_cardNameMatchKey]) of every card
+/// that names a token somewhere in [catalog]. Derived across printings because
+/// `card_type` is null on a few token rows — a sibling printing of the same
+/// name supplies the type. Used so a null-typed "Runechant" row is still
+/// treated as a token when matching OCR that only mentions it in rules text.
+Set<String> tokenNameKeys(List<CardModel> catalog) {
+  final keys = <String>{};
+  for (final card in catalog) {
+    if (isTokenCard(card)) keys.add(_cardNameMatchKey(card.name));
+  }
+  return keys;
+}
+
 /// The trailing parenthetical qualifier of a variant name, e.g.
 /// "Ahri - Inquisitive (Overnumbered)" -> "Overnumbered", or null when the name
 /// carries no qualifier.
@@ -409,14 +456,64 @@ double _nameOverlap(CardModel card, Set<String> ocrWords) {
 /// name is then used to pick the right set/variant and to disambiguate numbers
 /// that repeat across sets. When no number can be read, it falls back to a
 /// strict name-only match. Returns [] when nothing is confident, best first.
+///
+/// [titleText] is OCR from the card's printed-name band (top of the card). It
+/// may be a subset of [recognizedText], equal to it, or null/blank when
+/// position is unknown. Token cards (Runechant, Frostbite, …) are a special
+/// hazard: many non-token cards say "Create a Runechant token…" in rules text,
+/// and a bag-of-words match against the whole guide region will happily rank
+/// the token as a 100% name hit. When [titleText] is present, a token
+/// candidate is kept only if every distinctive name token appears in that
+/// title band. When [titleText] is null/blank there is no positional signal,
+/// so a token is rejected if a create/creates/created cue sits within a few
+/// words before its name in [recognizedText] — but NOT merely because the
+/// word "token" follows the name (real token cards print "Token" on their
+/// type line). Non-token candidates are unaffected.
+///
+/// [tokenNames] is the precomputed set from [tokenNameKeys]. Pass it from a
+/// memoized provider on the live scanner — recomputing it inside every call
+/// walks the whole ~10k-row catalog (with [baseCardName] per row) and the
+/// camera path invokes this up to twice per frame. When null, the set is
+/// derived from [catalog] as before so unit tests and one-shot callers stay
+/// simple.
+///
+/// [onTokensSuppressed] receives how many token candidates the title /
+/// creation-cue gate rejected in this call — same optional-stats pattern as
+/// `CardHashIndex.match`'s `onStats`, so the scan overlay can surface
+/// `tokSup=` without changing the return type.
 List<CardModel> identifyCards(
   List<CardModel> catalog,
   String recognizedText, {
   int limit = 12,
+  String? titleText,
+  Set<String>? tokenNames,
+  void Function(int)? onTokensSuppressed,
 }) {
-  if (catalog.isEmpty || recognizedText.trim().isEmpty) return const [];
+  if (catalog.isEmpty || recognizedText.trim().isEmpty) {
+    onTokensSuppressed?.call(0);
+    return const [];
+  }
   final ocrWords = _wordSet(recognizedText);
   final ocrNumbers = parseScanNumbers(recognizedText);
+  final tokenKeys = tokenNames ?? tokenNameKeys(catalog);
+  var suppressed = 0;
+
+  bool accept(CardModel card, List<String> tokens) {
+    final ok = _acceptTokenScanCandidate(
+      card,
+      tokens,
+      tokenKeys,
+      recognizedText: recognizedText,
+      titleText: titleText,
+    );
+    if (!ok) suppressed++;
+    return ok;
+  }
+
+  List<CardModel> finish(List<CardModel> result) {
+    onTokensSuppressed?.call(suppressed);
+    return result;
+  }
 
   if (ocrNumbers.isNotEmpty) {
     final numeratorMatches = <CardModel>[];
@@ -436,7 +533,16 @@ List<CardModel> identifyCards(
     // Prefer candidates whose set size (denominator) also matched.
     final candidates = fullMatches.isNotEmpty ? fullMatches : numeratorMatches;
     if (candidates.isNotEmpty) {
-      return _rankByName(candidates, ocrWords, limit);
+      // Tokens can share a collector-number hit with unrelated OCR; apply the
+      // same title / creation-cue gate before ranking by name.
+      final filtered = <CardModel>[
+        for (final c in candidates)
+          if (accept(c, nameTokens(c.name))) c,
+      ];
+      if (filtered.isNotEmpty) {
+        return finish(_rankByName(filtered, ocrWords, limit));
+      }
+      // All number hits were tokens rejected by the gate — try name-only.
     }
   }
 
@@ -449,11 +555,68 @@ List<CardModel> identifyCards(
     final tokens = nameTokens(card.name);
     if (tokens.isEmpty) continue;
     if (_nameOverlap(card, ocrWords) < 1.0) continue;
+    if (!accept(card, tokens)) continue;
     scored.add(MapEntry(card, tokens.length));
   }
-  if (scored.isEmpty) return const [];
+  if (scored.isEmpty) return finish(const []);
   scored.sort((a, b) => b.value.compareTo(a.value));
-  return [for (final e in scored.take(limit)) e.key];
+  return finish([for (final e in scored.take(limit)) e.key]);
+}
+
+/// Whether a scan candidate should be kept after the token-mention guards.
+/// Non-tokens always pass. See [identifyCards] for the title / creation-cue
+/// semantics this encodes.
+bool _acceptTokenScanCandidate(
+  CardModel card,
+  List<String> tokens,
+  Set<String> tokenKeys, {
+  required String recognizedText,
+  String? titleText,
+}) {
+  final isToken = isTokenCard(card) ||
+      tokenKeys.contains(_cardNameMatchKey(card.name));
+  if (!isToken) return true;
+
+  final title = titleText?.trim();
+  if (title != null && title.isNotEmpty) {
+    final titleWords = _wordSet(title);
+    for (final t in tokens) {
+      if (!titleWords.contains(t)) return false;
+    }
+    return true;
+  }
+  return !_hasTokenCreationCue(recognizedText, tokens);
+}
+
+/// True when create/creates/created appears within roughly 4 words before an
+/// occurrence of the candidate's distinctive name tokens in [text]. Guards the
+/// no-titleText fallback so "Create a Runechant token…" does not identify the
+/// Runechant token card.
+bool _hasTokenCreationCue(String text, List<String> nameTokens) {
+  if (nameTokens.isEmpty) return false;
+  final words = text
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+      .split(' ')
+      .where((t) => t.isNotEmpty)
+      .toList();
+  const verbs = {'create', 'creates', 'created'};
+  final n = nameTokens.length;
+  for (var i = 0; i <= words.length - n; i++) {
+    var matches = true;
+    for (var j = 0; j < n; j++) {
+      if (words[i + j] != nameTokens[j]) {
+        matches = false;
+        break;
+      }
+    }
+    if (!matches) continue;
+    final from = i > 4 ? i - 4 : 0;
+    for (var k = from; k < i; k++) {
+      if (verbs.contains(words[k])) return true;
+    }
+  }
+  return false;
 }
 
 /// Fuses the scanner's two candidate lists — visual (perceptual-hash) matches

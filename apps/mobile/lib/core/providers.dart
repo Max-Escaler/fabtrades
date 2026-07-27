@@ -173,6 +173,15 @@ final catalogByIdProvider = Provider<Map<String, CardModel>>((ref) {
   return {for (final c in cards) c.id: c};
 });
 
+/// Normalized name keys of every token card in the catalog, for the scanner's
+/// token-mention guard in [identifyCards]. Memoized so the per-frame OCR path
+/// does not rescan ~10k rows (and run [baseCardName] on each) on every call —
+/// live scanning invokes identify up to twice per frame.
+final tokenNameKeysProvider = Provider<Set<String>>((ref) {
+  final cards = ref.watch(catalogProvider).asData?.value ?? const <CardModel>[];
+  return tokenNameKeys(cards);
+});
+
 // ---------------------------------------------------------------------------
 // Settings
 // ---------------------------------------------------------------------------

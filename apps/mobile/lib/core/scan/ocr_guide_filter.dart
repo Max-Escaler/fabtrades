@@ -65,3 +65,78 @@ textInsideGuide({
     linesInTitleBand: titleBand.length,
   );
 }
+
+/// Derives a pseudo title band when no OCR line landed inside the on-screen
+/// guide — the full-frame fallback path. Takes the union bounding box of every
+/// detected [lines] and reuses [textInsideGuide] so the top
+/// [kCardTitleBandFraction] of that extent stands in for the card's printed
+/// name. Without this, full-frame OCR has no positional signal and a token
+/// mentioned only in rules text ("Create a Runechant token…") can win the
+/// match. Returns empty strings when [lines] is empty.
+///
+/// Unlike the on-screen guide, this box is only as tall as the text actually
+/// found, so the fixed fraction can land entirely above the first line's
+/// centre and yield an empty band — always so for a lone line, whose centre
+/// sits at half its own height. An empty band gates every token out of this
+/// tier, including a token card that genuinely is being scanned, so the band
+/// is widened to reach the topmost line when it would otherwise come back
+/// empty. That line is the best available guess at the printed name.
+({
+  String titleBandText,
+  String guideText,
+  int linesInGuide,
+  int linesInTitleBand,
+})
+textInsideDetectedBounds(
+  List<OcrLine> lines, {
+  double titleBandFraction = kCardTitleBandFraction,
+}) {
+  if (lines.isEmpty) {
+    return (
+      titleBandText: '',
+      guideText: '',
+      linesInGuide: 0,
+      linesInTitleBand: 0,
+    );
+  }
+
+  var left = lines.first.left;
+  var top = lines.first.top;
+  var right = lines.first.right;
+  var bottom = lines.first.bottom;
+  for (final line in lines) {
+    if (line.left < left) left = line.left;
+    if (line.top < top) top = line.top;
+    if (line.right > right) right = line.right;
+    if (line.bottom > bottom) bottom = line.bottom;
+  }
+
+  final height = bottom - top;
+  final band = textInsideGuide(
+    lines: lines,
+    guideLeft: left,
+    guideTop: top,
+    guideWidth: right - left,
+    guideHeight: height,
+    titleBandFraction: titleBandFraction,
+  );
+  if (band.linesInTitleBand > 0) return band;
+
+  var topmostCentre = double.infinity;
+  for (final line in lines) {
+    final cy = (line.top + line.bottom) / 2;
+    if (cy < topmostCentre) topmostCentre = cy;
+  }
+  // Epsilon so the comparison in textInsideGuide is strictly greater.
+  final reachTopmost =
+      height <= 0 ? 1.0 : (topmostCentre - top) / height + 0.001;
+
+  return textInsideGuide(
+    lines: lines,
+    guideLeft: left,
+    guideTop: top,
+    guideWidth: right - left,
+    guideHeight: height,
+    titleBandFraction: reachTopmost,
+  );
+}

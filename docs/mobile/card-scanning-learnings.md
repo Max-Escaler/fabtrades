@@ -83,7 +83,26 @@ too (even though visual was already weak).
 Also enforce the ML Kit contract: Android = single-plane NV21 only (match
 `google_mlkit_commons` docs).
 
-### 3.4 Visual pHash is not phone-ready yet
+### 3.4 Token names printed in other cards' rules text
+
+Scanning "Read the Runes" locked onto **Runechant** — a real token card in
+the catalog — because the action's rules text says "Create a Runechant
+token…" and bag-of-words name matching over the whole guide treats that as a
+100% name hit.
+
+**Why it's structural:** token names are printed *verbatim* on many non-token
+cards. A whole-card OCR word set cannot tell a mentioned token from a scanned
+one. The printed-name band (top ~22% of the guide) is the disambiguator: keep
+a token candidate only when its distinctive name tokens appear there. When
+the title band cannot be read, the correct outcome is **no match** (or the
+weaker create/creates/created cue fallback), not a confident wrong one.
+
+**Fix:** pass `titleText` from the title band on every OCR tier (`title`,
+`guide`, and `full` via a pseudo band from the union of detected OCR boxes).
+Memoize `tokenNameKeys` off the per-frame path; surface suppressions as
+`tokSup=` in the on-device overlay.
+
+### 3.5 Visual pHash is not phone-ready yet
 
 Live Pixel stats with a card in the guide:
 
@@ -202,6 +221,8 @@ so name OCR remains primary).
 - **Don’t** send non-NV21 / multi-plane buffers to ML Kit on Android.
 - **Don’t** treat cloud LLM-per-frame as a live-scanner strategy (latency, cost,
   offline).
+- **Don’t** feed whole-card / guide OCR to token candidates without a title-band
+  (or pseudo title-band) signal — token names in rules text will win.
 
 ---
 
@@ -241,6 +262,7 @@ release, absent in debug.
 | `app/lib/core/scan/rectify.dart` | Edge/quad detection + quad sampling |
 | `app/lib/core/scan/card_hash_index.dart` | Brute-force Hamming + outlier gate |
 | `app/lib/core/data/card_repository.dart` | `identifyCards`, `fuseScanCandidates`, `parseScanNumbers` |
+| `app/lib/core/scan/ocr_guide_filter.dart` | Guide / title-band OCR line filter (+ pseudo band for full-frame) |
 | `app/tool/evaluate_scan.dart` | Offline accuracy harness |
 | `app/tool/generate_card_hashes.dart` | Rebuild `assets/scan/card_hashes.json` |
 | `app/assets/scan/card_hashes.json` | Bundled visual index |
