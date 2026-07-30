@@ -45,6 +45,41 @@ describe('filterCardOptions', () => {
     const many = Array.from({ length: 50 }, (_, i) => opt(`Card Number ${i}`));
     expect(filterCardOptions(many, 'card', 5)).toHaveLength(5);
   });
+
+  test('treats a term with no word characters like an empty search', () => {
+    // "!!!" is not whitespace, so it passes the trim() guard, but it
+    // normalizes to an empty string, leaving no search words to match.
+    const result = filterCardOptions(options, '!!!');
+    expect(result).toHaveLength(options.length);
+  });
+
+  test('excludes a candidate when a later word of a multi-word search is missing', () => {
+    // First word ("lightning") matches, but "zzz" does not -> rejected.
+    const result = filterCardOptions(options, 'lightning zzz');
+    expect(result).toHaveLength(0);
+  });
+
+  test('ranks an exact full-name match at the top', () => {
+    const result = filterCardOptions(options, 'Lightning Press');
+    expect(result[0].label).toBe('Lightning Press');
+  });
+
+  test('still matches multi-word searches whose words appear out of order', () => {
+    // All words present but reversed: no in-order bonus, yet still a match.
+    const result = filterCardOptions(options, 'conquer command');
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe('Command and Conquer');
+  });
+
+  test('skips candidates far shorter than the term and tolerates a missing label', () => {
+    const mixed = [
+      { card: {} }, // no label at all -> treated as an empty string
+      opt('Ex'), // far shorter than the search term -> length short-circuit
+      opt('Lightning Strike'),
+    ];
+    const result = filterCardOptions(mixed, 'lightning strike');
+    expect(result.map((o) => o.label)).toEqual(['Lightning Strike']);
+  });
 });
 
 describe('highlightMatch', () => {
@@ -74,6 +109,28 @@ describe('highlightMatch', () => {
     expect(segments.map((s) => s.text).join('')).toBe('aaa');
     expect(segments.some((s) => s.highlight)).toBe(true);
   });
+
+  test('returns the whole string unhighlighted for a whitespace-only term', () => {
+    // A whitespace term is truthy, but yields no words after splitting.
+    expect(highlightMatch('Lightning Press', '   ')).toEqual([
+      { text: 'Lightning Press', highlight: false },
+    ]);
+  });
+
+  test('keeps two non-overlapping matches as separate highlighted segments', () => {
+    const segments = highlightMatch('Lightning Press', 'lightning press');
+    const highlighted = segments.filter((s) => s.highlight).map((s) => s.text);
+    expect(highlighted).toEqual(['Lightning', 'Press']);
+    expect(segments.map((s) => s.text).join('')).toBe('Lightning Press');
+  });
+
+  test('appends trailing text after the final match as an unhighlighted segment', () => {
+    const segments = highlightMatch('Lightning Bolt', 'lightning');
+    expect(segments).toEqual([
+      { text: 'Lightning', highlight: true },
+      { text: ' Bolt', highlight: false },
+    ]);
+  });
 });
 
 describe('getCardGradient', () => {
@@ -95,6 +152,28 @@ describe('getCardGradient', () => {
 
   test('handles missing subtype without throwing', () => {
     expect(() => getCardGradient()).not.toThrow();
+  });
+
+  test('returns distinct dark-mode gradients for each foil family', () => {
+    const rainbow = getCardGradient('Rainbow Foil', true);
+    const cold = getCardGradient('Cold Foil', true);
+    const generic = getCardGradient('Foil', true);
+    const holo = getCardGradient('Holo Something', true);
+
+    for (const style of [rainbow, cold, generic, holo]) {
+      expect(style.background).toContain('linear-gradient');
+      expect(style.backgroundHover).toContain('linear-gradient');
+    }
+
+    // Dark variants differ from their light counterparts.
+    expect(cold.background).not.toBe(getCardGradient('Cold Foil', false).background);
+    expect(generic.background).not.toBe(getCardGradient('Foil', false).background);
+
+    // The three foil families produce different dark gradients.
+    expect(new Set([rainbow.background, cold.background, generic.background]).size).toBe(3);
+
+    // "holo" routes through the generic foil branch.
+    expect(holo.background).toBe(generic.background);
   });
 });
 

@@ -39,4 +39,16 @@ describe('formatTimestamp', () => {
     const result = formatTimestamp('not-a-real-date');
     expect(typeof result).toBe('string');
   });
+
+  test('returns "Invalid date" and logs when date handling throws', () => {
+    // A BigInt is truthy (so it clears the guard) but cannot be converted
+    // to a Date, so `new Date(...)` throws and the catch branch runs.
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(formatTimestamp(10n)).toBe('Invalid date');
+      expect(errorSpy).toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
