@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.2] — App Store review compliance
+
 ### Added
 
 - **Terms of Use** at `https://fabtrades.net/terms` (App Store EULA URL for
