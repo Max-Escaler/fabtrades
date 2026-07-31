@@ -26,10 +26,23 @@ end
 
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 
+# Resolve google_mlkit_commons from package_config so this works even when
+# ios/.symlinks has not been regenerated yet (chicken-and-egg with pod install).
+require 'json'
+_mlkit_package_config = JSON.parse(File.read(File.expand_path('../.dart_tool/package_config.json', __dir__)))
+_mlkit_commons = _mlkit_package_config['packages'].find { |p| p['name'] == 'google_mlkit_commons' }
+raise 'google_mlkit_commons missing from .dart_tool/package_config.json; run flutter pub get' unless _mlkit_commons
+require File.expand_path(
+  'ios/scripts/apple_silicon_simulator',
+  _mlkit_commons['rootUri'].sub(%r{\Afile://}, ''),
+)
+
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
+  # Static linkage avoids the missing Pods_Runner.framework link failure that
+  # shows up when Flutter's SPM plugin integration is mixed with dynamic pods.
+  use_frameworks! :linkage => :static
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -46,4 +59,9 @@ post_install do |installer|
       end
     end
   end
+
+  # Relabel ML Kit arm64 device slices for Apple Silicon simulators (iOS 26+)
+  # and strip EXCLUDED_ARCHS arm64 from generated xcconfigs. See
+  # google_mlkit_commons README "Apple Silicon iOS Simulator".
+  mlkit_apple_silicon_simulator_patch(installer)
 end

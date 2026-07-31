@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Terms of Use** at `https://fabtrades.net/terms` (App Store EULA URL for
+  auto-renewable subscriptions), with Settings + subscription legal links in
+  the mobile app.
+- **Email/password sign-in** on mobile for App Review demo accounts.
+- App Store review checklist: [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md).
+
+### Changed
+
+- Privacy Policy updated for mobile auth, cloud sync, and RevenueCat
+  subscriptions.
+
 ### Removed
 
 - **Find Trade Filler** from the website (`FindFillerDialog`,

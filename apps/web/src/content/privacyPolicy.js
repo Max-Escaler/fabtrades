@@ -3,14 +3,14 @@
  * mobile app). Kept as plain data so the same text is rendered both by the
  * interactive React page (src/pages/PrivacyPolicy.jsx) and by the build-time
  * SEO prerenderer (scripts/generateSeoPages.js), which emits a static,
- * crawlable /privacy/index.html — Google Play requires the policy URL to be
- * publicly and reliably accessible.
+ * crawlable /privacy/index.html — Google Play and App Store Connect require
+ * the policy URL to be publicly and reliably accessible.
  *
  * Body item types: { type: 'p', text } for a paragraph and
  * { type: 'ul', items: [...] } for a bulleted list.
  */
 
-export const PRIVACY_EFFECTIVE_DATE = 'July 15, 2026';
+export const PRIVACY_EFFECTIVE_DATE = 'July 31, 2026';
 
 export const PRIVACY_CONTACT_EMAIL = 'mxbloombusiness@gmail.com';
 
@@ -46,7 +46,7 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'Usage and analytics data. We use Google Analytics to understand how the Website is used. Google Analytics collects information such as the pages you visit, time spent on the site, approximate location (city/country level, derived from your IP address), browser and device type, and sets cookies to distinguish visitors. This data is aggregated and does not directly identify you.',
-                    'Account information (optional). If you choose to sign in with Discord, we receive your Discord user ID, username, email address, and avatar from Discord through our authentication provider, Supabase. Signing in is entirely optional — all core features work without an account.',
+                    'Account information (optional). If you choose to sign in with Discord, Google, Apple, or email, we receive your user ID, username or display name, email address, and avatar (when provided) from the identity provider through our authentication provider, Supabase. Signing in is entirely optional — all core features work without an account.',
                     'Saved trade data (optional). If you are signed in and save a trade, the trade contents (card names, quantities, prices, and totals) are stored in our database, linked to your account, so you can view them later in your trade history.',
                     'Local preferences. Settings such as light/dark theme and your current (unsaved) trade lists are stored locally in your browser (localStorage) and are not transmitted to us.'
                 ]
@@ -56,7 +56,9 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'Camera (card scanning). The App uses your device camera to identify physical cards you point it at. Camera frames are processed entirely on your device in real time — images are never stored, uploaded, or shared. Nothing leaves your device from the scanner. You can deny or revoke camera permission at any time; a manual search fallback is always available.',
-                    'Locally stored app data. Your collection, want list, lend/borrow lists, trade drafts, trade history, and settings are stored only on your device. The App has no account system and does not upload this data to us.',
+                    'Account information (optional). If you choose to sign in with Apple, Google, Discord, or email, we receive your user ID, username or display name, email address, and avatar (when provided) through Supabase Auth. Signing in is optional for core features; it is required only if you purchase FABTrades Pro so we can attach the subscription to your account.',
+                    'Synced app data (optional). When you are signed in, your collection, want list, lend/borrow lists, trade drafts, trade history, and settings may be synced to our database so they are available on your other devices. When you are signed out, that data remains stored only on your device.',
+                    'Purchase and subscription data. If you buy FABTrades Pro, Apple or Google processes the payment. We receive subscription status (active, expired, cancelled, sandbox vs production, and related entitlement metadata) through RevenueCat so we can unlock Pro features on your account.',
                     'Network requests. The App downloads the card catalog and current prices from our database provider (Supabase). Like any internet request, this transmits your IP address to the server, which is processed transiently to deliver the response. We do not use it to identify you.'
                 ]
             },
@@ -75,7 +77,7 @@ export const privacySections = [
             {
                 type: 'ul',
                 items: [
-                    'To provide the Services: fetching card prices, balancing trades, identifying scanned cards, and (if signed in on the Website) saving and displaying your trade history.',
+                    'To provide the Services: fetching card prices, balancing trades, identifying scanned cards, syncing your lists when signed in, and granting FABTrades Pro access after a purchase.',
                     'To understand aggregate usage of the Website (via Google Analytics) so we can improve features and performance.',
                     'To maintain the security and integrity of the Services.'
                 ]
@@ -101,8 +103,11 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'Google Analytics (Website only) — usage analytics. See Google\u2019s Privacy Policy at https://policies.google.com/privacy. You can opt out of Google Analytics with the browser add-on at https://tools.google.com/dlpage/gaoptout.',
-                    'Supabase — database and authentication hosting (card catalog, prices, and, for signed-in Website users, accounts and saved trades). See https://supabase.com/privacy.',
-                    'Discord (Website only, optional) — OAuth sign-in. See https://discord.com/privacy.',
+                    'Supabase — database and authentication hosting (card catalog, prices, accounts, synced lists, and saved trades). See https://supabase.com/privacy.',
+                    'Apple — Sign in with Apple and App Store billing for FABTrades Pro on iOS. See https://www.apple.com/legal/privacy/.',
+                    'Google — Sign in with Google and Google Play billing for FABTrades Pro on Android. See https://policies.google.com/privacy.',
+                    'Discord (optional) — OAuth sign-in. See https://discord.com/privacy.',
+                    'RevenueCat — subscription entitlement processing between the App stores and our servers. See https://www.revenuecat.com/privacy.',
                     'Netlify — Website hosting. Netlify may process standard server logs, including IP addresses, to serve and secure the site. See https://www.netlify.com/privacy/.',
                     'TCGplayer / card image CDNs — card images shown in the Services are loaded from third-party content delivery networks, which receive standard request data (such as your IP address) when images are fetched.'
                 ]
@@ -129,8 +134,9 @@ export const privacySections = [
             {
                 type: 'ul',
                 items: [
-                    'Saved trades and account data (Website) are retained until you delete them. You can delete individual trades from the Trade History page at any time. To delete your account and all associated data, email us at the address below and we will remove it within 30 days.',
-                    'App data lives only on your device. You can erase all of it by clearing the App\u2019s storage or uninstalling the App.',
+                    'Saved trades, synced lists, and account data are retained until you delete them. You can delete individual trades from Trade History where available. To delete your account and all associated data, email us at the address below and we will remove it within 30 days.',
+                    'Local-only App data (when signed out) lives on your device. You can erase it by clearing the App\u2019s storage or uninstalling the App.',
+                    'Subscription records needed for entitlement and fraud prevention may be retained for as long as required to provide Pro access and comply with store or legal obligations.',
                     'Google Analytics data is retained according to our analytics settings and then automatically deleted by Google.'
                 ]
             }
@@ -144,8 +150,8 @@ export const privacySections = [
                 text:
                     'All data transmitted between your device and the Services is ' +
                     'encrypted in transit using HTTPS/TLS. Database access is restricted ' +
-                    'with row-level security so that saved trades are only readable by ' +
-                    'the account that created them. No method of transmission or storage ' +
+                    'with row-level security so that account data is only readable by ' +
+                    'the account that owns it. No method of transmission or storage ' +
                     'is 100% secure, but we take reasonable measures to protect your ' +
                     'information.'
             }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/legal_urls.dart';
 import '../../core/logic/free_limits.dart';
 import '../../core/logic/pro_packages.dart';
 import '../../core/models/entitlement.dart';
@@ -234,10 +236,37 @@ class _UpgradeCardState extends ConsumerState<_UpgradeCard> {
                 ),
               ),
             ),
+            // App Review 3.1.2: functional Privacy + Terms links near the
+            // subscription offer (RevenueCat paywall should also link these).
+            Wrap(
+              spacing: 12,
+              children: [
+                TextButton(
+                  onPressed: () => _openLegal(context, LegalUrls.privacyPolicy),
+                  child: const Text('Privacy Policy'),
+                ),
+                TextButton(
+                  onPressed: () => _openLegal(context, LegalUrls.termsOfUse),
+                  child: const Text('Terms of Use'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  static Future<void> _openLegal(BuildContext context, String url) async {
+    final opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open that link.")),
+      );
+    }
   }
 
   static Widget? _usageLine(BuildContext context, FreeUsage? usage) {

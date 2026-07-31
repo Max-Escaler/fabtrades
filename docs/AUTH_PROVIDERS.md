@@ -1,8 +1,10 @@
 # Sign-in providers
 
-FAB Trades offers Apple, Google, and Discord on every client. Sign-in is always
-optional — the app and site work fully without an account, and an account only adds
-cloud sync and Pro entitlements.
+FAB Trades offers Apple, Google, Discord, and email/password on mobile. Sign-in
+is always optional — the app and site work fully without an account, and an
+account only adds cloud sync and Pro entitlements. Email/password exists so App
+Review (and anyone without a third-party identity) has a username/password path;
+see [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md).
 
 Application code lives in
 [auth_repository.dart](../apps/mobile/lib/core/data/auth_repository.dart) for mobile
@@ -134,6 +136,22 @@ falling back through the email local part.
 Already configured for web; see [DISCORD_AUTH_SETUP.md](DISCORD_AUTH_SETUP.md).
 Mobile needs no additional Discord setup, because it reuses the same OAuth
 application and the same Supabase callback.
+
+### Email / password
+
+Required for the App Store demo account. In Supabase → Authentication →
+Providers → **Email**:
+
+1. Enable the Email provider.
+2. For the App Review user only, either disable **Confirm email** globally in
+   development, or create the user with **Auto Confirm** so the reviewer is not
+   blocked waiting for a confirmation message.
+3. Create the demo user under Authentication → Users (see
+   [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md)).
+
+Mobile calls `signInWithPassword` from
+[auth_repository.dart](../apps/mobile/lib/core/data/auth_repository.dart). The
+sign-in sheet exposes it under **Sign in with email**.
 
 ## Verifying
 

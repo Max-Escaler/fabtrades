@@ -36,6 +36,10 @@ import {
     privacySections,
     PRIVACY_EFFECTIVE_DATE
 } from '../src/content/privacyPolicy.js';
+import {
+    termsSections,
+    TERMS_EFFECTIVE_DATE
+} from '../src/content/termsOfUse.js';
 
 // Written by scripts/generateCatalog.js earlier in the build.
 const SNAPSHOT_METADATA_FILE = path.resolve(
@@ -419,42 +423,73 @@ ${items}
     return renderPage(template, { title, description, canonicalPath, jsonLd, bodyHtml });
 };
 
-const buildPrivacyPage = (template) => {
-    const title = 'Privacy Policy | FAB Trades';
-    const description =
-        'Privacy policy for FAB Trades: what information the fabtrades.net ' +
-        'website and the FAB Trades mobile app collect, how it is used, and ' +
-        'your rights.';
-    const canonicalPath = '/privacy';
-
-    const sections = privacySections
+const buildLegalPage = ({
+    template,
+    title,
+    description,
+    canonicalPath,
+    heading,
+    effectiveDate,
+    sections,
+    jsonLdName
+}) => {
+    const body = sections
         .map((section) => {
-            const body = section.body
+            const sectionBody = section.body
                 .map((item) =>
                     item.type === 'ul'
                         ? `<ul>${item.items.map((li) => `<li>${escapeHtml(li)}</li>`).join('\n')}</ul>`
                         : `<p>${escapeHtml(item.text)}</p>`
                 )
                 .join('\n');
-            return `<h2>${escapeHtml(section.heading)}</h2>\n${body}`;
+            return `<h2>${escapeHtml(section.heading)}</h2>\n${sectionBody}`;
         })
         .join('\n');
 
     const bodyHtml = `${SEO_BLOCK_STYLE}
-    <h1>Privacy Policy</h1>
-    <p class="meta">Effective date: ${escapeHtml(PRIVACY_EFFECTIVE_DATE)}</p>
-${sections}`;
+    <h1>${escapeHtml(heading)}</h1>
+    <p class="meta">Effective date: ${escapeHtml(effectiveDate)}</p>
+${body}`;
 
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: 'FAB Trades Privacy Policy',
+        name: jsonLdName,
         url: `${SITE_URL}${canonicalPath}`,
-        dateModified: PRIVACY_EFFECTIVE_DATE
+        dateModified: effectiveDate
     };
 
     return renderPage(template, { title, description, canonicalPath, jsonLd, bodyHtml });
 };
+
+const buildPrivacyPage = (template) =>
+    buildLegalPage({
+        template,
+        title: 'Privacy Policy | FAB Trades',
+        description:
+            'Privacy policy for FAB Trades: what information the fabtrades.net ' +
+            'website and the FAB Trades mobile app collect, how it is used, and ' +
+            'your rights.',
+        canonicalPath: '/privacy',
+        heading: 'Privacy Policy',
+        effectiveDate: PRIVACY_EFFECTIVE_DATE,
+        sections: privacySections,
+        jsonLdName: 'FAB Trades Privacy Policy'
+    });
+
+const buildTermsPage = (template) =>
+    buildLegalPage({
+        template,
+        title: 'Terms of Use | FAB Trades',
+        description:
+            'Terms of Use (EULA) for FAB Trades: the fabtrades.net website, the ' +
+            'FAB Trades mobile app, and FABTrades Pro auto-renewable subscriptions.',
+        canonicalPath: '/terms',
+        heading: 'Terms of Use',
+        effectiveDate: TERMS_EFFECTIVE_DATE,
+        sections: termsSections,
+        jsonLdName: 'FAB Trades Terms of Use'
+    });
 
 // ---------------------------------------------------------------------------
 // Sitemap + robots
@@ -466,6 +501,7 @@ const buildSitemap = (sets, metadata) => {
         { loc: `${SITE_URL}/`, priority: '1.0' },
         { loc: `${SITE_URL}/sets`, priority: '0.9' },
         { loc: `${SITE_URL}/privacy`, priority: '0.3' },
+        { loc: `${SITE_URL}/terms`, priority: '0.3' },
         ...sets.map((s) => ({ loc: `${SITE_URL}/sets/${s.slug}`, priority: '0.8' }))
     ];
     const body = urls
@@ -526,12 +562,18 @@ const main = async () => {
         'utf8'
     );
 
-    // Privacy policy (static so the Google Play policy URL is always
+    // Privacy + Terms (static so store listing URLs are always
     // crawlable/accessible even without JS).
     await mkdir(path.join(DIST, 'privacy'), { recursive: true });
     await writeFile(
         path.join(DIST, 'privacy', 'index.html'),
         buildPrivacyPage(template),
+        'utf8'
+    );
+    await mkdir(path.join(DIST, 'terms'), { recursive: true });
+    await writeFile(
+        path.join(DIST, 'terms', 'index.html'),
+        buildTermsPage(template),
         'utf8'
     );
 

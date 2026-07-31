@@ -35,6 +35,17 @@ class SignInSheet extends ConsumerStatefulWidget {
 class _SignInSheetState extends ConsumerState<SignInSheet> {
   AuthProviderKind? _busy;
   String? _error;
+  bool _showEmailForm = false;
+  bool _obscurePassword = true;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _signIn(AuthProviderKind provider) async {
     setState(() {
@@ -61,67 +72,160 @@ class _SignInSheetState extends ConsumerState<SignInSheet> {
     }
   }
 
+  Future<void> _signInWithEmail() async {
+    setState(() {
+      _busy = AuthProviderKind.email;
+      _error = null;
+    });
+
+    final outcome = await ref.read(authRepositoryProvider).signInWithEmail(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+    if (!mounted) return;
+
+    switch (outcome) {
+      case SignInSucceeded():
+        Navigator.of(context).pop(true);
+      case SignInPending():
+      case SignInCancelled():
+        setState(() => _busy = null);
+      case SignInFailed(:final message):
+        setState(() {
+          _busy = null;
+          _error = message;
+        });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final providers = ref.watch(authProvidersProvider);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Sync your collection', style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(
-              'Sign in to keep your binder, want list, and trade history on '
-              'every device you use. Everything already on this device is kept.',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 24),
-            ...switch (providers) {
-              AsyncData(:final value) => [
-                  for (final provider in value) ...[
-                    _ProviderButton(
-                      provider: provider,
-                      busy: _busy == provider,
-                      // One sign-in at a time: two open browser handoffs would
-                      // race to write the session.
-                      onPressed: _busy == null
-                          ? () => _signIn(provider)
-                          : null,
-                    ),
-                    const SizedBox(height: 10),
+        padding: EdgeInsets.fromLTRB(24, 4, 24, 24 + bottomInset),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Sync your collection', style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 8),
+              Text(
+                'Sign in to keep your binder, want list, and trade history on '
+                'every device you use. Everything already on this device is kept.',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 24),
+              ...switch (providers) {
+                AsyncData(:final value) => [
+                    for (final provider in value) ...[
+                      _ProviderButton(
+                        provider: provider,
+                        busy: _busy == provider,
+                        // One sign-in at a time: two open browser handoffs would
+                        // race to write the session.
+                        onPressed: _busy == null
+                            ? () => _signIn(provider)
+                            : null,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ],
-                ],
-              AsyncError() => [
-                  Text(
-                    "Couldn't load sign-in options.",
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.error),
+                AsyncError() => [
+                    Text(
+                      "Couldn't load sign-in options.",
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.error),
+                    ),
+                  ],
+                _ => [
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ],
+              },
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: _busy == null
+                    ? () => setState(() => _showEmailForm = !_showEmailForm)
+                    : null,
+                child: Text(
+                  _showEmailForm
+                      ? 'Hide email sign-in'
+                      : 'Sign in with email',
+                ),
+              ),
+              if (_showEmailForm) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _emailController,
+                  enabled: _busy == null,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
                   ),
-                ],
-              _ => [
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: CircularProgressIndicator(),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _passwordController,
+                  enabled: _busy == null,
+                  obscureText: _obscurePassword,
+                  autofillHints: const [AutofillHints.password],
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) {
+                    if (_busy == null) _signInWithEmail();
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
                     ),
                   ),
-                ],
-            },
-            ?_errorText(theme),
-            const SizedBox(height: 8),
-            Text(
-              'We only ever read your name, email, and avatar.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: _busy == null ? _signInWithEmail : null,
+                    child: _busy == AuthProviderKind.email
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Sign in'),
+                  ),
+                ),
+              ],
+              ?_errorText(theme),
+              const SizedBox(height: 8),
+              Text(
+                'We only ever read your name, email, and avatar.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
         ),
       ),
     );

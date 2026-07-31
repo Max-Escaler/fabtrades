@@ -7,6 +7,13 @@ flutter run --dart-define-from-file=env/production.json
 flutter build appbundle --release --dart-define-from-file=env/staging.json
 ```
 
+Xcode Run does not take `--dart-define-from-file`. Sync the same values into
+the iOS project first (defaults to production):
+
+```sh
+tool/sync_ios_dart_defines.sh env/production.json
+```
+
 Without one of these the app throws at startup. That is deliberate — see the note
 in [supabase_config.dart](../lib/core/config/supabase_config.dart).
 

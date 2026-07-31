@@ -140,4 +140,41 @@ void main() {
 
     expect(browser.closeCount, 0);
   });
+
+  test('signs in with email and password', () async {
+    when(
+      () => auth.signInWithPassword(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async => AuthResponse());
+
+    final outcome = await repository.signInWithEmail(
+      email: ' appreview@fabtrades.net ',
+      password: 'secret',
+    );
+
+    expect(outcome, isA<SignInSucceeded>());
+    verify(
+      () => auth.signInWithPassword(
+        email: 'appreview@fabtrades.net',
+        password: 'secret',
+      ),
+    ).called(1);
+  });
+
+  test('rejects empty email credentials', () async {
+    final outcome = await repository.signInWithEmail(
+      email: '  ',
+      password: 'secret',
+    );
+
+    expect(outcome, isA<SignInFailed>());
+    verifyNever(
+      () => auth.signInWithPassword(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    );
+  });
 }

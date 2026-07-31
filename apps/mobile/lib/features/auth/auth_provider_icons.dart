@@ -23,6 +23,7 @@ Widget authProviderIcon(AuthProviderKind provider, {double size = 20}) {
         // Apple marks — its native viewBox is wider than tall.
         svg: _discordClydeSvg,
       ),
+    AuthProviderKind.email => Icon(Icons.email_outlined, size: size),
   };
 }
 

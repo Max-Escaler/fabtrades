@@ -27,7 +27,7 @@ Speed at the table. FAB Trades is the fastest way to stack two piles of cards an
 
 ## Capabilities and Constraints
 
-- Web routes: `/` trade calculator, `/history` (Discord auth), `/sets` and `/sets/:groupId` price browsing, `/privacy`.
+- Web routes: `/` trade calculator, `/history` (Discord auth), `/sets` and `/sets/:groupId` price browsing, `/privacy`, `/terms`.
 - Mobile: catalog browsing, trade balancer + history, Binder, Want List, Lend tracking, card scan, theming — all local-only, no account system.
 - **Durable commitment (confirmed): core features must work without an account.** Discord login stays optional and only gates saved trade history on web.
 - Domain vocabulary is authoritative in `CONTEXT.md`: Binder (cards willing to trade away — not "collection"), Want List, Trade Filler, Confirm Trade (mobile), Printing (`<product_id>-<subtype>`), Condition (NM/LP/MP/HP/DMG), foil subtypes (NF/CF/RF/GF), diff, market/low price.

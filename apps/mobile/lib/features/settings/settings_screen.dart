@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/legal_urls.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/providers.dart';
@@ -8,6 +10,16 @@ import '../onboarding/onboarding_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  static Future<void> _openUrl(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open that link.")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,6 +118,23 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.of(context).popUntil((r) => r.isFirst);
               await ref.read(onboardingProvider.notifier).resetAll();
             },
+          ),
+          const SizedBox(height: 24),
+          const SettingsSectionLabel('Legal'),
+          const SizedBox(height: 8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Privacy Policy'),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => _openUrl(context, LegalUrls.privacyPolicy),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Terms of Use'),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => _openUrl(context, LegalUrls.termsOfUse),
           ),
           const SizedBox(height: 24),
           const SettingsSectionLabel('About'),

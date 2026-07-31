@@ -65,6 +65,20 @@ Then, still in App Store Connect:
 Also add at least one **Sandbox tester** under Users and Access → Sandbox. Use an
 email address that is not already an Apple ID.
 
+### Legal metadata (required for auto-renewable subscriptions)
+
+App Review rejects subscriptions that lack a functional Terms of Use (EULA) link
+in the app metadata. Before every submission:
+
+| Field | Value |
+| --- | --- |
+| Privacy Policy URL | `https://fabtrades.net/privacy` |
+| Terms of Use (EULA) | `https://fabtrades.net/terms` |
+| App Description | Must include the Terms URL (and preferably Privacy) |
+
+Full App Review paste text, demo account setup, and Notes for Review live in
+[APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md).
+
 ## 2. Play Console
 
 Under **Monetize → Products → Subscriptions**, create two subscriptions:

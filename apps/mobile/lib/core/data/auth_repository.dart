@@ -86,7 +86,35 @@ class AuthRepository {
       AuthProviderKind.apple => _signInWithApple(),
       AuthProviderKind.google => _signInWithRedirect(OAuthProvider.google),
       AuthProviderKind.discord => _signInWithRedirect(OAuthProvider.discord),
+      // Email needs a password; callers use [signInWithEmail] instead.
+      AuthProviderKind.email => Future.value(
+          const SignInFailed('Use email and password to sign in.'),
+        ),
     };
+  }
+
+  /// Email/password sign-in via Supabase Auth.
+  ///
+  /// Exists so App Review (and anyone without Apple/Google/Discord) has a
+  /// username/password path. Enable Email under Supabase → Authentication →
+  /// Providers before relying on it in production.
+  Future<SignInOutcome> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final trimmed = email.trim();
+    if (trimmed.isEmpty || password.isEmpty) {
+      return const SignInFailed('Enter your email and password.');
+    }
+    try {
+      await _auth.signInWithPassword(email: trimmed, password: password);
+      return const SignInSucceeded();
+    } on AuthException catch (e) {
+      return SignInFailed(_authErrorMessage(e));
+    } catch (e) {
+      debugPrint('Auth: unexpected email sign-in error — $e');
+      return const SignInFailed("Couldn't sign in. Please try again.");
+    }
   }
 
   /// Native Sign in with Apple.
@@ -252,6 +280,13 @@ class AuthRepository {
     final message = e.message.toLowerCase();
     if (message.contains('provider is not enabled')) {
       return 'That sign-in option is not enabled for FAB Trades yet.';
+    }
+    if (message.contains('invalid login credentials') ||
+        message.contains('invalid email or password')) {
+      return 'Incorrect email or password.';
+    }
+    if (message.contains('email not confirmed')) {
+      return 'Confirm your email before signing in.';
     }
     if (message.contains('network') || message.contains('failed host')) {
       return 'Network problem while signing in. Check your connection and try '

@@ -8,7 +8,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum AuthProviderKind {
   apple('apple', 'Apple'),
   google('google', 'Google'),
-  discord('discord', 'Discord');
+  discord('discord', 'Discord'),
+  /// Email/password via Supabase Auth. Used for App Review demo accounts and
+  /// customers who prefer not to use a third-party identity.
+  email('email', 'Email');
 
   const AuthProviderKind(this.id, this.label);
 
