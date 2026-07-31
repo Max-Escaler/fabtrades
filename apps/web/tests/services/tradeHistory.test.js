@@ -215,6 +215,45 @@ describe('saveTradeToHistory', () => {
       expect(trimmed).toBe(0);
     });
 
+    test('keeps the trade when the sweep write itself fails', async () => {
+      asUser();
+      mockTables({
+        trades: [
+          { data: { id: 'newest' }, error: null },
+          // The read succeeds and finds the history overfull...
+          existingTrades(FreeLimits.savedTrades + 2),
+          // ...but the tombstoning update fails.
+          { error: { message: 'update blew up' } },
+        ],
+        entitlements: asFree(),
+      });
+
+      const { data, error, trimmed } = await saveTradeToHistory('My Trade', [], [], totals);
+
+      // The insert already committed, so a failed trim is logged, not surfaced.
+      expect(data).toEqual({ id: 'newest' });
+      expect(error).toBeNull();
+      expect(trimmed).toBe(0);
+    });
+
+    test('treats a null history read as an empty window', async () => {
+      asUser();
+      const chains = mockTables({
+        trades: [
+          { data: { id: 'newest' }, error: null },
+          // A read that returns neither rows nor an error must not be treated as
+          // an over-limit history — there is nothing to tombstone.
+          { data: null, error: null },
+        ],
+        entitlements: asFree(),
+      });
+
+      const { trimmed } = await saveTradeToHistory('My Trade', [], [], totals);
+
+      expect(trimmed).toBe(0);
+      expect(chains.trades[1].update).not.toHaveBeenCalled();
+    });
+
     test('does not trim on an entitlement read the app could not complete', async () => {
       asUser();
       const chains = mockTables({
@@ -262,6 +301,16 @@ describe('getUserTrades', () => {
 
     expect(chains.trades[0].is).toHaveBeenCalledWith('deleted_at', null);
   });
+
+  test('surfaces a database error instead of a partial list', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'read failed' } }] });
+
+    const { data, error } = await getUserTrades();
+
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'read failed' });
+  });
 });
 
 describe('getTradeById', () => {
@@ -274,6 +323,23 @@ describe('getTradeById', () => {
     expect(data).toEqual({ id: 'xyz' });
     expect(chains.trades[0].eq).toHaveBeenCalledWith('id', 'xyz');
     expect(chains.trades[0].eq).toHaveBeenCalledWith('user_id', 'user-3');
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await getTradeById('xyz');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    // A request that never got past the auth guard must not touch the table.
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  test('propagates a database error', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'not found' } }] });
+    const { data, error } = await getTradeById('missing');
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'not found' });
   });
 });
 
@@ -289,6 +355,22 @@ describe('updateTrade', () => {
     expect(chains.trades[0].update).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'New', updated_at: expect.any(String) })
     );
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  test('propagates a database error', async () => {
+    asUser();
+    mockTables({ trades: [{ data: null, error: { message: 'conflict' } }] });
+    const { data, error } = await updateTrade('u1', { name: 'New' });
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'conflict' });
   });
 });
 
@@ -315,5 +397,44 @@ describe('deleteTrade', () => {
     const { data, error } = await deleteTrade('d1');
     expect(data).toBeNull();
     expect(error).toEqual({ message: 'nope' });
+  });
+
+  test('errors when not authenticated', async () => {
+    asAnonymous();
+    const { data, error } = await deleteTrade('d1');
+    expect(data).toBeNull();
+    expect(error.message).toMatch(/logged in/i);
+    // Nothing is tombstoned for a caller we could not authenticate.
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+});
+
+// The auth guard short-circuits before any query when Supabase itself was never
+// configured (no env vars), so every call reports that rather than a login error.
+describe('when Supabase is not configured', () => {
+  afterEach(() => {
+    jest.dontMock('../../src/lib/supabase.js');
+    jest.resetModules();
+  });
+
+  const loadUnconfigured = async () => {
+    jest.resetModules();
+    jest.doMock('../../src/lib/supabase.js', () => ({ supabase: null }));
+    return import('../../src/services/tradeHistory.js');
+  };
+
+  test('getUserTrades reports the missing configuration', async () => {
+    const { getUserTrades: getUserTradesFn } = await loadUnconfigured();
+    const { data, error } = await getUserTradesFn();
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'Authentication not configured' });
+  });
+
+  test('saveTradeToHistory reports the missing configuration', async () => {
+    const { saveTradeToHistory: saveFn } = await loadUnconfigured();
+    const { data, error, trimmed } = await saveFn('My Trade', [], [], totals);
+    expect(data).toBeNull();
+    expect(error).toEqual({ message: 'Authentication not configured' });
+    expect(trimmed).toBe(0);
   });
 });
