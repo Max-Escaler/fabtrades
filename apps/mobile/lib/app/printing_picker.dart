@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/analytics/analytics.dart';
 import '../core/models/card_model.dart';
 import 'widgets.dart';
 
@@ -30,6 +32,7 @@ Future<CardModel?> showPrintingPicker({
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    routeSettings: const RouteSettings(name: 'Printing Picker'),
     builder: (ctx) {
       final theme = Theme.of(ctx);
       return SafeArea(
@@ -100,7 +103,13 @@ Future<CardModel?> showPrintingPicker({
                               : null,
                           onTap: printing.id == current.id
                               ? null
-                              : () => Navigator.pop(ctx, printing),
+                              : () {
+                                  ProviderScope.containerOf(ctx)
+                                      .read(analyticsProvider)
+                                      .capture('card_printing_switched',
+                                          {'card_id': printing.id});
+                                  Navigator.pop(ctx, printing);
+                                },
                         ),
                     ],
                   ),

@@ -19,7 +19,7 @@ class StubSyncNotifier extends SyncNotifier {
   SyncStatus build() => initial;
 
   @override
-  Future<void> sync(String userId) async {
+  Future<void> sync(String userId, {String trigger = 'auto'}) async {
     requested.add(userId);
   }
 }

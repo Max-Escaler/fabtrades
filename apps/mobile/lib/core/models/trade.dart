@@ -2,6 +2,12 @@ import 'card_model.dart';
 
 enum TradeSide { have, want }
 
+/// Analytics-facing label for a trade side: `have` is the customer's own
+/// cards ("mine"), `want` is what the trading partner brings ("theirs").
+extension TradeSideAnalytics on TradeSide {
+  String get analyticsLabel => this == TradeSide.want ? 'theirs' : 'mine';
+}
+
 /// A card line on one side of a trade. [priceEach] is the price captured at the
 /// moment it was added/saved (so a saved trade preserves at-the-time value).
 class TradeItem {

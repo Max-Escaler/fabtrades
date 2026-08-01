@@ -23,6 +23,7 @@ class CardPickerScreen extends ConsumerStatefulWidget {
   static Future<CardModel?> show(BuildContext context, {String? title}) {
     return Navigator.of(context).push<CardModel>(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'Card Picker'),
         builder: (_) => CardPickerScreen(title: title ?? 'Add a card'),
       ),
     );
@@ -39,6 +40,7 @@ class CardPickerScreen extends ConsumerStatefulWidget {
   }) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'Card Picker'),
         builder: (_) =>
             CardPickerScreen(title: title ?? 'Add a card', onPick: onPick),
       ),

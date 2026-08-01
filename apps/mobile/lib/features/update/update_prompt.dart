@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/providers.dart';
 
 /// Runs once after the first frame and shows a soft update dialog when the
@@ -32,6 +33,12 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
 
     final messenger = ScaffoldMessenger.maybeOf(context);
     final repo = ref.read(appUpdateRepositoryProvider);
+    final analytics = ref.read(analyticsProvider);
+
+    analytics.capture('update_prompt_shown', {
+      'latest_version': prompt.latestVersion,
+      'current_version': prompt.installedVersion,
+    });
 
     await showDialog<void>(
       context: context,
@@ -41,6 +48,7 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
         actions: [
           TextButton(
             onPressed: () async {
+              analytics.capture('update_prompt_dismissed');
               await repo.dismiss(prompt.latestVersion);
               if (dialogContext.mounted) Navigator.of(dialogContext).pop();
             },
@@ -48,6 +56,7 @@ class _UpdatePromptHostState extends ConsumerState<UpdatePromptHost> {
           ),
           TextButton(
             onPressed: () async {
+              analytics.capture('update_prompt_accepted');
               final opened = await repo.openStore(prompt.storeUrl);
               if (!dialogContext.mounted) return;
               Navigator.of(dialogContext).pop();

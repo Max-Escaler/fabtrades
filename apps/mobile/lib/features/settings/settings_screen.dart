@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/config/legal_urls.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/models/app_settings.dart';
@@ -113,6 +114,7 @@ class SettingsScreen extends ConsumerWidget {
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             onTap: () async {
+              ref.read(analyticsProvider).capture('tutorial_replayed');
               // Pop first so MaterialApp.home can swap to the carousel without
               // leaving Settings stranded on a disposed HomeShell.
               Navigator.of(context).popUntil((r) => r.isFirst);

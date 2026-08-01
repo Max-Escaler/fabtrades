@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:purchases_flutter/purchases_flutter.dart';
 
+import '../analytics/analytics.dart';
 import '../config/revenuecat_config.dart';
 import '../models/purchase_outcome.dart';
 
@@ -61,8 +62,9 @@ class PurchasesRepository {
         debugPrint('RevenueCat: configured against the Test Store.');
       }
       return true;
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('RevenueCat: configure failed — $e');
+      Analytics().captureException(e, s, {'source': 'purchases_configure'});
       return false;
     }
   }
@@ -84,10 +86,11 @@ class PurchasesRepository {
     try {
       final result = await Purchases.logIn(userId);
       return result.customerInfo;
-    } catch (e) {
+    } catch (e, s) {
       // Not fatal: entitlements already bought still read correctly from the
       // store, and the next sign-in or app launch retries the binding.
       debugPrint('RevenueCat: logIn failed — $e');
+      Analytics().captureException(e, s, {'source': 'purchases_login'});
       return null;
     }
   }
@@ -179,8 +182,9 @@ class PurchasesRepository {
         PurchasesErrorCode.paymentPendingError => const PurchasePending(),
         _ => PurchaseFailure(code, describePurchasesError(code)),
       };
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('RevenueCat: unexpected purchase error — $e');
+      Analytics().captureException(e, s, {'source': 'purchases_purchase'});
       return PurchaseFailure(
         PurchasesErrorCode.unknownError,
         describePurchasesError(PurchasesErrorCode.unknownError),
@@ -203,8 +207,9 @@ class PurchasesRepository {
     } on PlatformException catch (e) {
       final code = PurchasesErrorHelper.getErrorCode(e);
       return RestoreFailure(code, describePurchasesError(code));
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('RevenueCat: unexpected restore error — $e');
+      Analytics().captureException(e, s, {'source': 'purchases_restore'});
       return RestoreFailure(
         PurchasesErrorCode.unknownError,
         describePurchasesError(PurchasesErrorCode.unknownError),

@@ -221,8 +221,12 @@ class _UpgradeCardState extends ConsumerState<_UpgradeCard> {
                 // onlyIfNeeded: false — this is an explicit "see plans" tap, so
                 // show the paywall even in the rare case the entitlement is
                 // mid-sync.
-                onPressed: () =>
-                    presentProPaywall(context, ref, onlyIfNeeded: false),
+                onPressed: () => presentProPaywall(
+                  context,
+                  ref,
+                  onlyIfNeeded: false,
+                  trigger: 'settings',
+                ),
                 child: const Text('See plans'),
               ),
             ),

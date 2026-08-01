@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/logic/pricing.dart';
 import '../../core/logic/trade_filler.dart';
 import '../../core/models/binder_entry.dart';
@@ -14,13 +15,32 @@ import '../../core/providers.dart';
 /// between the two sides of the live trade and suggests catalog cards whose
 /// price most closely matches that gap, boosting binder / want-list cards
 /// to the top without filtering the rest of the catalog.
-Future<void> showTradeFillerSheet(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet<void>(
+Future<void> showTradeFillerSheet(BuildContext context, WidgetRef ref) async {
+  final before = ref.read(tradeDraftProvider);
+  final gapBefore = (before.wantTotal - before.haveTotal).abs();
+  ref
+      .read(analyticsProvider)
+      .capture('trade_filler_opened', {'value_gap': gapBefore});
+
+  await showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    routeSettings: const RouteSettings(name: 'Trade Filler'),
     builder: (_) => const _TradeFillerSheet(),
   );
+
+  final after = ref.read(tradeDraftProvider);
+  final cardsAdded = (after.haveCount + after.wantCount) -
+      (before.haveCount + before.wantCount);
+  if (cardsAdded > 0) {
+    final gapAfter = (after.wantTotal - after.haveTotal).abs();
+    ref.read(analyticsProvider).capture('trade_filler_applied', {
+      'cards_added': cardsAdded,
+      'value_gap_before': gapBefore,
+      'value_gap_after': gapAfter,
+    });
+  }
 }
 
 class _TradeFillerSheet extends ConsumerStatefulWidget {
@@ -260,7 +280,9 @@ class _TradeFillerSheetState extends ConsumerState<_TradeFillerSheet> {
   }
 
   void _addFiller(BuildContext context, CardModel card, TradeSide side) {
-    ref.read(tradeDraftProvider.notifier).addCard(side, card);
+    ref
+        .read(tradeDraftProvider.notifier)
+        .addCard(side, card, source: 'filler');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

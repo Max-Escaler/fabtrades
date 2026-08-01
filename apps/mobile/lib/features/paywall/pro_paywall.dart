@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/config/revenuecat_config.dart';
 import '../../core/models/purchase_outcome.dart';
 import '../../core/providers.dart';
@@ -27,11 +28,15 @@ import '../auth/sign_in_sheet.dart';
 ///
 /// [offering] overrides which offering is shown; leave it null to use the one
 /// marked **Current** in the dashboard so offerings can be swapped remotely.
+///
+/// [trigger] identifies what surfaced the paywall (e.g. `settings`,
+/// `trade_filler`, `binder_limit`), for analytics.
 Future<bool> presentProPaywall(
   BuildContext context,
   WidgetRef ref, {
   Offering? offering,
   bool onlyIfNeeded = true,
+  String trigger = 'settings',
 }) async {
   if (!ref.read(purchasesAvailableProvider)) {
     _showMessage(context, 'Subscriptions are unavailable in this build.');
@@ -39,6 +44,8 @@ Future<bool> presentProPaywall(
   }
 
   if (!await _ensureSignedIn(context, ref)) return ref.read(isProProvider);
+
+  ref.read(analyticsProvider).capture('paywall_shown', {'trigger': trigger});
 
   final PaywallResult result;
   try {
@@ -50,6 +57,10 @@ Future<bool> presentProPaywall(
         : await RevenueCatUI.presentPaywall(offering: offering);
   } catch (e) {
     debugPrint('RevenueCat: failed to present paywall — $e');
+    ref.read(analyticsProvider).capture('purchase_failed', {
+      'trigger': trigger,
+      'error_type': e.runtimeType.toString(),
+    });
     if (context.mounted) {
       _showMessage(context, "Couldn't open FABTrades Pro. Please try again.");
     }
@@ -68,6 +79,29 @@ Future<bool> presentProPaywall(
     ref.invalidate(serverEntitlementProvider);
   }
   final isPro = ref.read(isProProvider);
+
+  switch (result) {
+    case PaywallResult.purchased:
+      final productId = ref.read(entitlementProvider).productIdentifier;
+      ref.read(analyticsProvider).capture('purchase_completed', {
+        'trigger': trigger,
+        'product_id': ?productId,
+      });
+    case PaywallResult.restored:
+      ref
+          .read(analyticsProvider)
+          .capture('purchase_restored', {'trigger': trigger});
+    case PaywallResult.error:
+      ref.read(analyticsProvider).capture('purchase_failed', {
+        'trigger': trigger,
+        'error_type': 'paywall_error',
+      });
+    case PaywallResult.cancelled:
+    case PaywallResult.notPresented:
+      ref
+          .read(analyticsProvider)
+          .capture('paywall_dismissed', {'trigger': trigger});
+  }
 
   if (!context.mounted) return isPro;
   switch (result) {
@@ -102,6 +136,8 @@ Future<void> presentProCustomerCenter(
     _showMessage(context, 'Subscriptions are unavailable in this build.');
     return;
   }
+
+  ref.read(analyticsProvider).capture('customer_center_opened');
 
   final subscription = ref.read(subscriptionProvider.notifier);
   try {
@@ -142,13 +178,20 @@ Future<bool> restoreProPurchases(BuildContext context, WidgetRef ref) async {
 
   switch (outcome) {
     case RestoreSuccess():
+      ref.read(analyticsProvider).capture('purchase_restored', {
+        'trigger': 'restore',
+      });
       _showMessage(
         context,
         isPro
             ? 'FABTrades Pro restored.'
             : 'No previous purchases found on this store account.',
       );
-    case RestoreFailure(:final message):
+    case RestoreFailure(:final message, :final code):
+      ref.read(analyticsProvider).capture('purchase_failed', {
+        'trigger': 'restore',
+        'error_type': code.toString(),
+      });
       _showMessage(context, message);
   }
   return isPro;
@@ -166,7 +209,7 @@ Future<bool> restoreProPurchases(BuildContext context, WidgetRef ref) async {
 /// means no purchase.
 Future<bool> _ensureSignedIn(BuildContext context, WidgetRef ref) async {
   if (!ref.read(isSignedInProvider)) {
-    if (!await presentSignIn(context)) return false;
+    if (!await presentSignIn(context, source: 'paywall')) return false;
 
     // A redirect-based provider finishes in a browser, so `presentSignIn` can
     // return true before the session lands.

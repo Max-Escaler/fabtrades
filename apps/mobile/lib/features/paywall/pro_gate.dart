@@ -18,9 +18,15 @@ import 'pro_paywall.dart';
 ///
 /// Returns true when Pro is active — immediately for existing subscribers, so
 /// the paywall never flashes for someone who already paid.
-Future<bool> ensurePro(BuildContext context, WidgetRef ref) async {
+///
+/// [trigger] identifies what gated action asked for Pro, for analytics.
+Future<bool> ensurePro(
+  BuildContext context,
+  WidgetRef ref, {
+  String trigger = 'unknown',
+}) async {
   if (ref.read(isProProvider)) return true;
-  return presentProPaywall(context, ref);
+  return presentProPaywall(context, ref, trigger: trigger);
 }
 
 /// Renders [child] for Pro customers and an unlock prompt for everyone else.
@@ -41,6 +47,7 @@ class ProGate extends ConsumerWidget {
     required this.child,
     this.description,
     this.locked,
+    this.trigger = 'unknown',
   });
 
   /// Name of the gated feature, shown in the prompt.
@@ -55,21 +62,36 @@ class ProGate extends ConsumerWidget {
   /// (a blurred preview, for instance).
   final Widget? locked;
 
+  /// What surfaced this gate, for analytics on the resulting paywall.
+  final String trigger;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (ref.watch(isProProvider)) return child;
     return locked ??
-        ProUnlockCard(feature: feature, description: description);
+        ProUnlockCard(
+          feature: feature,
+          description: description,
+          trigger: trigger,
+        );
   }
 }
 
 /// The default locked state used by [ProGate]: what the feature is, and one
 /// button to unlock it.
 class ProUnlockCard extends ConsumerWidget {
-  const ProUnlockCard({super.key, required this.feature, this.description});
+  const ProUnlockCard({
+    super.key,
+    required this.feature,
+    this.description,
+    this.trigger = 'unknown',
+  });
 
   final String feature;
   final String? description;
+
+  /// What surfaced this card, for analytics on the resulting paywall.
+  final String trigger;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -101,7 +123,8 @@ class ProUnlockCard extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () => presentProPaywall(context, ref),
+                onPressed: () =>
+                    presentProPaywall(context, ref, trigger: trigger),
                 icon: const Icon(Icons.lock_open, size: 18),
                 label: const Text('Unlock with Pro'),
               ),

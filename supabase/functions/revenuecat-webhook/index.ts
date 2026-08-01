@@ -18,8 +18,12 @@
  * 2xx or 4xx to stop the retries, because repeating it cannot help.
  *
  * Deploy:
- *   supabase secrets set REVENUECAT_WEBHOOK_SECRET=... REVENUECAT_API_KEY=sk_...
+ *   supabase secrets set REVENUECAT_WEBHOOK_SECRET=... REVENUECAT_API_KEY=sk_... \
+ *     POSTHOG_API_KEY=phc_...
  *   supabase functions deploy revenuecat-webhook
+ *
+ * POSTHOG_API_KEY is optional; without it subscription lifecycle events are
+ * simply not sent to PostHog. Set it on the production project.
  *
  * `verify_jwt = false` in config.toml is required: RevenueCat sends the shared secret
  * above, not a Supabase JWT, so with gateway verification on every delivery would 401.
@@ -90,6 +94,7 @@ Deno.serve((request) => {
     secret,
     apiKey,
     entitlementId: ENTITLEMENT_ID,
+    posthogApiKey: Deno.env.get('POSTHOG_API_KEY') ?? undefined,
     store,
     fetchSubscriber,
   });

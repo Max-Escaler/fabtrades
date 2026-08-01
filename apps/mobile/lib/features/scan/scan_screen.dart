@@ -13,6 +13,7 @@ import 'package:showcaseview/showcaseview.dart';
 import '../../app/app.dart';
 import '../../app/card_actions.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/models/card_model.dart';
 import '../../core/models/trade.dart';
@@ -66,6 +67,7 @@ class ScanScreen extends ConsumerStatefulWidget {
   static Future<void> forTrade(BuildContext context, TradeSide side) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'Scan'),
         builder: (_) => ScanScreen(
           destination: ScanDestination.trade,
           tradeSide: side,
@@ -78,6 +80,7 @@ class ScanScreen extends ConsumerStatefulWidget {
   static Future<void> forBinder(BuildContext context) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'Scan'),
         builder: (_) =>
             const ScanScreen(destination: ScanDestination.binder),
       ),
@@ -209,10 +212,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
 
   bool _scanTourStarted = false;
 
+  /// Analytics label for where a locked/added scan result goes: `detail`,
+  /// `trade_mine`/`trade_theirs` (see [TradeSideAnalytics]), or `binder`.
+  String get _destinationLabel => switch (widget.destination) {
+        ScanDestination.detail => 'detail',
+        ScanDestination.binder => 'binder',
+        ScanDestination.trade =>
+          'trade_${widget.tradeSide?.analyticsLabel ?? 'unknown'}',
+      };
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ref
+        .read(analyticsProvider)
+        .capture('scan_opened', {'destination': _destinationLabel});
     ShowcaseView.register(
       scope: OnboardingKeys.scanScope,
       disableMovingAnimation: true,
@@ -276,6 +291,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         if (!mounted) return;
+        ref.read(analyticsProvider).capture('scan_failed', {
+          'destination': _destinationLabel,
+          'error_type': 'no_camera',
+        });
         setState(() {
           _cameraError = 'No cameras reported by the OS.';
           _initializing = false;
@@ -343,6 +362,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
     } catch (e) {
       _recordDiag('camera init failed: $e');
       if (!mounted) return;
+      final code = e is CameraException ? e.code.toLowerCase() : '';
+      final isPermission =
+          code.contains('denied') || code.contains('permission');
+      ref.read(analyticsProvider).capture(
+        isPermission ? 'scan_permission_denied' : 'scan_failed',
+        {
+          'destination': _destinationLabel,
+          'error_type': e is CameraException ? e.code : 'unknown',
+        },
+      );
       setState(() {
         _cameraError = 'Camera init failed: $e';
         _initializing = false;
@@ -669,8 +698,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
         setState(() => _statusMessage =
             'Reading ${matches.first.name}… hold steady.');
       }
-    } catch (e) {
+    } catch (e, s) {
       _recordDiag('frame err=$e');
+      ref.read(analyticsProvider).captureException(
+            e,
+            s,
+            {'source': 'scan_frame'},
+          );
     } finally {
       _processing = false;
     }
@@ -775,6 +809,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           : 'Found ${baseCardName(expanded.cards.first.name)} — '
               '${expanded.cards.length} versions, best matches first.';
     });
+    final top = expanded.cards.first;
+    ref.read(analyticsProvider).capture('card_scanned', {
+      'card_id': top.id,
+      'card_name': top.name,
+      'destination': _destinationLabel,
+    });
   }
 
   /// Adds a scanned card to the trade draft or Binder, confirms with a
@@ -785,18 +825,31 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       case ScanDestination.trade:
         final side = widget.tradeSide;
         if (side == null) return;
-        ref.read(tradeDraftProvider.notifier).addCard(side, card);
+        ref
+            .read(tradeDraftProvider.notifier)
+            .addCard(side, card, source: 'scan');
+        _captureCardAdded(card);
         _showAddedSnackBar(card, destinationLabel: 'trade');
       case ScanDestination.binder:
         // Stop scanning if the free binder is full — continuing to rack up
         // rejected scans would be worse than surfacing the limit once.
-        if (!await addToBinderOrUpsell(context, ref, card)) return;
+        if (!await addToBinderOrUpsell(context, ref, card, source: 'scan')) {
+          return;
+        }
         if (!mounted) return;
+        _captureCardAdded(card);
         _showAddedSnackBar(card, destinationLabel: 'Binder');
       case ScanDestination.detail:
         return;
     }
     await _scanAgain();
+  }
+
+  void _captureCardAdded(CardModel card) {
+    ref.read(analyticsProvider).capture('scan_card_added', {
+      'card_id': card.id,
+      'destination': _destinationLabel,
+    });
   }
 
   /// Confirms a successful add and offers a one-tap path to bump quantity
@@ -830,11 +883,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       case ScanDestination.trade:
         final side = widget.tradeSide;
         if (side == null) return;
-        ref.read(tradeDraftProvider.notifier).addCard(side, card);
+        ref
+            .read(tradeDraftProvider.notifier)
+            .addCard(side, card, source: 'scan');
+        _captureCardAdded(card);
         _showAddedSnackBar(card, destinationLabel: 'trade');
       case ScanDestination.binder:
-        if (!await addToBinderOrUpsell(context, ref, card)) return;
+        if (!await addToBinderOrUpsell(context, ref, card, source: 'scan')) {
+          return;
+        }
         if (!mounted) return;
+        _captureCardAdded(card);
         _showAddedSnackBar(card, destinationLabel: 'Binder');
       case ScanDestination.detail:
         return;
@@ -1284,7 +1343,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           priceLabel: pricing.priceLabel(card),
           secondaryLabel: pricing.lowPriceLabel(card),
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => CardDetailScreen(card: card))),
+              settings: const RouteSettings(name: 'Card Detail'),
+              builder: (_) => CardDetailScreen(card: card, source: 'scan'))),
           onAdd: () => showCardActions(context, ref, card),
         );
       },

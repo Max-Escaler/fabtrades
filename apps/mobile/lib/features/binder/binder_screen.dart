@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../../app/app.dart';
-import '../../app/card_filter_bar.dart';
 import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
@@ -99,6 +98,9 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
     final pricing = ref.watch(pricingProvider);
     final binder = entries.where((e) => !e.isWanted).toList();
     final wanted = entries.where((e) => e.isWanted).toList();
+    final onBinderTab = _tab.index == 0;
+    final binderTotal = binder.fold<double>(
+        0, (s, e) => s + (pricing.value(e.card) ?? 0) * e.quantity);
 
     return Scaffold(
       appBar: AppBar(
@@ -129,17 +131,40 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
           ),
         ],
       ),
-      floatingActionButton: ShowcaseTheme.mark(
-        key: OnboardingKeys.binderFab,
-        title: TourCopy.binderFabTitle,
-        description: TourCopy.binderFabBody,
-        child: FloatingActionButton.extended(
-          heroTag: 'binderFab',
-          onPressed: () => _tab.index == 0
-              ? _showBinderAddOptions(context)
-              : _addBySearch(isWanted: true),
-          icon: const Icon(Icons.add),
-          label: Text(_tab.index == 0 ? 'Add card' : 'Add want'),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: SizedBox(
+          width: MediaQuery.sizeOf(context).width - 32,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (onBinderTab && binder.isNotEmpty)
+                ShowcaseTheme.mark(
+                  key: OnboardingKeys.binderTotal,
+                  title: TourCopy.binderTotalTitle,
+                  description: TourCopy.binderTotalBody,
+                  child: _BinderValueChip(
+                    total: pricing.formatValue(binderTotal),
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
+              ShowcaseTheme.mark(
+                key: OnboardingKeys.binderFab,
+                title: TourCopy.binderFabTitle,
+                description: TourCopy.binderFabBody,
+                child: FloatingActionButton.extended(
+                  heroTag: 'binderFab',
+                  onPressed: () => onBinderTab
+                      ? _showBinderAddOptions(context)
+                      : _addBySearch(isWanted: true),
+                  icon: const Icon(Icons.add),
+                  label: Text(onBinderTab ? 'Add card' : 'Add want'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -181,6 +206,7 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
           ],
         ),
       ),
+      routeSettings: const RouteSettings(name: 'Add To Binder'),
     );
   }
 
@@ -195,6 +221,7 @@ class _BinderScreenState extends ConsumerState<BinderScreen>
         isWanted: isWanted,
         successMessage:
             'Added ${card.name} to ${isWanted ? 'Want List' : 'Binder'}',
+        source: 'search',
       ),
     );
   }
@@ -262,6 +289,7 @@ class _BinderListState extends ConsumerState<_BinderList> {
               ref,
               card,
               successMessage: 'Added ${card.name} to Binder',
+              source: 'search',
             ),
           );
         },
@@ -270,47 +298,54 @@ class _BinderListState extends ConsumerState<_BinderList> {
 
     final filters = ref.watch(binderFiltersProvider);
     final visible = ref.watch(filteredBinderProvider);
-    final total = all.fold<double>(
-        0, (s, e) => s + (pricing.value(e.card) ?? 0) * e.quantity);
     final hasQuery = filters.query.trim().isNotEmpty;
 
     return Column(
       children: [
-        ShowcaseTheme.mark(
-          key: OnboardingKeys.binderTotal,
-          title: TourCopy.binderTotalTitle,
-          description: TourCopy.binderTotalBody,
-          child: _TotalHeader(
-            count: all.fold<int>(0, (s, e) => s + e.quantity),
-            total: pricing.formatValue(total),
-          ),
-        ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          child: TextField(
-            controller: _controller,
-            onChanged: _onChanged,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Search binder…',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _controller.text.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: _clearQuery,
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  onChanged: _onChanged,
+                  textInputAction: TextInputAction.search,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Search binder…',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 36,
                     ),
-            ),
+                    suffixIcon: _controller.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: _clearQuery,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              _BinderFilterControls(
+                filters: filters,
+                onFoilOnly: (v) =>
+                    ref.read(binderFiltersProvider.notifier).setFoilOnly(v),
+                onSort: (s) =>
+                    ref.read(binderFiltersProvider.notifier).setSort(s),
+                onClear: _clearFilters,
+              ),
+            ],
           ),
         ),
-        CardFilterBar(
-          filters: filters,
-          onFoilOnly: (v) =>
-              ref.read(binderFiltersProvider.notifier).setFoilOnly(v),
-          onSort: (s) => ref.read(binderFiltersProvider.notifier).setSort(s),
-          onClear: _clearFilters,
-        ),
-        const SizedBox(height: 4),
         Expanded(
           child: visible.isEmpty
               ? _BinderNoMatches(
@@ -408,41 +443,97 @@ class _BinderEmptyState extends StatelessWidget {
   }
 }
 
-class _TotalHeader extends StatelessWidget {
-  const _TotalHeader({required this.count, required this.total});
-  final int count;
+/// Compact FAB-height chip showing binder total, opposite the Add button.
+class _BinderValueChip extends StatelessWidget {
+  const _BinderValueChip({required this.total});
   final String total;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     const color = AppTheme.positive;
-    return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.menu_book, color: color),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Binder value',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              Text('$count cards', style: theme.textTheme.bodyMedium),
-            ],
+    return Material(
+      elevation: 6,
+      shadowColor: Colors.black54,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: SizedBox(
+        height: 56,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Center(
+            child: Text(
+              total,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
           ),
-          const Spacer(),
-          Text(total,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800, color: color)),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+/// Compact foil / sort / clear controls that sit beside the binder search field.
+class _BinderFilterControls extends StatelessWidget {
+  const _BinderFilterControls({
+    required this.filters,
+    required this.onFoilOnly,
+    required this.onSort,
+    required this.onClear,
+  });
+
+  final CardFilters filters;
+  final ValueChanged<bool> onFoilOnly;
+  final ValueChanged<CardSort> onSort;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: 'Foil only',
+          isSelected: filters.foilOnly,
+          onPressed: () => onFoilOnly(!filters.foilOnly),
+          icon: const Icon(Icons.auto_awesome, size: 20),
+          visualDensity: VisualDensity.compact,
+          style: IconButton.styleFrom(
+            foregroundColor: filters.foilOnly ? scheme.onPrimary : null,
+            backgroundColor: filters.foilOnly ? scheme.primary : null,
+          ),
+        ),
+        PopupMenuButton<CardSort>(
+          tooltip: 'Sort',
+          initialValue: filters.sort,
+          onSelected: onSort,
+          itemBuilder: (_) => CardSort.values
+              .map((s) => PopupMenuItem(value: s, child: Text(s.label)))
+              .toList(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Icon(
+              Icons.sort,
+              size: 20,
+              color: filters.sort != CardSort.nameAsc
+                  ? scheme.primary
+                  : scheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        if (filters.hasActiveFilters)
+          IconButton(
+            tooltip: 'Clear filters',
+            onPressed: onClear,
+            icon: const Icon(Icons.filter_alt_off, size: 20),
+            visualDensity: VisualDensity.compact,
+          ),
+      ],
     );
   }
 }
@@ -453,8 +544,10 @@ class _EntryRow extends ConsumerWidget {
   final Pricing pricing;
 
   void _openDetail(BuildContext context, CardModel card) {
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => CardDetailScreen(card: card)));
+    Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: 'Card Detail'),
+      builder: (_) => CardDetailScreen(card: card, source: 'binder'),
+    ));
   }
 
   Future<void> _pickVersion(

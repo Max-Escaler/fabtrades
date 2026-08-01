@@ -4,6 +4,9 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- PostHog is initialized manually from Dart (see main.dart). -->
+	<key>com.posthog.posthog.AUTO_INIT</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>FAB Trades uses the camera to scan trading cards and identify them by name and collector number.</string>
 	<key>CFBundleDevelopmentRegion</key>

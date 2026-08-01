@@ -85,13 +85,18 @@ class _LendScreenState extends ConsumerState<LendScreen>
       {required bool isBorrowing}) async {
     final personName = await askPersonName(context, isBorrowing: isBorrowing);
     if (personName == null || !context.mounted) return;
+    // lend_group_created fires from LendNotifier.createGroup so every call
+    // site is covered without duplicating the event here.
     final id = ref.read(lendProvider.notifier).createGroup(
           personName: personName.isEmpty ? null : personName,
           isBorrowing: isBorrowing,
         );
     if (!context.mounted) return;
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => LendGroupScreen(groupId: id)),
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'Lend Group'),
+        builder: (_) => LendGroupScreen(groupId: id),
+      ),
     );
   }
 }
@@ -182,14 +187,15 @@ class _GroupCard extends ConsumerWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) =>
-          ref.read(lendProvider.notifier).removeGroup(group.id),
+      // lend_group_deleted fires from LendNotifier.removeGroup.
+      onDismissed: (_) => ref.read(lendProvider.notifier).removeGroup(group.id),
       child: Material(
         color: theme.cardTheme.color ?? scheme.surface,
         borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              settings: const RouteSettings(name: 'Lend Group'),
               builder: (_) => LendGroupScreen(groupId: group.id))),
           child: Padding(
             padding: const EdgeInsets.all(14),

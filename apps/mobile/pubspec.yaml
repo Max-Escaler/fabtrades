@@ -60,6 +60,7 @@ dependencies:
   crypto: ^3.0.7
   flutter_svg: ^2.3.0
   showcaseview: 5.1.0
+  posthog_flutter: ^5.34.2
 
 dev_dependencies:
   flutter_test:

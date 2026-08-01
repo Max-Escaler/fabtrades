@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // re-exports, and nothing here needs it.
 import 'package:url_launcher/url_launcher.dart' show closeInAppWebView;
 
+import '../analytics/analytics.dart';
 import '../config/auth_config.dart';
 import '../models/account.dart';
 
@@ -111,8 +112,9 @@ class AuthRepository {
       return const SignInSucceeded();
     } on AuthException catch (e) {
       return SignInFailed(_authErrorMessage(e));
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('Auth: unexpected email sign-in error — $e');
+      Analytics().captureException(e, s, {'source': 'auth_email'});
       return const SignInFailed("Couldn't sign in. Please try again.");
     }
   }
@@ -157,8 +159,9 @@ class AuthRepository {
       return SignInFailed(_appleErrorMessage(e.code));
     } on AuthException catch (e) {
       return SignInFailed(_authErrorMessage(e));
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('Auth: unexpected Apple sign-in error — $e');
+      Analytics().captureException(e, s, {'source': 'auth_apple'});
       return const SignInFailed(
         "Couldn't sign in with Apple. Please try again.",
       );
@@ -191,8 +194,9 @@ class AuthRepository {
             );
     } on AuthException catch (e) {
       return SignInFailed(_authErrorMessage(e));
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('Auth: unexpected OAuth sign-in error — $e');
+      Analytics().captureException(e, s, {'source': 'auth_oauth'});
       return const SignInFailed("Couldn't sign in. Please try again.");
     }
   }

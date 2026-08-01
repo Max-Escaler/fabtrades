@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
+import '../../core/analytics/analytics.dart';
 import '../auth/sign_in_sheet.dart';
 import 'onboarding_provider.dart';
 import 'onboarding_repository.dart';
@@ -40,7 +41,22 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
     ),
   ];
 
-  Future<void> _finish() async {
+  Future<void> _finish({bool signedIn = false}) async {
+    ref
+        .read(analyticsProvider)
+        .capture('onboarding_completed', {'signed_in': signedIn});
+    await ref
+        .read(onboardingProvider.notifier)
+        .markSeen(OnboardingTourId.welcome);
+    if (!mounted) return;
+    widget.onFinished();
+  }
+
+  Future<void> _skip() async {
+    ref
+        .read(analyticsProvider)
+        .capture('onboarding_skipped', {'page_index': _index});
+    // Skip is its own event — do not also fire onboarding_completed.
     await ref
         .read(onboardingProvider.notifier)
         .markSeen(OnboardingTourId.welcome);
@@ -49,9 +65,9 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
   }
 
   Future<void> _signIn() async {
-    await presentSignIn(context);
+    final signedIn = await presentSignIn(context, source: 'welcome_carousel');
     if (!mounted) return;
-    await _finish();
+    await _finish(signedIn: signedIn);
   }
 
   void _next() {
@@ -63,6 +79,13 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).screen('Welcome');
+    ref.read(analyticsProvider).capture('onboarding_started');
   }
 
   @override
@@ -84,7 +107,7 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: _finish,
+                onPressed: _skip,
                 child: const Text(TourCopy.carouselSkip),
               ),
             ),
@@ -92,7 +115,12 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
               child: PageView.builder(
                 controller: _page,
                 itemCount: _pages.length,
-                onPageChanged: (i) => setState(() => _index = i),
+                onPageChanged: (i) {
+                  setState(() => _index = i);
+                  ref
+                      .read(analyticsProvider)
+                      .capture('onboarding_page_viewed', {'page_index': i});
+                },
                 itemBuilder: (context, i) {
                   final page = _pages[i];
                   return Padding(
@@ -170,7 +198,7 @@ class _WelcomeCarouselState extends ConsumerState<WelcomeCarousel> {
                         ),
                         const SizedBox(height: 8),
                         TextButton(
-                          onPressed: _finish,
+                          onPressed: () => _finish(),
                           child: const Text(TourCopy.carouselMaybeLater),
                         ),
                       ],

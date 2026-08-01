@@ -9,6 +9,7 @@
 import { asSupabaseUserId, readEntitlement } from '../_shared/entitlement.ts';
 import type { EntitlementState, RevenueCatSubscriber } from '../_shared/entitlement.ts';
 import { isAuthorized, json } from '../_shared/http.ts';
+import { captureSubscriptionEvent } from './posthog.ts';
 
 /** Everything the handler touches that is not the request. */
 export interface WebhookDeps {
@@ -18,6 +19,11 @@ export interface WebhookDeps {
   apiKey: string;
   /** Entitlement identifier to gate on. */
   entitlementId: string;
+  /**
+   * PostHog project API key for subscription lifecycle events.
+   * Optional — when missing, analytics is skipped without failing the webhook.
+   */
+  posthogApiKey?: string;
   store: EntitlementStore;
   fetchSubscriber(
     appUserId: string,
@@ -117,6 +123,16 @@ export async function handleWebhook(
     const state = readEntitlement(subscriber, deps.entitlementId);
 
     await deps.store.saveEntitlement(appUserId, state);
+
+    // Analytics must not fail the webhook — fire-and-forget with its own catch.
+    await captureSubscriptionEvent({
+      apiKey: deps.posthogApiKey,
+      distinctId: appUserId,
+      eventType: event.type,
+      productId: state.product_id ?? undefined,
+      store: state.source ?? undefined,
+      environment: event.environment,
+    });
 
     console.log(
       `${event.type ?? 'event'} ${event.id}: ${appUserId} -> ${state.tier}` +

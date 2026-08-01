@@ -95,6 +95,7 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
         card,
         isWanted: true,
         successMessage: 'Added ${card.name} to Want List',
+        source: 'search',
       ),
     );
   }
@@ -166,7 +167,10 @@ class _WantCard extends ConsumerWidget {
             onTap: editing
                 ? () => _pickVersion(context, ref)
                 : () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => CardDetailScreen(card: card))),
+                      settings: const RouteSettings(name: 'Card Detail'),
+                      builder: (_) =>
+                          CardDetailScreen(card: card, source: 'want_list'),
+                    )),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),

@@ -7,19 +7,22 @@ import 'package:intl/intl.dart';
 import '../../app/app.dart';
 import '../../app/card_filter_bar.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/data/set_logo_cache.dart';
 import '../../core/data/set_logos.dart';
 import '../../core/data/set_published_on.dart';
 import '../../core/logic/set_abbreviation.dart';
 import '../../core/logic/set_sort.dart';
+import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
 import '../card_detail/card_detail_screen.dart';
 import '../scan/scan_screen.dart';
 
 /// Top-level Browse tab: a global search bar over every set, then a list of
-/// sets to drill into. Searching short-circuits the set list and shows grouped
-/// results across the whole catalog.
+/// sets to drill into. Searching short-circuits the set list and shows every
+/// matching printing across the whole catalog (so each finish/version has its
+/// own price row).
 class BrowseScreen extends ConsumerStatefulWidget {
   const BrowseScreen({super.key});
 
@@ -43,7 +46,16 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     setState(() {}); // refresh clear button
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 250), () {
-      setState(() => _query = value.trim());
+      final query = value.trim();
+      setState(() => _query = query);
+      if (query.isEmpty) return;
+      final catalog = ref.read(catalogProvider).asData?.value ?? const [];
+      final resultsCount = filterCards(catalog, CardFilters(query: query)).length;
+      ref.read(analyticsProvider).capture('search_performed', {
+        'search_query': query,
+        'query_length': query.length,
+        'results_count': resultsCount,
+      });
     });
   }
 
@@ -67,7 +79,10 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             icon: const Icon(Icons.qr_code_scanner),
             tooltip: 'Scan a card',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ScanScreen()),
+              MaterialPageRoute(
+                settings: const RouteSettings(name: 'Scan'),
+                builder: (_) => const ScanScreen(),
+              ),
             ),
           ),
           const AppMenuAction(),
@@ -324,6 +339,7 @@ class _SetTileState extends ConsumerState<_SetTile>
         ref.read(searchFiltersProvider.notifier).enterSet(widget.setName);
         Navigator.of(context).push(
           MaterialPageRoute(
+            settings: const RouteSettings(name: 'Set Cards'),
             builder: (_) => SetCardsScreen(setName: widget.setName),
           ),
         );
@@ -332,7 +348,9 @@ class _SetTileState extends ConsumerState<_SetTile>
   }
 }
 
-/// Grouped results for a global (all-sets) query typed in the Browse search bar.
+/// Flat printing results for a global (all-sets) query typed in the Browse
+/// search bar. Each finish/version is its own row so prices are visible
+/// without opening card detail.
 class _GlobalSearchResults extends ConsumerWidget {
   const _GlobalSearchResults({required this.query});
   final String query;
@@ -350,18 +368,17 @@ class _GlobalSearchResults extends ConsumerWidget {
       ),
       data: (all) {
         final filtered = filterCards(all, CardFilters(query: query));
-        final groups = groupCardsByName(filtered, CardSort.nameAsc);
-        if (groups.isEmpty) {
+        if (filtered.isEmpty) {
           return const _ScrollableCenter(child: _EmptyView());
         }
-        return _GroupList(groups: groups);
+        return _PrintingList(cards: filtered, source: 'search');
       },
     );
   }
 }
 
-/// Cards within a single set, grouped by name, with search / foil / sort and
-/// pull-to-refresh.
+/// Cards within a single set — every printing listed individually — with
+/// search / foil / sort and pull-to-refresh.
 class SetCardsScreen extends ConsumerStatefulWidget {
   const SetCardsScreen({super.key, required this.setName});
 
@@ -376,6 +393,14 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
   Timer? _debounce;
 
   @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).capture('set_opened', {
+      'set_name': widget.setName,
+    });
+  }
+
+  @override
   void dispose() {
     _debounce?.cancel();
     _controller.dispose();
@@ -386,7 +411,16 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
     setState(() {}); // refresh clear button
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
+      final query = value.trim();
       ref.read(searchFiltersProvider.notifier).setQuery(value);
+      if (query.isEmpty) return;
+      final resultsCount =
+          ref.read(browseResultsProvider).asData?.value.length ?? 0;
+      ref.read(analyticsProvider).capture('search_performed', {
+        'search_query': query,
+        'query_length': query.length,
+        'results_count': resultsCount,
+      });
     });
   }
 
@@ -404,7 +438,7 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final groups = ref.watch(browseGroupsProvider);
+    final results = ref.watch(browseResultsProvider);
     final filters = ref.watch(searchFiltersProvider);
 
     return Scaffold(
@@ -448,7 +482,7 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refresh,
-              child: groups.when(
+              child: results.when(
                 loading: () =>
                     const Center(child: CircularProgressIndicator.adaptive()),
                 error: (e, _) => _ScrollableCenter(
@@ -461,7 +495,7 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
                   if (list.isEmpty) {
                     return const _ScrollableCenter(child: _EmptyView());
                   }
-                  return _GroupList(groups: list);
+                  return _PrintingList(cards: list, source: 'set');
                 },
               ),
             ),
@@ -488,6 +522,7 @@ Future<void> refreshPricesWithToast(BuildContext context, WidgetRef ref) async {
     }
     return;
   }
+  ref.read(analyticsProvider).capture('prices_refreshed');
   if (!context.mounted) return;
   final updatedAt = ref.read(priceUpdatedAtProvider);
   final source = ref.read(pricingProvider).sourceLabel;
@@ -532,43 +567,52 @@ String _priceUpdatedLabel(DateTime? updatedAt) {
   return 'Prices updated $when';
 }
 
-/// A scrollable list of grouped cards, shared by the set view and global search.
-class _GroupList extends StatelessWidget {
-  const _GroupList({required this.groups});
-  final List<CardGroup> groups;
+/// A scrollable list of individual printings, shared by the set view and
+/// global search. Each row opens card detail with that printing pre-selected.
+class _PrintingList extends StatelessWidget {
+  const _PrintingList({required this.cards, required this.source});
+  final List<CardModel> cards;
+
+  /// Where these results came from — `search` or `set` — passed through to
+  /// [CardDetailScreen] for the `card_detail_viewed` event.
+  final String source;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 16),
-      itemCount: groups.length,
+      itemCount: cards.length,
       separatorBuilder: (_, _) => const Divider(height: 1, indent: 14),
-      itemBuilder: (context, i) => _GroupTile(group: groups[i]),
+      itemBuilder: (context, i) =>
+          _PrintingTile(card: cards[i], source: source),
     );
   }
 }
 
-/// One card name in the grouped browse list. Tapping opens the card detail
-/// screen, where the printings selector lets the user switch between every
-/// version.
-class _GroupTile extends ConsumerWidget {
-  const _GroupTile({required this.group});
-  final CardGroup group;
+/// One printing in the browse list. Tapping opens card detail with this
+/// printing selected; the detail screen's version selector still lists every
+/// sibling printing of the same card.
+class _PrintingTile extends ConsumerWidget {
+  const _PrintingTile({required this.card, required this.source});
+  final CardModel card;
+  final String source;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pricing = ref.watch(pricingProvider);
-    final rep = group.representative;
 
     void openDetail() => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => CardDetailScreen(card: rep)),
+          MaterialPageRoute(
+            settings: const RouteSettings(name: 'Card Detail'),
+            builder: (_) => CardDetailScreen(card: card, source: source),
+          ),
         );
 
     return CardRow(
-      card: rep,
-      priceLabel: pricing.priceLabel(rep),
-      secondaryLabel: pricing.lowPriceLabel(rep),
+      card: card,
+      priceLabel: pricing.priceLabel(card),
+      secondaryLabel: pricing.lowPriceLabel(card),
       priceSource: pricing.sourceLabel,
       showThumbnail: false,
       inlineBadges: true,

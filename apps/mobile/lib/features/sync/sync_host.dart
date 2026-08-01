@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/analytics/analytics.dart';
+import '../../core/config/supabase_config.dart';
+import '../../core/models/account.dart';
+import '../../core/models/entitlement.dart';
 import '../../core/providers.dart';
 import '../onboarding/onboarding_provider.dart';
 
 /// Keeps the account's background work running for as long as the app is on
-/// screen: cloud sync, and binding RevenueCat's identity to the Supabase user.
+/// screen: cloud sync, binding RevenueCat's identity to the Supabase user, and
+/// PostHog identify / reset on account transitions.
 ///
 /// Both start themselves when an account appears, but a provider nobody watches
 /// is never built. This host is that watcher, mounted above the tabs so neither
@@ -26,12 +31,33 @@ class SyncHost extends ConsumerStatefulWidget {
 class _SyncHostState extends ConsumerState<SyncHost> {
   String? _reported;
   DateTime? _lastSuppressedAt;
+  String? _identifiedUserId;
+  bool? _lastIsPro;
+  bool _bootstrappedIdentity = false;
 
   @override
   Widget build(BuildContext context) {
     // Watched for its side effect only. Purchases made before this binding lands
     // are attributed to an anonymous id the server cannot key a row on.
     ref.watch(purchasesIdentityProvider);
+
+    _listenAnalyticsIdentity();
+    _listenEntitlementSuperProps();
+    if (!_bootstrappedIdentity) {
+      _bootstrappedIdentity = true;
+      final account = ref.read(accountProvider).asData?.value;
+      if (account != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _identify(account);
+        });
+      }
+      final entitlement = ref.read(entitlementProvider);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _applyEntitlement(entitlement);
+      });
+    }
 
     final status = ref.watch(syncProvider);
     final error = status.error;
@@ -73,5 +99,85 @@ class _SyncHostState extends ConsumerState<SyncHost> {
     }
 
     return widget.child;
+  }
+
+  void _listenAnalyticsIdentity() {
+    ref.listen<AsyncValue<Account?>>(accountProvider, (previous, next) {
+      final prev = previous?.asData?.value;
+      final account = next.asData?.value;
+      if (prev?.id == account?.id) return;
+
+      if (account != null) {
+        _identify(account, captureSignedIn: true);
+      } else if (prev != null) {
+        _identifiedUserId = null;
+        final analytics = ref.read(analyticsProvider);
+        analytics.capture('signed_out');
+        analytics.reset().then((_) => _reregisterSurvivingSuperProps());
+      }
+    });
+  }
+
+  void _identify(Account account, {bool captureSignedIn = false}) {
+    if (_identifiedUserId == account.id) return;
+    _identifiedUserId = account.id;
+    final analytics = ref.read(analyticsProvider);
+    final props = <String, Object>{
+      if (account.email != null) 'email': account.email!,
+      if (account.displayName != null) 'name': account.displayName!,
+      if (account.provider != null) 'auth_provider': account.provider!.id,
+    };
+    analytics.identify(userId: account.id, userProperties: props);
+    if (captureSignedIn) {
+      analytics.capture('signed_in', {
+        if (account.provider != null) 'provider': account.provider!.id,
+      });
+    }
+  }
+
+  void _listenEntitlementSuperProps() {
+    ref.listen<Entitlement>(entitlementProvider, (previous, next) {
+      if (_lastIsPro == next.isPro &&
+          previous?.productIdentifier == next.productIdentifier &&
+          previous?.isInTrial == next.isInTrial &&
+          previous?.expiresAt == next.expiresAt) {
+        return;
+      }
+      _applyEntitlement(next);
+    });
+  }
+
+  void _applyEntitlement(Entitlement next) {
+    _lastIsPro = next.isPro;
+    final analytics = ref.read(analyticsProvider);
+    analytics.register('is_pro', next.isPro);
+    if (_identifiedUserId != null) {
+      final person = <String, Object>{
+        'is_pro': next.isPro,
+        'is_trial': next.isInTrial,
+        if (next.productIdentifier != null)
+          'subscription_product': next.productIdentifier!,
+        if (next.purchasedFrom != null)
+          'subscription_store': next.purchasedFrom!,
+        if (next.expiresAt != null)
+          'expires_at': next.expiresAt!.toUtc().toIso8601String(),
+      };
+      analytics.identify(userId: _identifiedUserId!, userProperties: person);
+    }
+  }
+
+  Future<void> _reregisterSurvivingSuperProps() async {
+    final analytics = ref.read(analyticsProvider);
+    await analytics.register('app_env', SupabaseConfig.environment);
+    await analytics.register('is_pro', ref.read(isProProvider));
+    // app_version was registered at setup; re-read from super props is harder —
+    // leave it unset until next cold start if reset cleared it. Prefer re-register
+    // from PackageInfo when cheap.
+    try {
+      final info = await ref.read(appUpdateRepositoryProvider).packageInfo();
+      await analytics.register('app_version', info.version);
+    } catch (_) {
+      // Best-effort; not worth failing the sign-out path.
+    }
   }
 }

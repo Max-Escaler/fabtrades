@@ -6,6 +6,7 @@ import '../../app/app.dart';
 import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/logic/free_limits.dart';
 import '../../core/logic/pricing.dart';
@@ -53,7 +54,10 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
             icon: const Icon(Icons.history),
             tooltip: 'Trade history',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const TradeHistoryScreen()),
+              MaterialPageRoute(
+                settings: const RouteSettings(name: 'Trade History'),
+                builder: (_) => const TradeHistoryScreen(),
+              ),
             ),
           ),
           if (!isEmpty)
@@ -105,7 +109,20 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
                         pricing: pricing,
                         fillerLocked: !ref.watch(isProProvider),
                         onFindFiller: () async {
-                          if (!await ensurePro(context, ref)) return;
+                          if (!ref.read(isProProvider)) {
+                            ref.read(analyticsProvider).capture(
+                              'free_limit_hit',
+                              {
+                                'limit_type': 'trade_filler',
+                                'current_count': 0,
+                                'limit': 0,
+                              },
+                            );
+                          }
+                          if (!await ensurePro(context, ref,
+                              trigger: 'trade_filler')) {
+                            return;
+                          }
                           if (!context.mounted) return;
                           await showTradeFillerSheet(context, ref);
                         },
@@ -171,10 +188,18 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
     var removeGiven = true;
     var addReceived = true;
 
+    ref.read(analyticsProvider).capture('trade_confirm_opened', {
+      'their_card_count': received,
+      'my_card_count': given,
+      'their_value': draft.wantTotal,
+      'my_value': draft.haveTotal,
+    });
+
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
+      routeSettings: const RouteSettings(name: 'Confirm Trade'),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
@@ -249,12 +274,25 @@ class _TradeScreenState extends ConsumerState<TradeScreen> {
       currencySymbol: draft.currencySymbol,
     );
     final rolledOff = ref.read(tradeHistoryProvider.notifier).addTrade(saved);
+    final binderReconciled = (removeGiven && given > 0) ||
+        (addReceived && received > 0);
     ref.read(binderProvider.notifier).applyTradeConfirm(
           saved,
           removeGivenFromBinder: removeGiven && given > 0,
           addReceivedToBinder: addReceived && received > 0,
         );
     ref.read(tradeDraftProvider.notifier).clear();
+
+    ref.read(analyticsProvider).capture('trade_confirmed', {
+      'their_card_count': received,
+      'my_card_count': given,
+      'their_value': draft.wantTotal,
+      'my_value': draft.haveTotal,
+      'cash_amount': draft.haveCash + draft.wantCash,
+      'value_diff': draft.delta,
+      'binder_reconciled': binderReconciled,
+      'price_source': ref.read(settingsProvider).source.name,
+    });
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -296,7 +334,9 @@ Future<void> _pick(BuildContext context, WidgetRef ref, TradeSide side) async {
     context,
     title: side == TradeSide.have ? 'Add my cards' : 'Add their cards',
     onPick: (card) async {
-      ref.read(tradeDraftProvider.notifier).addCard(side, card);
+      ref
+          .read(tradeDraftProvider.notifier)
+          .addCard(side, card, source: 'search');
       if (!context.mounted) return true;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()

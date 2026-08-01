@@ -56,6 +56,7 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'Camera (card scanning). The App uses your device camera to identify physical cards you point it at. Camera frames are processed entirely on your device in real time — images are never stored, uploaded, or shared. Nothing leaves your device from the scanner. You can deny or revoke camera permission at any time; a manual search fallback is always available.',
+                    'Usage and analytics data. We use PostHog, a first-party product analytics service, to understand how the App is used. This includes screens viewed and feature interactions (such as scanning a card, searching, or using the Binder, Want List, or Lend features) and events in the subscription funnel (such as viewing or completing the FABTrades Pro paywall). We do not use this data for advertising, and the App does not use Apple\u2019s App Tracking Transparency (ATT) framework because we do not track you across other companies\u2019 apps or websites.',
                     'Account information (optional). If you choose to sign in with Apple, Google, Discord, or email, we receive your user ID, username or display name, email address, and avatar (when provided) through Supabase Auth. Signing in is optional for core features; it is required only if you purchase FABTrades Pro so we can attach the subscription to your account.',
                     'Synced app data (optional). When you are signed in, your collection, want list, lend/borrow lists, trade drafts, trade history, and settings may be synced to our database so they are available on your other devices. When you are signed out, that data remains stored only on your device.',
                     'Purchase and subscription data. If you buy FABTrades Pro, Apple or Google processes the payment. We receive subscription status (active, expired, cancelled, sandbox vs production, and related entitlement metadata) through RevenueCat so we can unlock Pro features on your account.',
@@ -78,7 +79,7 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'To provide the Services: fetching card prices, balancing trades, identifying scanned cards, syncing your lists when signed in, and granting FABTrades Pro access after a purchase.',
-                    'To understand aggregate usage of the Website (via Google Analytics) so we can improve features and performance.',
+                    'To understand aggregate usage of the Website (via Google Analytics) and of the App (via PostHog) so we can improve features and performance.',
                     'To maintain the security and integrity of the Services.'
                 ]
             },
@@ -103,6 +104,7 @@ export const privacySections = [
                 type: 'ul',
                 items: [
                     'Google Analytics (Website only) — usage analytics. See Google\u2019s Privacy Policy at https://policies.google.com/privacy. You can opt out of Google Analytics with the browser add-on at https://tools.google.com/dlpage/gaoptout.',
+                    'PostHog (App only) — first-party product usage analytics (screens, feature interactions, and subscription funnel events). See https://posthog.com/privacy.',
                     'Supabase — database and authentication hosting (card catalog, prices, accounts, synced lists, and saved trades). See https://supabase.com/privacy.',
                     'Apple — Sign in with Apple and App Store billing for FABTrades Pro on iOS. See https://www.apple.com/legal/privacy/.',
                     'Google — Sign in with Google and Google Play billing for FABTrades Pro on Android. See https://policies.google.com/privacy.',

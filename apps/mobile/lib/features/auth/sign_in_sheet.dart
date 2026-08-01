@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/models/account.dart';
 import '../../core/providers.dart';
 import 'auth_provider_icons.dart';
@@ -10,11 +11,23 @@ import 'auth_provider_icons.dart';
 /// Redirect-based providers finish in a browser, so this does not wait for the
 /// session: it closes when the browser opens and the customer comes back to an
 /// app that has already updated via [accountProvider].
-Future<bool> presentSignIn(BuildContext context) async {
+///
+/// [source] identifies where the sheet was opened from, for analytics (e.g.
+/// `account`, `welcome_carousel`, `paywall`).
+Future<bool> presentSignIn(
+  BuildContext context, {
+  String source = 'unknown',
+}) async {
+  // No WidgetRef here — this is a bare function, not a widget — so reach the
+  // provider container directly rather than threading a ref through callers.
+  ProviderScope.containerOf(context)
+      .read(analyticsProvider)
+      .capture('sign_in_sheet_shown', {'source': source});
   final signedIn = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
+    routeSettings: const RouteSettings(name: 'Sign In'),
     builder: (_) => const SignInSheet(),
   );
   return signedIn ?? false;
@@ -52,6 +65,9 @@ class _SignInSheetState extends ConsumerState<SignInSheet> {
       _busy = provider;
       _error = null;
     });
+    ref
+        .read(analyticsProvider)
+        .capture('sign_in_started', {'provider': provider.id});
 
     final outcome = await ref.read(authRepositoryProvider).signIn(provider);
     if (!mounted) return;
@@ -65,6 +81,10 @@ class _SignInSheetState extends ConsumerState<SignInSheet> {
       case SignInCancelled():
         setState(() => _busy = null);
       case SignInFailed(:final message):
+        ref.read(analyticsProvider).capture('sign_in_failed', {
+          'provider': provider.id,
+          'error_type': 'failed',
+        });
         setState(() {
           _busy = null;
           _error = message;
@@ -77,6 +97,8 @@ class _SignInSheetState extends ConsumerState<SignInSheet> {
       _busy = AuthProviderKind.email;
       _error = null;
     });
+    ref.read(analyticsProvider).capture(
+        'sign_in_started', {'provider': AuthProviderKind.email.id});
 
     final outcome = await ref.read(authRepositoryProvider).signInWithEmail(
           email: _emailController.text,
@@ -91,6 +113,10 @@ class _SignInSheetState extends ConsumerState<SignInSheet> {
       case SignInCancelled():
         setState(() => _busy = null);
       case SignInFailed(:final message):
+        ref.read(analyticsProvider).capture('sign_in_failed', {
+          'provider': AuthProviderKind.email.id,
+          'error_type': 'failed',
+        });
         setState(() {
           _busy = null;
           _error = message;

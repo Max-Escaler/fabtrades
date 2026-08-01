@@ -16,6 +16,7 @@ Future<void> showCardActions(
   await showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
+    routeSettings: const RouteSettings(name: 'Card Actions'),
     builder: (ctx) {
       void done(String msg) {
         Navigator.of(ctx).pop();
@@ -32,6 +33,7 @@ Future<void> showCardActions(
           card,
           isWanted: isWanted,
           successMessage: isWanted ? 'Added to Want List' : 'Added to Binder',
+          source: 'card_detail',
         );
       }
 
@@ -68,7 +70,9 @@ Future<void> showCardActions(
                   color: Color(0xFF2E9E6B)),
               title: const Text('Add to Have (trade)'),
               onTap: () {
-                ref.read(tradeDraftProvider.notifier).addCard(TradeSide.have, card);
+                ref
+                    .read(tradeDraftProvider.notifier)
+                    .addCard(TradeSide.have, card, source: 'card_detail');
                 done('Added to Have');
               },
             ),
@@ -77,7 +81,9 @@ Future<void> showCardActions(
                   color: Color(0xFFB8863B)),
               title: const Text('Add to Want (trade)'),
               onTap: () {
-                ref.read(tradeDraftProvider.notifier).addCard(TradeSide.want, card);
+                ref
+                    .read(tradeDraftProvider.notifier)
+                    .addCard(TradeSide.want, card, source: 'card_detail');
                 done('Added to Want');
               },
             ),

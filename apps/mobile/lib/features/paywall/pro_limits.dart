@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/logic/free_limits.dart';
 import '../../core/models/card_model.dart';
 import '../../core/providers.dart';
@@ -17,6 +18,9 @@ import 'pro_paywall.dart';
 /// launching the paywall outright: someone who tapped "Add to Binder" didn't
 /// ask to be sold to, and a modal in their face would read as a bait-and-switch.
 /// If they do upgrade, the add they originally wanted is retried for them.
+///
+/// [source] identifies where the add came from (e.g. `search`, `scan`,
+/// `card_detail`), for analytics.
 Future<bool> addToBinderOrUpsell(
   BuildContext context,
   WidgetRef ref,
@@ -24,22 +28,34 @@ Future<bool> addToBinderOrUpsell(
   bool isWanted = false,
   int quantity = 1,
   String? successMessage,
+  String source = 'unknown',
 }) async {
   final binder = ref.read(binderProvider.notifier);
 
   if (binder.add(card, quantity: quantity, isWanted: isWanted)) {
+    _captureAdded(ref, card, isWanted: isWanted, source: source);
     if (successMessage != null) _showMessage(context, successMessage);
     return true;
   }
 
   final limit = FreeLimits.cardsFor(isWanted: isWanted);
   final listName = isWanted ? 'Want lists' : 'Binders';
+  ref.read(analyticsProvider).capture('free_limit_hit', {
+    'limit_type': isWanted ? 'want_list' : 'binder',
+    'current_count': ref
+        .read(binderProvider)
+        .where((e) => e.isWanted == isWanted)
+        .length,
+    'limit': limit,
+  });
   return _offerUpgrade(
     context,
     ref,
+    trigger: isWanted ? 'want_limit' : 'binder_limit',
     message: '$listName hold $limit cards on the free plan.',
     onUpgraded: () {
       binder.add(card, quantity: quantity, isWanted: isWanted);
+      _captureAdded(ref, card, isWanted: isWanted, source: source);
       if (context.mounted) {
         _showMessage(
           context,
@@ -47,6 +63,25 @@ Future<bool> addToBinderOrUpsell(
               'Added ${card.name} to ${isWanted ? 'Want List' : 'Binder'}',
         );
       }
+    },
+  );
+}
+
+void _captureAdded(
+  WidgetRef ref,
+  CardModel card, {
+  required bool isWanted,
+  required String source,
+}) {
+  final sizeAfter =
+      ref.read(binderProvider).where((e) => e.isWanted == isWanted).length;
+  ref.read(analyticsProvider).capture(
+    isWanted ? 'want_list_card_added' : 'binder_card_added',
+    {
+      'card_id': card.id,
+      'source': source,
+      if (isWanted) 'want_list_size_after': sizeAfter,
+      if (!isWanted) 'binder_size_after': sizeAfter,
     },
   );
 }
@@ -63,9 +98,18 @@ Future<bool> addToLendOrUpsell(
   final lend = ref.read(lendProvider.notifier);
   if (lend.addCard(groupId, card, quantity: quantity)) return true;
 
+  ref.read(analyticsProvider).capture('free_limit_hit', {
+    'limit_type': 'lend',
+    'current_count': ref
+        .read(lendProvider)
+        .where((g) => !g.isBorrowing)
+        .fold<int>(0, (sum, g) => sum + g.cardCount),
+    'limit': FreeLimits.loanedCards,
+  });
   return _offerUpgrade(
     context,
     ref,
+    trigger: 'lend_limit',
     message:
         'The free plan tracks ${FreeLimits.loanedCards} loaned card. Upgrade to lend more.',
     onUpgraded: () {
@@ -86,9 +130,18 @@ Future<bool> setLendQuantityOrUpsell(
   final lend = ref.read(lendProvider.notifier);
   if (lend.setCardQuantity(groupId, cardId, quantity)) return true;
 
+  ref.read(analyticsProvider).capture('free_limit_hit', {
+    'limit_type': 'lend',
+    'current_count': ref
+        .read(lendProvider)
+        .where((g) => !g.isBorrowing)
+        .fold<int>(0, (sum, g) => sum + g.cardCount),
+    'limit': FreeLimits.loanedCards,
+  });
   return _offerUpgrade(
     context,
     ref,
+    trigger: 'lend_limit',
     message:
         'The free plan tracks ${FreeLimits.loanedCards} loaned card. Upgrade to lend more.',
     onUpgraded: () {
@@ -102,6 +155,7 @@ Future<bool> _offerUpgrade(
   WidgetRef ref, {
   required String message,
   required VoidCallback onUpgraded,
+  required String trigger,
 }) async {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
@@ -112,7 +166,9 @@ Future<bool> _offerUpgrade(
         action: SnackBarAction(
           label: 'Upgrade',
           onPressed: () async {
-            if (!await presentProPaywall(context, ref)) return;
+            if (!await presentProPaywall(context, ref, trigger: trigger)) {
+              return;
+            }
             onUpgraded();
           },
         ),

@@ -7,6 +7,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'analytics/analytics.dart';
 import 'data/app_update_repository.dart';
 import 'data/auth_repository.dart';
 import 'data/card_repository.dart';
@@ -204,11 +205,17 @@ class SettingsNotifier extends Notifier<AppSettings> {
   void setSource(PriceSource source) {
     state = state.copyWith(source: source);
     ref.read(settingsRepositoryProvider).save(state);
+    ref
+        .read(analyticsProvider)
+        .capture('price_source_changed', {'price_source': source.name});
   }
 
   void setThemeMode(AppThemeMode themeMode) {
     state = state.copyWith(themeMode: themeMode);
     ref.read(settingsRepositoryProvider).save(state);
+    ref
+        .read(analyticsProvider)
+        .capture('theme_changed', {'theme': themeMode.name});
   }
 }
 
@@ -308,19 +315,24 @@ class SyncNotifier extends Notifier<SyncStatus> {
     if (account != null) {
       // Deferred so the notifier finishes building before anything it might
       // invalidate starts rebuilding.
-      Future.microtask(() => sync(account.id));
+      Future.microtask(() => sync(account.id, trigger: 'sign_in'));
     }
     return const SyncStatus();
   }
 
-  Future<void> sync(String userId) async {
+  Future<void> sync(String userId, {String trigger = 'auto'}) async {
     if (state.isSyncing) return;
     state = SyncStatus(isSyncing: true, lastSyncedAt: state.lastSyncedAt);
 
+    final stopwatch = Stopwatch()..start();
     try {
       final outcome = await ref.read(syncServiceProvider).run(userId);
       _refreshChangedScreens(outcome);
       state = SyncStatus(lastSyncedAt: DateTime.now());
+      ref.read(analyticsProvider).capture('sync_completed', {
+        'trigger': trigger,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      });
     } catch (e) {
       debugPrint('Sync: giving up this round — $e');
       state = SyncStatus(
@@ -328,6 +340,11 @@ class SyncNotifier extends Notifier<SyncStatus> {
         error: "Couldn't sync with your account. Your data is safe on this "
             'device and will sync when the connection recovers.',
       );
+      ref.read(analyticsProvider).capture('sync_failed', {
+        'trigger': trigger,
+        'error_type': e.runtimeType.toString(),
+      });
+      ref.read(analyticsProvider).captureException(e, StackTrace.current);
     }
   }
 
@@ -576,8 +593,9 @@ final browseResultsProvider = Provider<AsyncValue<List<CardModel>>>((ref) {
   return catalog.whenData((cards) => filterCards(cards, filters));
 });
 
-/// Browse results collapsed into one entry per card name (all printings of a
-/// card grouped together), for the grouped Browse view.
+/// Browse results collapsed into one entry per card name. Kept for tests and
+/// any callers that still want the grouped shape; Browse UI lists printings
+/// flat via [browseResultsProvider] instead.
 final browseGroupsProvider = Provider<AsyncValue<List<CardGroup>>>((ref) {
   final results = ref.watch(browseResultsProvider);
   final sort = ref.watch(searchFiltersProvider).sort;
@@ -695,6 +713,10 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
           e
     ];
     _persist();
+    ref.read(analyticsProvider).capture(
+      isWanted ? 'want_list_card_updated' : 'binder_card_updated',
+      {'card_id': cardId, 'field': 'quantity'},
+    );
   }
 
   void setCondition(String cardId, bool isWanted, String condition) {
@@ -706,6 +728,10 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
           e
     ];
     _persist();
+    ref.read(analyticsProvider).capture(
+      isWanted ? 'want_list_card_updated' : 'binder_card_updated',
+      {'card_id': cardId, 'field': 'condition'},
+    );
   }
 
   /// Swaps the printing of an existing binder/want entry (e.g. First Edition →
@@ -736,6 +762,10 @@ class BinderNotifier extends Notifier<List<BinderEntry>> {
         .where((e) => !(e.card.id == cardId && e.isWanted == isWanted))
         .toList();
     _persist();
+    ref.read(analyticsProvider).capture(
+      isWanted ? 'want_list_card_removed' : 'binder_card_removed',
+      {'card_id': cardId},
+    );
   }
 
   /// Decrements binder/want qty, clamping at zero (silent — no warnings).
@@ -801,12 +831,29 @@ class LendNotifier extends Notifier<List<LendGroup>> {
       ...state,
     ];
     _persist();
+    // Never the person name — it is PII that has no place in analytics.
+    ref.read(analyticsProvider).capture('lend_group_created', {
+      'type': isBorrowing ? 'borrow' : 'loan',
+      'card_count': 0,
+    });
     return id;
   }
 
   void removeGroup(String groupId) {
+    LendGroup? group;
+    for (final g in state) {
+      if (g.id == groupId) {
+        group = g;
+        break;
+      }
+    }
     state = state.where((g) => g.id != groupId).toList();
     _persist();
+    if (group != null) {
+      ref.read(analyticsProvider).capture('lend_group_deleted', {
+        'type': group.isBorrowing ? 'borrow' : 'loan',
+      });
+    }
   }
 
   void setPersonName(String groupId, String? personName) {
@@ -823,7 +870,9 @@ class LendNotifier extends Notifier<List<LendGroup>> {
   /// at the loaned-card cap. Borrowing groups are never capped.
   bool addCard(String groupId, CardModel card, {int quantity = 1}) {
     if (!_canLendMore(groupId, quantity)) return false;
+    bool? isBorrowing;
     _updateGroup(groupId, (g) {
+      isBorrowing = g.isBorrowing;
       final items = [...g.items];
       final idx = items.indexWhere((i) => i.card.id == card.id);
       if (idx >= 0) {
@@ -833,6 +882,9 @@ class LendNotifier extends Notifier<List<LendGroup>> {
         items.add(LendItem(card: card, quantity: quantity));
       }
       return g.copyWith(items: items);
+    });
+    ref.read(analyticsProvider).capture('lend_card_added', {
+      if (isBorrowing != null) 'type': isBorrowing! ? 'borrow' : 'loan',
     });
     return true;
   }
@@ -992,7 +1044,12 @@ class TradeDraftNotifier extends Notifier<Trade> {
     );
   }
 
-  void addCard(TradeSide side, CardModel card, {int quantity = 1}) {
+  void addCard(
+    TradeSide side,
+    CardModel card, {
+    int quantity = 1,
+    String source = 'unknown',
+  }) {
     final pricing = ref.read(pricingProvider);
     final price = pricing.value(card) ?? 0;
     final items = side == TradeSide.have
@@ -1009,6 +1066,11 @@ class TradeDraftNotifier extends Notifier<Trade> {
     state = side == TradeSide.have
         ? state.copyWith(haveItems: items)
         : state.copyWith(wantItems: items);
+    ref.read(analyticsProvider).capture('trade_card_added', {
+      'side': side.analyticsLabel,
+      'source': source,
+      'card_id': card.id,
+    });
   }
 
   /// Swaps the printing of an existing line (e.g. Normal <-> Foil), keeping the
@@ -1052,6 +1114,10 @@ class TradeDraftNotifier extends Notifier<Trade> {
     state = side == TradeSide.have
         ? state.copyWith(haveItems: items)
         : state.copyWith(wantItems: items);
+    ref.read(analyticsProvider).capture('trade_quantity_changed', {
+      'side': side.analyticsLabel,
+      'new_quantity': quantity,
+    });
   }
 
   void removeCard(TradeSide side, String cardId) {
@@ -1061,17 +1127,28 @@ class TradeDraftNotifier extends Notifier<Trade> {
     state = side == TradeSide.have
         ? state.copyWith(haveItems: items)
         : state.copyWith(wantItems: items);
+    ref
+        .read(analyticsProvider)
+        .capture('trade_card_removed', {'side': side.analyticsLabel});
   }
 
   void setCash(TradeSide side, double amount) {
     state = side == TradeSide.have
         ? state.copyWith(haveCash: amount)
         : state.copyWith(wantCash: amount);
+    ref.read(analyticsProvider).capture('trade_cash_adjusted', {
+      'side': side.analyticsLabel,
+      'amount': amount,
+    });
   }
 
   void setNotes(String notes) => state = state.copyWith(notes: notes);
 
   void clear() {
+    ref.read(analyticsProvider).capture('trade_cleared', {
+      'their_card_count': state.wantCount,
+      'my_card_count': state.haveCount,
+    });
     final pricing = ref.read(pricingProvider);
     state = Trade(
       id: 'draft',

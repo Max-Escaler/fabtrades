@@ -4,6 +4,10 @@ What to put in App Store Connect before every iOS review submission. The two
 items that blocked review in July 2026 were a missing Terms of Use (EULA) link
 and a missing demo account for the sign-in UI.
 
+For full agent handoff context (what was fixed, local IPA path, Organizer
+issues, remaining upload steps), see
+[APP_STORE_RESUBMISSION_HANDOFF.md](./APP_STORE_RESUBMISSION_HANDOFF.md).
+
 ## Legal URLs
 
 | Document | URL |

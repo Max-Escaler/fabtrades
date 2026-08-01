@@ -146,7 +146,9 @@ class _SyncTile extends ConsumerWidget {
       ),
       onTap: status.isSyncing || account == null
           ? null
-          : () => ref.read(syncProvider.notifier).sync(account.id),
+          : () => ref
+              .read(syncProvider.notifier)
+              .sync(account.id, trigger: 'manual'),
     );
   }
 
@@ -216,7 +218,7 @@ class _SignedOutCard extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => presentSignIn(context),
+                onPressed: () => presentSignIn(context, source: 'account'),
                 child: const Text('Sign in'),
               ),
             ),

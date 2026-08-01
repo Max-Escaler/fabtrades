@@ -1,5 +1,7 @@
 {
   "APP_ENV": "production",
   "SUPABASE_URL": "https://tenrvaghaspwdvnwvgrh.supabase.co",
-  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr"
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ohMvMDesyA2rr4Y4nfALpg_i0N-swkr",
+  "POSTHOG_API_KEY": "phc_vwZeKtRGcGbQjotwKxYDrX2CurGwoCJkA5nfJdzs95EF",
+  "POSTHOG_HOST": "https://us.i.posthog.com"
 }

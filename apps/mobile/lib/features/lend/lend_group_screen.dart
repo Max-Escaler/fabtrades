@@ -186,7 +186,8 @@ class _ItemRow extends ConsumerWidget {
       onDismissed: (_) => notifier.removeCard(groupId, card.id),
       child: InkWell(
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => CardDetailScreen(card: card))),
+            settings: const RouteSettings(name: 'Card Detail'),
+            builder: (_) => CardDetailScreen(card: card, source: 'lend'))),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import '../core/analytics/analytics.dart';
 import '../core/models/app_settings.dart';
 import '../core/providers.dart';
 import '../features/binder/binder_screen.dart';
@@ -35,6 +37,7 @@ class FabTradesApp extends ConsumerWidget {
       themeMode: settings.themeMode == AppThemeMode.dark
           ? ThemeMode.dark
           : ThemeMode.light,
+      navigatorObservers: [PosthogObserver()],
       home: const SyncHost(child: UpdatePromptHost(child: _OnboardingGate())),
     );
   }
@@ -118,6 +121,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     if (id != null) _tours.markSeen(id);
   }
 
+  static const _tabScreenNames = ['Browse', 'Trade', 'Binder', 'Lend'];
+
   void _selectTab(int i) {
     if (i == _index) return;
     // Cancel any in-progress tour before leaving the tab — IndexedStack keeps
@@ -129,6 +134,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
     HapticFeedback.selectionClick();
     setState(() => _index = i);
+    if (i >= 0 && i < _tabScreenNames.length) {
+      ref.read(analyticsProvider).screen(_tabScreenNames[i]);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _maybeStartTourForTab(i);
     });
@@ -287,7 +295,10 @@ class _AppMenuDrawer extends ConsumerWidget {
             onTap: () {
               Navigator.of(context).pop();
               Navigator.of(parentContext).push(
-                MaterialPageRoute(builder: (_) => const AccountScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const AccountScreen(),
+                  settings: const RouteSettings(name: 'Account'),
+                ),
               );
             },
           ),
@@ -297,7 +308,10 @@ class _AppMenuDrawer extends ConsumerWidget {
             onTap: () {
               Navigator.of(context).pop();
               Navigator.of(parentContext).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                  settings: const RouteSettings(name: 'Settings'),
+                ),
               );
             },
           ),

@@ -4,14 +4,29 @@ import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/models/trade.dart';
 import '../../core/providers.dart';
 
-class TradeHistoryScreen extends ConsumerWidget {
+class TradeHistoryScreen extends ConsumerStatefulWidget {
   const TradeHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TradeHistoryScreen> createState() =>
+      _TradeHistoryScreenState();
+}
+
+class _TradeHistoryScreenState extends ConsumerState<TradeHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).capture('trade_history_viewed', {
+      'trade_count': ref.read(tradeHistoryProvider).length,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final trades = ref.watch(tradeHistoryProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Trade history')),
@@ -59,8 +74,15 @@ class _TradeCard extends ConsumerWidget {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: () =>
-                      ref.read(tradeHistoryProvider.notifier).remove(trade.id),
+                  onPressed: () {
+                    ref.read(analyticsProvider).capture('trade_deleted', {
+                      'their_card_count': trade.wantCount,
+                      'my_card_count': trade.haveCount,
+                    });
+                    ref
+                        .read(tradeHistoryProvider.notifier)
+                        .remove(trade.id);
+                  },
                 ),
               ],
             ),

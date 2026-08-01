@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../app/fallback_network_image.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
+import '../../core/analytics/analytics.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/models/app_settings.dart';
 import '../../core/models/card_model.dart';
@@ -14,8 +15,12 @@ import '../../core/providers.dart';
 import '../paywall/pro_limits.dart';
 
 class CardDetailScreen extends ConsumerStatefulWidget {
-  const CardDetailScreen({super.key, required this.card});
+  const CardDetailScreen({super.key, required this.card, this.source = 'unknown'});
   final CardModel card;
+
+  /// Where this screen was opened from (e.g. `search`, `set`, `scan`,
+  /// `binder`, `want_list`, `card_detail`), for the `card_detail_viewed` event.
+  final String source;
 
   @override
   ConsumerState<CardDetailScreen> createState() => _CardDetailScreenState();
@@ -24,8 +29,20 @@ class CardDetailScreen extends ConsumerStatefulWidget {
 class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   late CardModel _selected = widget.card;
 
+  @override
+  void initState() {
+    super.initState();
+    ref.read(analyticsProvider).capture('card_detail_viewed', {
+      'card_id': widget.card.id,
+      'card_name': widget.card.name,
+      'source': widget.source,
+    });
+  }
+
   void _select(CardModel c) {
     setState(() => _selected = c);
+    ref.read(analyticsProvider).capture(
+        'card_printing_switched', {'card_id': c.id});
   }
 
   @override
@@ -618,6 +635,7 @@ class _ActionBar extends ConsumerWidget {
                   card,
                   isWanted: true,
                   successMessage: 'Added to Want List',
+                  source: 'card_detail',
                 ),
               ),
             ),
@@ -631,7 +649,7 @@ class _ActionBar extends ConsumerWidget {
                 onPressed: () {
                   ref
                       .read(tradeDraftProvider.notifier)
-                      .addCard(TradeSide.want, card);
+                      .addCard(TradeSide.want, card, source: 'card_detail');
                   snack('Added to trade');
                 },
               ),
