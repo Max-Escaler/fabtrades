@@ -36,39 +36,54 @@ class _LifeTrackerScreenState extends ConsumerState<LifeTrackerScreen> {
     final state = ref.watch(lifeTrackerProvider);
     final notifier = ref.read(lifeTrackerProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+
+    final opponentPanel = _PlayerLifePanel(
+      player: state.opponent,
+      onAdjust: (delta) => notifier.adjustLife(opponent: true, delta: delta),
+      landscape: landscape,
+    );
+    final youPanel = _PlayerLifePanel(
+      player: state.you,
+      onAdjust: (delta) => notifier.adjustLife(opponent: false, delta: delta),
+      landscape: landscape,
+    );
+    final centerBar = _CenterBar(
+      remainingSeconds: state.timerRemainingSeconds,
+      running: state.timerRunning,
+      axis: landscape ? Axis.vertical : Axis.horizontal,
+      onToggleTimer: notifier.toggleTimer,
+      onHistory: () => showAuditHistorySheet(context),
+      onSettings: () => showTrackerSettingsSheet(context),
+      onClose: () => Navigator.of(context).pop(),
+    );
 
     return Scaffold(
       backgroundColor: scheme.surface,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: RotatedBox(
-                quarterTurns: 2,
-                child: _PlayerLifePanel(
-                  player: state.opponent,
-                  onAdjust: (delta) =>
-                      notifier.adjustLife(opponent: true, delta: delta),
-                ),
+        child: landscape
+            // Landscape: both totals upright, opponent left → you right.
+            ? Row(
+                children: [
+                  Expanded(child: opponentPanel),
+                  centerBar,
+                  Expanded(child: youPanel),
+                ],
+              )
+            // Portrait: opponent on top facing them, you on the bottom.
+            : Column(
+                children: [
+                  Expanded(
+                    child: RotatedBox(
+                      quarterTurns: 2,
+                      child: opponentPanel,
+                    ),
+                  ),
+                  centerBar,
+                  Expanded(child: youPanel),
+                ],
               ),
-            ),
-            _CenterBar(
-              remainingSeconds: state.timerRemainingSeconds,
-              running: state.timerRunning,
-              onToggleTimer: notifier.toggleTimer,
-              onHistory: () => showAuditHistorySheet(context),
-              onSettings: () => showTrackerSettingsSheet(context),
-              onClose: () => Navigator.of(context).pop(),
-            ),
-            Expanded(
-              child: _PlayerLifePanel(
-                player: state.you,
-                onAdjust: (delta) =>
-                    notifier.adjustLife(opponent: false, delta: delta),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -78,6 +93,7 @@ class _CenterBar extends StatelessWidget {
   const _CenterBar({
     required this.remainingSeconds,
     required this.running,
+    required this.axis,
     required this.onToggleTimer,
     required this.onHistory,
     required this.onSettings,
@@ -86,6 +102,7 @@ class _CenterBar extends StatelessWidget {
 
   final int remainingSeconds;
   final bool running;
+  final Axis axis;
   final VoidCallback onToggleTimer;
   final VoidCallback onHistory;
   final VoidCallback onSettings;
@@ -105,65 +122,95 @@ class _CenterBar extends StatelessWidget {
             ? scheme.onSurface
             : scheme.onSurfaceVariant;
 
-    return Material(
-      color: scheme.surfaceContainerHighest,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            IconButton(
-              tooltip: 'History',
-              icon: const Icon(Icons.history),
-              onPressed: onHistory,
-            ),
-            Expanded(
-              child: Center(
-                child: InkWell(
-                  onTap: onToggleTimer,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          running
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          size: 20,
-                          color: timerColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$mm:$ss',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                            fontWeight: FontWeight.w700,
-                            color: timerColor,
-                          ),
-                        ),
-                      ],
+    final historyBtn = IconButton(
+      tooltip: 'History',
+      icon: const Icon(Icons.history),
+      onPressed: onHistory,
+    );
+    final settingsBtn = IconButton(
+      tooltip: 'Settings',
+      icon: const Icon(Icons.settings_outlined),
+      onPressed: onSettings,
+    );
+    final closeBtn = IconButton(
+      tooltip: 'Close',
+      icon: const Icon(Icons.close),
+      onPressed: onClose,
+    );
+    final timerChip = InkWell(
+      onTap: onToggleTimer,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: axis == Axis.vertical
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    size: 20,
+                    color: timerColor,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$mm\n$ss',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      fontWeight: FontWeight.w700,
+                      color: timerColor,
+                      height: 1.15,
                     ),
                   ),
-                ),
+                ],
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    size: 20,
+                    color: timerColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$mm:$ss',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      fontWeight: FontWeight.w700,
+                      color: timerColor,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+
+    return Material(
+      color: scheme.surfaceContainerHighest,
+      child: axis == Axis.vertical
+          ? SizedBox(
+              width: 64,
+              child: Column(
+                children: [
+                  historyBtn,
+                  Expanded(child: Center(child: timerChip)),
+                  settingsBtn,
+                  closeBtn,
+                ],
+              ),
+            )
+          : SizedBox(
+              height: 56,
+              child: Row(
+                children: [
+                  historyBtn,
+                  Expanded(child: Center(child: timerChip)),
+                  settingsBtn,
+                  closeBtn,
+                ],
               ),
             ),
-            IconButton(
-              tooltip: 'Settings',
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: onSettings,
-            ),
-            IconButton(
-              tooltip: 'Close',
-              icon: const Icon(Icons.close),
-              onPressed: onClose,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -172,10 +219,12 @@ class _PlayerLifePanel extends StatefulWidget {
   const _PlayerLifePanel({
     required this.player,
     required this.onAdjust,
+    this.landscape = false,
   });
 
   final PlayerState player;
   final ValueChanged<int> onAdjust;
+  final bool landscape;
 
   @override
   State<_PlayerLifePanel> createState() => _PlayerLifePanelState();
@@ -213,6 +262,7 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
     final player = widget.player;
     final pending = player.pendingDelta;
     final hero = player.config.heroName;
+    final lifeSize = widget.landscape ? 88.0 : 108.0;
 
     final deltaColor =
         pending >= 0 ? AppTheme.positive : AppTheme.negative;
@@ -238,12 +288,15 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
                   child: const Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: EdgeInsets.only(left: 20),
+                      padding: EdgeInsets.only(left: 16),
                       child: Opacity(
                         opacity: 0.35,
                         child: Text(
                           '−',
-                          style: TextStyle(fontSize: 36, fontWeight: FontWeight.w300),
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w300,
+                          ),
                         ),
                       ),
                     ),
@@ -263,12 +316,15 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
                   child: const Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
-                      padding: EdgeInsets.only(right: 20),
+                      padding: EdgeInsets.only(right: 16),
                       child: Opacity(
                         opacity: 0.35,
                         child: Text(
                           '+',
-                          style: TextStyle(fontSize: 36, fontWeight: FontWeight.w300),
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w300,
+                          ),
                         ),
                       ),
                     ),
@@ -276,6 +332,22 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
                 ),
               ),
             ],
+          ),
+          // Center divider marking − (left) vs + (right) tap zones.
+          IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  Container(
+                    width: 1,
+                    color: scheme.outlineVariant.withValues(alpha: 0.55),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
           ),
           IgnorePointer(
             child: Center(
@@ -302,7 +374,7 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
                   Text(
                     '${player.life}',
                     style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 108,
+                      fontSize: lifeSize,
                       fontWeight: FontWeight.w800,
                       height: 1.0,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -311,6 +383,9 @@ class _PlayerLifePanelState extends State<_PlayerLifePanel> {
                   const SizedBox(height: 4),
                   Text(
                     hero ?? ' ',
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
