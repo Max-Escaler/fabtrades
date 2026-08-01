@@ -9,6 +9,7 @@ import '../core/models/app_settings.dart';
 import '../core/providers.dart';
 import '../features/binder/binder_screen.dart';
 import '../features/lend/lend_screen.dart';
+import '../features/life_tracker/life_tracker_screen.dart';
 import '../features/onboarding/onboarding_keys.dart';
 import '../features/onboarding/onboarding_provider.dart';
 import '../features/onboarding/onboarding_repository.dart';
@@ -298,6 +299,19 @@ class _AppMenuDrawer extends ConsumerWidget {
                 MaterialPageRoute(
                   builder: (_) => const AccountScreen(),
                   settings: const RouteSettings(name: 'Account'),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.favorite_outline),
+            title: const Text('Life Tracker'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(parentContext).push(
+                MaterialPageRoute(
+                  builder: (_) => const LifeTrackerScreen(),
+                  settings: const RouteSettings(name: 'Life Tracker'),
                 ),
               );
             },

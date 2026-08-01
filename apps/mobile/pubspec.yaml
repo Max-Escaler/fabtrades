@@ -61,6 +61,7 @@ dependencies:
   flutter_svg: ^2.3.0
   showcaseview: 5.1.0
   posthog_flutter: ^5.34.2
+  wakelock_plus: ^1.7.0
 
 dev_dependencies:
   flutter_test:

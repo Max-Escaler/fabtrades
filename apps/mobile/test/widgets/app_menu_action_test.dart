@@ -18,6 +18,7 @@ void main() {
 
     expect(find.text('Sign up'), findsOneWidget);
     expect(find.text('My Account'), findsNothing);
+    expect(find.text('Life Tracker'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });
 
@@ -39,6 +40,7 @@ void main() {
 
     expect(find.text('My Account'), findsOneWidget);
     expect(find.text('Sign up'), findsNothing);
+    expect(find.text('Life Tracker'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });
 
