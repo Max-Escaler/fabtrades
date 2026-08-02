@@ -3,13 +3,15 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CardPanel from '../../src/components/ui/CardPanel.jsx';
 import { ThemeModeProvider } from '../../src/contexts/ThemeContext.jsx';
 
-// Stub the child list so we only exercise CardPanel's own behavior: rendering
-// the title and forwarding props down to CardList.
 let receivedProps = null;
 jest.mock('../../src/components/ui/CardList.jsx', () => (props) => {
   receivedProps = props;
   return <div data-testid="card-list">{props.cards.length} cards</div>;
 });
+jest.mock('../../src/components/search', () => ({
+  SearchInput: () => <div data-testid="search-input" />,
+  SearchDialog: () => null,
+}));
 
 const renderPanel = (props = {}) => {
   const merged = {
@@ -43,6 +45,11 @@ describe('CardPanel', () => {
     expect(screen.getByText('Cards I Want')).toBeInTheDocument();
   });
 
+  test('renders the search input inline with the title', () => {
+    renderPanel();
+    expect(screen.getByTestId('search-input')).toBeInTheDocument();
+  });
+
   test('renders the CardList child', () => {
     renderPanel();
     expect(screen.getByTestId('card-list')).toBeInTheDocument();
@@ -51,8 +58,6 @@ describe('CardPanel', () => {
   test('forwards the relevant props to CardList', () => {
     const merged = renderPanel();
     expect(receivedProps.cards).toBe(merged.cards);
-    expect(receivedProps.title).toBe('Cards I Want');
-    expect(receivedProps.onAddCard).toBe(merged.onAddCard);
     expect(receivedProps.onRemoveCard).toBe(merged.onRemoveCard);
     expect(receivedProps.onUpdateQuantity).toBe(merged.onUpdateQuantity);
   });

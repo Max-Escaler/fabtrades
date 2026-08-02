@@ -12,18 +12,22 @@ import {
     DialogActions,
     TextField,
     Snackbar,
-    Alert
+    Alert,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import { 
     Warning as WarningIcon,
     Clear as ClearIcon,
     ContentCopy as ContentCopyIcon,
     Forum as ForumIcon,
-    BookmarkAdd as BookmarkAddIcon
+    BookmarkAdd as BookmarkAddIcon,
+    CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { generateTradeOffer } from "../../utils/tradeOffer.js";
 import { saveTradeToHistory } from "../../services/tradeHistory.js";
+import { confirmTrade } from "../../services/confirmTrade.js";
 import { FreeLimits } from "../../utils/freeLimits.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
@@ -89,6 +93,7 @@ const TradeSummary = ({
     lowDiff = 0,
     isLandscape = false,
     clearURLTradeData,
+    clearTrade,
     urlTradeData,
     hasLoadedFromURL,
 }) => {
@@ -100,6 +105,10 @@ const TradeSummary = ({
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [tradeName, setTradeName] = useState('');
     const [saving, setSaving] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [removeGiven, setRemoveGiven] = useState(true);
+    const [addReceived, setAddReceived] = useState(true);
+    const [confirming, setConfirming] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     // Calculate total card count including quantities
@@ -172,6 +181,45 @@ const TradeSummary = ({
         );
     };
 
+    const handleOpenConfirmDialog = () => {
+        setRemoveGiven(haveCardCount > 0);
+        setAddReceived(wantCardCount > 0);
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmTrade = async () => {
+        setConfirming(true);
+        const { error, trimmed } = await confirmTrade({
+            haveList,
+            wantList,
+            totals: { haveTotal, wantTotal, diff },
+            removeGivenFromBinder: removeGiven && haveCardCount > 0,
+            addReceivedToBinder: addReceived && wantCardCount > 0,
+        });
+        setConfirming(false);
+        if (error) {
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to confirm trade',
+                severity: 'error',
+            });
+            return;
+        }
+        setShowConfirmDialog(false);
+        if (typeof clearTrade === 'function') {
+            clearTrade();
+        }
+        setSnackbar(
+            trimmed > 0
+                ? {
+                    open: true,
+                    message: `Trade confirmed. The free plan keeps your last ${FreeLimits.savedTrades} trades.`,
+                    severity: 'info',
+                }
+                : { open: true, message: 'Trade confirmed', severity: 'success' },
+        );
+    };
+
     const formatAge = (ageInDays) => {
         if (ageInDays < 1) return 'less than a day';
         if (ageInDays < 7) return `${Math.round(ageInDays)} day${Math.round(ageInDays) !== 1 ? 's' : ''}`;
@@ -236,16 +284,16 @@ const TradeSummary = ({
             sx={{
                 ...totalColumnSx,
                 ...(isLandscape ? {
-                    py: 1.5,
-                    px: 1,
-                    my: 1,
+                    py: 0.75,
+                    px: 0.75,
+                    my: 0.25,
                     background: isDark
                         ? 'linear-gradient(135deg, #1a0f0a 0%, #2c1810 100%)'
                         : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                     boxShadow: isDark
-                        ? '0 2px 8px rgba(0, 0, 0, 0.2)'
-                        : '0 2px 8px rgba(139, 69, 19, 0.08)'
+                        ? '0 1px 4px rgba(0, 0, 0, 0.2)'
+                        : '0 1px 4px rgba(139, 69, 19, 0.08)'
                 } : {}),
                 position: 'relative'
             }}
@@ -321,21 +369,23 @@ const TradeSummary = ({
         <Box sx={{
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: isLandscape ? 'flex-start' : 'center',
             alignItems: 'center',
+            alignSelf: isLandscape ? 'flex-start' : 'stretch',
             gap: 0,
-            p: isLandscape ? 2.5 : 0,
+            p: isLandscape ? 1.25 : 0,
             background: bgGradient,
             borderTop: isLandscape ? 'none' : `3px solid #d4a574`,
             borderBottom: isLandscape ? 'none' : `3px solid #d4a574`,
-            borderRadius: isLandscape ? 3 : 0,
-            border: isLandscape ? `2px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : 'rgba(139, 69, 19, 0.15)'}` : 'none',
-            width: isLandscape ? '280px' : '100%',
-            minWidth: isLandscape ? '280px' : 'auto',
-            maxWidth: isLandscape ? '320px' : '100%',
+            borderRadius: isLandscape ? 2 : 0,
+            border: isLandscape ? `1px solid ${isDark ? 'rgba(212, 165, 116, 0.28)' : 'rgba(139, 69, 19, 0.15)'}` : 'none',
+            width: isLandscape ? '200px' : '100%',
+            minWidth: isLandscape ? '200px' : 'auto',
+            maxWidth: isLandscape ? '220px' : '100%',
+            flexShrink: 0,
             boxSizing: 'border-box',
             boxShadow: isLandscape 
-                ? (isDark ? '0 8px 24px rgba(0, 0, 0, 0.3)' : '0 8px 24px rgba(139, 69, 19, 0.15)')
+                ? (isDark ? '0 4px 14px rgba(0, 0, 0, 0.25)' : '0 4px 14px rgba(139, 69, 19, 0.1)')
                 : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(139, 69, 19, 0.08)')
         }}>
             {/* Totals: horizontal on mobile, stacked in landscape sidebar */}
@@ -345,9 +395,9 @@ const TradeSummary = ({
                 justifyContent: 'space-between',
                 alignItems: isLandscape ? 'stretch' : 'center',
                 width: '100%',
-                gap: isLandscape ? 0 : 0.5,
-                px: isLandscape ? 1 : { xs: 0.75, sm: 1 },
-                py: isLandscape ? 0 : { xs: 0.5, sm: 0.65 }
+                gap: isLandscape ? 0.75 : 0.5,
+                px: isLandscape ? 0.5 : { xs: 0.75, sm: 1 },
+                py: isLandscape ? 0.25 : { xs: 0.5, sm: 0.65 }
             }}>
                 {haveColumn}
                 {differenceColumn}
@@ -373,20 +423,52 @@ const TradeSummary = ({
                 </Box>
             )}
 
-            {/* Save (logged-in only) */}
+            {/* Confirm / Save (logged-in only) */}
             {user && (
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    gap: 1,
-                    px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
-                    py: isLandscape ? 1 : { xs: 0.4, sm: 0.6 },
+                    flexWrap: 'wrap',
+                    gap: 0.75,
+                    px: isLandscape ? 0.75 : { xs: 1, sm: 1.5 },
+                    py: isLandscape ? 0.75 : { xs: 0.4, sm: 0.6 },
                     width: '100%',
                     boxSizing: 'border-box',
                     borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
                 }}>
-                    <Tooltip title="Save this trade to your history">
+                    <Tooltip title="Record the trade and update your Binder">
+                        <span>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                startIcon={<CheckCircleIcon />}
+                                onClick={handleOpenConfirmDialog}
+                                disabled={!canGenerateTradeOffer}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    px: 1.5,
+                                    py: 0.25,
+                                    minHeight: 28,
+                                    background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+                                    boxShadow: isDark
+                                        ? '0 1px 4px rgba(0, 0, 0, 0.35)'
+                                        : '0 1px 4px rgba(139, 69, 19, 0.25)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
+                                    },
+                                    '&.Mui-disabled': {
+                                        background: isDark ? 'rgba(212, 165, 116, 0.15)' : 'rgba(139, 69, 19, 0.12)',
+                                        color: mutedColor,
+                                    },
+                                }}
+                            >
+                                Confirm Trade
+                            </Button>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title="Save this trade to your history without changing your Binder">
                         <span>
                             <Button
                                 variant="outlined"
@@ -415,61 +497,63 @@ const TradeSummary = ({
                 </Box>
             )}
 
-            {/* Purple Discord trade offer */}
-            <Box sx={{
-                display: 'flex',
-                flexDirection: isLandscape ? 'column' : 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: isLandscape ? 0.5 : 1,
-                px: isLandscape ? 1.5 : { xs: 1, sm: 1.5 },
-                py: isLandscape ? 1.25 : { xs: 0.5, sm: 0.65 },
-                width: '100%',
-                boxSizing: 'border-box',
-                borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
-            }}>
-                <Typography
-                    variant="caption"
-                    sx={{
-                        color: mutedColor,
-                        fontSize: isLandscape ? '0.7rem' : { xs: '0.65rem', sm: '0.7rem' },
-                        textAlign: isLandscape ? 'center' : 'left',
-                        lineHeight: 1.2,
-                        flexShrink: 1
-                    }}
-                >
-                    Replying to a Purple Discord trade?
-                </Typography>
-                <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<ForumIcon sx={{ fontSize: '1rem !important' }} />}
-                    onClick={handleGenerateTradeOffer}
-                    disabled={!canGenerateTradeOffer}
-                    sx={{
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        px: 1.25,
-                        py: 0.25,
-                        minHeight: 28,
-                        flexShrink: 0,
-                        background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
-                        boxShadow: isDark
-                            ? '0 1px 4px rgba(0, 0, 0, 0.35)'
-                            : '0 1px 4px rgba(139, 69, 19, 0.25)',
-                        '&:hover': {
-                            background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
-                        },
-                        '&.Mui-disabled': {
-                            background: isDark ? 'rgba(212, 165, 116, 0.15)' : 'rgba(139, 69, 19, 0.12)',
-                            color: mutedColor
-                        }
-                    }}
-                >
-                    Generate Trade Offer
-                </Button>
-            </Box>
+            {/* Purple Discord trade offer — desktop/landscape only */}
+            {isLandscape && (
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.4,
+                    px: 0.75,
+                    py: 0.75,
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    borderTop: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.2)' : 'rgba(139, 69, 19, 0.12)'}`
+                }}>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: mutedColor,
+                            fontSize: '0.65rem',
+                            textAlign: 'center',
+                            lineHeight: 1.2,
+                            flexShrink: 1
+                        }}
+                    >
+                        Replying to a Purple Discord trade?
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<ForumIcon sx={{ fontSize: '1rem !important' }} />}
+                        onClick={handleGenerateTradeOffer}
+                        disabled={!canGenerateTradeOffer}
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            px: 1.25,
+                            py: 0.25,
+                            minHeight: 28,
+                            flexShrink: 0,
+                            background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
+                            boxShadow: isDark
+                                ? '0 1px 4px rgba(0, 0, 0, 0.35)'
+                                : '0 1px 4px rgba(139, 69, 19, 0.25)',
+                            '&:hover': {
+                                background: 'linear-gradient(135deg, #7a3b10 0%, #8b4513 100%)',
+                            },
+                            '&.Mui-disabled': {
+                                background: isDark ? 'rgba(212, 165, 116, 0.15)' : 'rgba(139, 69, 19, 0.12)',
+                                color: mutedColor
+                            }
+                        }}
+                    >
+                        Generate Trade Offer
+                    </Button>
+                </Box>
+            )}
         </Box>
 
         {/* Clear Confirmation Dialog */}
@@ -574,6 +658,64 @@ const TradeSummary = ({
                     startIcon={<BookmarkAddIcon />}
                 >
                     {saving ? 'Saving…' : 'Save Trade'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+
+        {/* Confirm Trade Dialog */}
+        <Dialog
+            open={showConfirmDialog}
+            onClose={() => !confirming && setShowConfirmDialog(false)}
+            fullWidth
+            maxWidth="xs"
+        >
+            <DialogTitle>Confirm Trade</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    Giving {haveCardCount} {haveCardCount === 1 ? 'card' : 'cards'} ·
+                    {' '}Receiving {wantCardCount} {wantCardCount === 1 ? 'card' : 'cards'}
+                </Typography>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={removeGiven}
+                            onChange={(e) => setRemoveGiven(e.target.checked)}
+                            disabled={haveCardCount === 0 || confirming}
+                        />
+                    }
+                    label={`Remove my ${haveCardCount} given ${haveCardCount === 1 ? 'card' : 'cards'} from Binder`}
+                />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={addReceived}
+                            onChange={(e) => setAddReceived(e.target.checked)}
+                            disabled={wantCardCount === 0 || confirming}
+                        />
+                    }
+                    label={
+                        <Box>
+                            <Typography component="span" variant="body1">
+                                Add their {wantCardCount} {wantCardCount === 1 ? 'card' : 'cards'} to my Binder
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                                Uncheck for deck-bound pulls
+                            </Typography>
+                        </Box>
+                    }
+                />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+                <Button onClick={() => setShowConfirmDialog(false)} disabled={confirming}>
+                    Cancel
+                </Button>
+                <Button
+                    variant="contained"
+                    onClick={handleConfirmTrade}
+                    disabled={confirming}
+                    startIcon={<CheckCircleIcon />}
+                >
+                    {confirming ? 'Confirming…' : 'Confirm'}
                 </Button>
             </DialogActions>
         </Dialog>

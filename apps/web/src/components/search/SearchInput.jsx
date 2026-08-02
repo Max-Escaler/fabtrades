@@ -23,10 +23,13 @@ const SearchInput = ({
   placement = 'bottom',
   autoFocus = false,
   keepOpenOnSelect = false,
-  keepInputOnSelect = false
+  keepInputOnSelect = false,
+  /** 'small' for denser chrome (binder toolbar); default matches trade calculator. */
+  size = 'medium',
 }) => {
   const { isDark } = useThemeMode();
   const [justAdded, setJustAdded] = useState(false);
+  const dense = size === 'small';
 
   useEffect(() => {
     if (!justAdded) return;
@@ -65,7 +68,7 @@ const SearchInput = ({
     <Box sx={{ position: 'relative', width: fullWidth ? '100%' : 'auto' }}>
       <TextField
         inputRef={inputRef}
-        label={label}
+        label={label || undefined}
         placeholder={placeholder}
         value={value}
         onChange={handleInputChange}
@@ -75,13 +78,14 @@ const SearchInput = ({
         disabled={disabled}
         fullWidth={fullWidth}
         autoFocus={autoFocus}
+        size={dense ? 'small' : 'medium'}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon
                 color="action"
                 sx={{
-                  fontSize: '1.25rem',
+                  fontSize: dense ? '1rem' : '1.25rem',
                   color: isDark ? 'rgba(212, 165, 116, 0.9)' : 'rgba(93, 58, 26, 0.7)'
                 }}
               />
@@ -89,11 +93,11 @@ const SearchInput = ({
           ),
           endAdornment: (justAdded || (value && !disabled)) ? (
             <InputAdornment position="end">
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                 {justAdded && (
                   <CheckCircleIcon
                     sx={{
-                      fontSize: '1.1rem',
+                      fontSize: dense ? '0.95rem' : '1.1rem',
                       color: isDark ? '#a7e3b7' : '#2e7d32'
                     }}
                   />
@@ -105,6 +109,7 @@ const SearchInput = ({
                     edge="end"
                     aria-label="clear search"
                     sx={{
+                      p: dense ? 0.35 : 0.5,
                       '&:hover': {
                         backgroundColor: isDark ? 'rgba(212, 165, 116, 0.12)' : 'rgba(0, 0, 0, 0.04)'
                       }
@@ -112,7 +117,7 @@ const SearchInput = ({
                   >
                     <ClearIcon
                       sx={{
-                        fontSize: '1.1rem',
+                        fontSize: dense ? '0.95rem' : '1.1rem',
                         color: isDark ? 'rgba(212, 165, 116, 0.9)' : 'rgba(93, 58, 26, 0.7)'
                       }}
                     />
@@ -128,6 +133,7 @@ const SearchInput = ({
               ? (isDark ? 'rgba(26, 15, 10, 0.5)' : 'rgba(0, 0, 0, 0.02)')
               : (isDark ? '#1a0f0a' : '#ffffff'),
             transition: 'all 0.2s ease',
+            ...(dense ? { minHeight: 36 } : {}),
             '&:hover': {
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: disabled
@@ -138,12 +144,14 @@ const SearchInput = ({
             '&.Mui-focused': {
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: isDark ? '#d4a574' : '#8b4513',
-                borderWidth: '2px'
+                borderWidth: dense ? '1px' : '2px'
               }
             }
           },
           '& .MuiOutlinedInput-input': {
             color: isDark ? '#f5f1ed' : '#2c1810',
+            fontSize: dense ? '0.8125rem' : undefined,
+            py: dense ? 0.75 : undefined,
             '&::placeholder': {
               color: isDark ? 'rgba(212, 165, 116, 0.7)' : 'rgba(93, 58, 26, 0.6)',
               opacity: 1

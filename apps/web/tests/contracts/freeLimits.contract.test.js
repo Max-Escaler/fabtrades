@@ -4,12 +4,13 @@
 // implementation in apps/mobile is held to as well. The caps have to match
 // exactly: mobile enforces the trade window by tombstoning rows, so a web app
 // that kept more would watch mobile delete trades it had saved.
-//
-// Web has no binder, so only `savedTrades` has behaviour to assert here; the
-// other two numbers are still checked, which is what stops them drifting before
-// web grows a binder to enforce them with.
 import contract from '../../../../packages/contracts/free_limits.json';
-import { FreeLimits, tradesOverFreeLimit } from '../../src/utils/freeLimits.js';
+import {
+    FreeLimits,
+    canAddDistinctCard,
+    cardsFor,
+    tradesOverFreeLimit,
+} from '../../src/utils/freeLimits.js';
 
 describe('free limits contract', () => {
     it('agrees with the shared caps', () => {
@@ -26,6 +27,27 @@ describe('free limits contract', () => {
                 expect(tradesOverFreeLimit(testCase.existing + 1)).toBe(testCase.trimmed);
             });
         });
+
+    contract.cases
+        .filter((testCase) => testCase.limit === 'binderCards' || testCase.limit === 'wantListCards')
+        .forEach((testCase) => {
+            it(testCase.name, () => {
+                const isWanted = testCase.limit === 'wantListCards';
+                expect(canAddDistinctCard(testCase.existing, { isWanted, isPro: false })).toBe(
+                    testCase.allowed,
+                );
+            });
+        });
+
+    it('maps cardsFor to the binder vs want caps', () => {
+        expect(cardsFor({ isWanted: false })).toBe(FreeLimits.binderCards);
+        expect(cardsFor({ isWanted: true })).toBe(FreeLimits.wantListCards);
+    });
+
+    it('never blocks Pro binder or want-list adds', () => {
+        expect(canAddDistinctCard(100, { isWanted: false, isPro: true })).toBe(true);
+        expect(canAddDistinctCard(100, { isWanted: true, isPro: true })).toBe(true);
+    });
 
     it('trims nothing for an account inside the window', () => {
         expect(tradesOverFreeLimit(0)).toBe(0);

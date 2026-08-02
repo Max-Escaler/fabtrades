@@ -30,6 +30,8 @@ site_url = "http://localhost:5173"
 # in step with AuthConfig.redirectUrl in apps/mobile.
 additional_redirect_urls = [
   "https://fabtrades.net",
+  "https://fabtrades.net/**",
+  "http://localhost:5173/**",
   "fabtrades://login-callback",
 ]
 jwt_expiry = 3600
@@ -82,5 +84,7 @@ project_id = "cnmxaccamqshgvesieez"
 site_url = "https://staging--fabtrades.netlify.app"
 additional_redirect_urls = [
   "https://staging--fabtrades.netlify.app",
+  "https://staging--fabtrades.netlify.app/**",
+  "http://localhost:5173/**",
   "fabtrades://login-callback",
 ]

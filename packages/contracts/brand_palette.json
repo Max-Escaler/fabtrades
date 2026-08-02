@@ -1,0 +1,14 @@
+{
+  "description": "FAB Trades brand palette shared by web (ThemeContext / index.css) and mobile (AppTheme). Hex values are canonical; both clients should match these tokens.",
+  "tokens": {
+    "brown": "#8B4513",
+    "brownBright": "#A0643F",
+    "brownDeep": "#5D2F0D",
+    "tan": "#D4A574",
+    "tanBright": "#E4C09C",
+    "tanDeep": "#A8824E",
+    "cream": "#F5F1ED",
+    "espresso": "#2C1810",
+    "espressoDeep": "#1A0F0A"
+  }
+}

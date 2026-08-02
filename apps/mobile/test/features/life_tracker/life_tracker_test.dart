@@ -136,7 +136,8 @@ void main() {
       expect(state.timerRunning, isFalse);
     });
 
-    test('resetGame restores starting lives and clears history', () async {
+    test('resetGame restores starting lives, clears history, and starts timer',
+        () async {
       final c = await container();
       final n = c.read(lifeTrackerProvider.notifier);
       n.setHero(opponent: false, heroName: 'Bravo', life: 40);
@@ -149,6 +150,8 @@ void main() {
       expect(state.you.config.heroName, 'Bravo');
       expect(state.history, isEmpty);
       expect(state.timerRemainingSeconds, 55 * 60);
+      expect(state.timerRunning, isTrue);
+      expect(state.timerRunningSince, isNotNull);
     });
 
     test('restores running timer by subtracting wall-clock elapsed', () async {

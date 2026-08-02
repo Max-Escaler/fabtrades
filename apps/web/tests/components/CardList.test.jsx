@@ -4,13 +4,6 @@ import CardList from '../../src/components/ui/CardList.jsx';
 import { PriceProvider } from '../../src/contexts/PriceContext.jsx';
 import { ThemeModeProvider } from '../../src/contexts/ThemeContext.jsx';
 
-// The search inputs and image preview pull in a lot of unrelated behavior
-// (portals, images, dialogs). Stub them so this stays a focused unit test
-// of CardList's own rendering and callbacks.
-jest.mock('../../src/components/search', () => ({
-  SearchInput: () => <div data-testid="search-input" />,
-  SearchDialog: () => null,
-}));
 jest.mock('../../src/components/ui/CardImagePreview.jsx', () => ({
   CardThumbnail: () => <div data-testid="thumb" />,
   CardImageModal: () => null,
@@ -26,11 +19,6 @@ const renderList = (props = {}) => {
     cards,
     onRemoveCard: jest.fn(),
     onUpdateQuantity: jest.fn(),
-    cardOptions: [],
-    inputValue: '',
-    onInputChange: jest.fn(),
-    onAddCard: jest.fn(),
-    title: 'Cards I Have',
     ...props,
   };
   const utils = render(
@@ -58,11 +46,6 @@ describe('CardList', () => {
     expect(screen.getByText('$25')).toBeInTheDocument();
   });
 
-  test('renders the search input for the list', () => {
-    renderList();
-    expect(screen.getByTestId('search-input')).toBeInTheDocument();
-  });
-
   test('calls onRemoveCard with the card index when delete is clicked', () => {
     const { props } = renderList();
     fireEvent.click(screen.getByRole('button', { name: 'Delete Card B' }));
@@ -72,7 +55,13 @@ describe('CardList', () => {
   test('renders an empty list without cards', () => {
     renderList({ cards: [] });
     expect(screen.queryByText('Card A')).not.toBeInTheDocument();
-    // Search input is always present even with no cards.
-    expect(screen.getByTestId('search-input')).toBeInTheDocument();
+    expect(screen.getByText(/Search above to add cards/i)).toBeInTheDocument();
+  });
+
+  test('renders grid tiles with preview buttons when viewMode is grid', () => {
+    renderList({ viewMode: 'grid' });
+    expect(screen.getByText('Card A')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Preview Card A' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete Card B' })).toBeInTheDocument();
   });
 });

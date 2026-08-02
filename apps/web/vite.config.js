@@ -22,6 +22,12 @@ export default defineConfig(() => {
 
   return {
     plugins: [react()],
+    // Allow importing shared brand tokens from packages/contracts.
+    server: {
+      fs: {
+        allow: ['..', '../..'],
+      },
+    },
     define: {
       __CATALOG_URL__: JSON.stringify(url)
     }
