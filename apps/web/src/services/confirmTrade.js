@@ -116,6 +116,9 @@ export async function confirmTrade({
  * Persist reconcile diffs. New/changed rows upsert; removed rows tombstone.
  * Confirm Trade intentionally skips free-tier distinct-card checks.
  *
+ * Ops run sequentially so a mid-flight failure does not leave parallel
+ * upserts/removes half-applied with no clear stop point.
+ *
  * @param {Array} before
  * @param {Array} after
  * @returns {Promise<Object|null>} error or null
@@ -134,7 +137,7 @@ async function applyBinderDiff(before, after) {
             || prev.quantity !== entry.quantity
             || prev.condition !== entry.condition
         ) {
-            ops.push(
+            ops.push(() =>
                 upsertEntry({
                     cardId: entry.cardId,
                     isWanted: entry.isWanted,
@@ -149,13 +152,14 @@ async function applyBinderDiff(before, after) {
 
     for (const [key, entry] of beforeMap) {
         if (!afterMap.has(key)) {
-            ops.push(removeEntry(entry.cardId, entry.isWanted));
+            ops.push(() => removeEntry(entry.cardId, entry.isWanted));
         }
     }
 
-    if (ops.length === 0) return null;
+    for (const run of ops) {
+        const { error } = await run();
+        if (error) return error;
+    }
 
-    const results = await Promise.all(ops);
-    const failed = results.find((r) => r.error);
-    return failed?.error || null;
+    return null;
 }

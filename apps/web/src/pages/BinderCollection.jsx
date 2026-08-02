@@ -734,12 +734,15 @@ const BinderCollection = ({ isWanted = false }) => {
                             <SearchInput
                                 label=""
                                 size="small"
-                                placeholder={`Search to add cards…`}
+                                placeholder={
+                                    atFreeLimit
+                                        ? 'Search your binder…'
+                                        : 'Search to add cards…'
+                                }
                                 items={cardOptions}
                                 value={searchQuery}
                                 onChange={(_e, value) => setSearchQuery(value || '')}
                                 onSelect={handleAddCard}
-                                disabled={atFreeLimit}
                                 keepOpenOnSelect
                                 keepInputOnSelect
                             />

@@ -189,7 +189,7 @@ const TradeSummary = ({
 
     const handleConfirmTrade = async () => {
         setConfirming(true);
-        const { error, trimmed } = await confirmTrade({
+        const { data, error, trimmed } = await confirmTrade({
             haveList,
             wantList,
             totals: { haveTotal, wantTotal, diff },
@@ -197,18 +197,29 @@ const TradeSummary = ({
             addReceivedToBinder: addReceived && wantCardCount > 0,
         });
         setConfirming(false);
+
+        // History is written before binder reconcile. If that succeeded, always
+        // clear the calculator so a retry cannot create a duplicate history row.
+        if (data) {
+            setShowConfirmDialog(false);
+            if (typeof clearTrade === 'function') {
+                clearTrade();
+            }
+        }
+
         if (error) {
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to confirm trade',
-                severity: 'error',
+                message:
+                    error.message
+                    || (data
+                        ? 'Trade saved, but binder could not be updated'
+                        : 'Failed to confirm trade'),
+                severity: data ? 'warning' : 'error',
             });
             return;
         }
-        setShowConfirmDialog(false);
-        if (typeof clearTrade === 'function') {
-            clearTrade();
-        }
+
         setSnackbar(
             trimmed > 0
                 ? {
