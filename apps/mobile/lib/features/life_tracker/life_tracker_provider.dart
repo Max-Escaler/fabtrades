@@ -290,9 +290,10 @@ class LifeTrackerNotifier extends Notifier<LifeTrackerState> {
       opponent: PlayerState.fresh(state.opponent.config),
       history: const [],
       timerRemainingSeconds: state.format.roundSeconds,
-      timerRunning: false,
-      timerRunningSince: null,
+      timerRunning: true,
+      timerRunningSince: DateTime.now(),
     );
+    _ensureCountdown();
     _persist();
   }
 }
