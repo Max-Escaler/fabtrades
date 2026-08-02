@@ -54,7 +54,7 @@ const Header = ({ lastUpdatedTimestamp }) => {
                     gap: 1,
                 }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0, flexShrink: 0 }}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
@@ -70,17 +70,19 @@ const Header = ({ lastUpdatedTimestamp }) => {
                     >
                         <MenuIcon fontSize="small" />
                     </IconButton>
+                    {/* Desktop/tablet only — on mobile these live in the hamburger. */}
                     <Button
                         component={Link}
                         to="/"
                         size="small"
                         sx={{
+                            display: { xs: 'none', sm: 'inline-flex' },
                             color: location.pathname === '/' ? '#ffffff' : '#d4a574',
                             fontWeight: location.pathname === '/' ? 700 : 600,
-                            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                            fontSize: '0.875rem',
                             textTransform: 'none',
                             minWidth: 0,
-                            px: { xs: 0.5, sm: 1 },
+                            px: 1,
                             py: 0.35,
                             whiteSpace: 'nowrap',
                             backgroundColor: location.pathname === '/'
@@ -98,12 +100,13 @@ const Header = ({ lastUpdatedTimestamp }) => {
                         to="/binder"
                         size="small"
                         sx={{
+                            display: { xs: 'none', sm: 'inline-flex' },
                             color: location.pathname === '/binder' ? '#ffffff' : '#d4a574',
                             fontWeight: location.pathname === '/binder' ? 700 : 600,
-                            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                            fontSize: '0.875rem',
                             textTransform: 'none',
                             minWidth: 0,
-                            px: { xs: 0.5, sm: 1 },
+                            px: 1,
                             py: 0.35,
                             whiteSpace: 'nowrap',
                             backgroundColor: location.pathname === '/binder'
@@ -273,6 +276,35 @@ const Header = ({ lastUpdatedTimestamp }) => {
                                 sx={{ 
                                     fontWeight: location.pathname === '/' ? 700 : 500,
                                     color: location.pathname === '/' 
+                                        ? (isDark ? '#e4c09c' : '#8b4513')
+                                        : (isDark ? '#f5f1ed' : '#2c1810'),
+                                    '& .MuiTypography-root': {
+                                        fontSize: '1rem'
+                                    }
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding sx={{ mb: 1 }}>
+                        <ListItemButton
+                            component={Link}
+                            to="/binder"
+                            sx={{
+                                borderRadius: 2,
+                                backgroundColor: location.pathname === '/binder'
+                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                    : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
+                                },
+                                transition: 'all 0.2s ease-in-out'
+                            }}
+                        >
+                            <ListItemText
+                                primary="My Binder"
+                                sx={{
+                                    fontWeight: location.pathname === '/binder' ? 700 : 500,
+                                    color: location.pathname === '/binder'
                                         ? (isDark ? '#e4c09c' : '#8b4513')
                                         : (isDark ? '#f5f1ed' : '#2c1810'),
                                     '& .MuiTypography-root': {
