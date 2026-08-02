@@ -219,6 +219,14 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
     }, [haveList, wantList, draftReady]);
 
     // Clear URL trade data
+    const clearTrade = () => {
+        setHaveList([]);
+        setWantList([]);
+        setHaveInput('');
+        setWantInput('');
+        clearTradeFromURL();
+    };
+
     const clearURLTradeData = () => {
         clearTradeFromURL();
         setUrlTradeData(null);
@@ -325,6 +333,7 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         lowDiff,
         // URL trade-loading functionality
         clearURLTradeData,
+        clearTrade,
         urlTradeData,
         hasLoadedFromURL,
         // Trade history functionality

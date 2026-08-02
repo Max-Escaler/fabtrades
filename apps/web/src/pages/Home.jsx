@@ -14,6 +14,8 @@ const Home = () => {
 
     // Detect landscape vs portrait orientation using aspect ratio
     const isLandscape = useMediaQuery('(min-aspect-ratio: 4/3)');
+    // Stacked mobile layout uses the denser list; desktop/landscape gets the card grid.
+    const panelView = isLandscape ? 'grid' : 'list';
 
     const {
         cardGroups,
@@ -87,9 +89,11 @@ const Home = () => {
                 display: 'flex', 
                 flexGrow: 1, 
                 flexDirection: isLandscape ? 'row' : 'column',
+                alignItems: isLandscape ? 'stretch' : 'stretch',
                 width: '100%',
-                gap: isLandscape ? 2 : 0,
-                p: isLandscape ? 2 : 0
+                minHeight: 0,
+                gap: isLandscape ? 1.25 : 0,
+                p: isLandscape ? 1.25 : 0
             }}>
                 <CardPanel
                     title="Cards I Have"
@@ -102,6 +106,7 @@ const Home = () => {
                     onUpdateQuantity={tradeState.updateHaveCardQuantity}
                     disabled={!dataReady}
                     isLandscape={isLandscape}
+                    viewMode={panelView}
                 />
 
                 <TradeSummary
@@ -115,6 +120,7 @@ const Home = () => {
                     lowDiff={tradeState.lowDiff}
                     isLandscape={isLandscape}
                     clearURLTradeData={tradeState.clearURLTradeData}
+                    clearTrade={tradeState.clearTrade}
                     urlTradeData={tradeState.urlTradeData}
                     hasLoadedFromURL={tradeState.hasLoadedFromURL}
                 />
@@ -130,6 +136,7 @@ const Home = () => {
                     onUpdateQuantity={tradeState.updateWantCardQuantity}
                     disabled={!dataReady}
                     isLandscape={isLandscape}
+                    viewMode={panelView}
                 />
             </Box>
         </Box>

@@ -1,6 +1,14 @@
-import React from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import {
+    Box,
+    Paper,
+    Typography,
+    useTheme,
+    useMediaQuery,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import CardList from './CardList.jsx';
+import { SearchInput, SearchDialog } from '../search';
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
 
 const CardPanel = ({ 
@@ -13,80 +21,152 @@ const CardPanel = ({
     onRemoveCard, 
     onUpdateQuantity,
     disabled = false,
-    isLandscape = false
+    isLandscape = false,
+    viewMode = 'list',
 }) => {
     const { isDark } = useThemeMode();
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
     return (
         <Paper 
-            elevation={isLandscape ? 3 : 0}
+            elevation={isLandscape ? 2 : 0}
             sx={{ 
                 flex: 1,
                 width: '100%',
                 maxWidth: '100%',
-                minHeight: isLandscape ? '400px' : { xs: '250px', sm: '300px', md: '350px' },
-                p: isLandscape ? 3 : { xs: 1.5, sm: 2, md: 2.5 },
+                minHeight: isLandscape ? 0 : { xs: '250px', sm: '300px', md: '350px' },
+                minWidth: 0,
+                p: isLandscape ? 1.25 : { xs: 1.25, sm: 1.5 },
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: isLandscape ? 3 : 0,
+                transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                borderRadius: isLandscape ? 2 : 0,
                 border: isLandscape 
-                    ? `2px solid ${isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.15)'}` 
+                    ? `1px solid ${isDark ? 'rgba(200, 113, 55, 0.22)' : 'rgba(139, 69, 19, 0.15)'}` 
                     : `1px solid ${isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)'}`,
                 borderTop: isLandscape 
-                    ? `2px solid ${isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.15)'}` 
+                    ? `1px solid ${isDark ? 'rgba(200, 113, 55, 0.22)' : 'rgba(139, 69, 19, 0.15)'}` 
                     : `4px solid ${isDark ? '#d4a574' : '#8b4513'}`,
                 boxSizing: 'border-box',
                 background: isDark 
                     ? 'linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%)' 
                     : 'linear-gradient(180deg, #ffffff 0%, #fafafa 100%)',
                 boxShadow: isLandscape 
-                    ? (isDark ? '0 8px 24px rgba(0, 0, 0, 0.3)' : '0 8px 24px rgba(139, 69, 19, 0.12)')
+                    ? (isDark ? '0 4px 14px rgba(0, 0, 0, 0.25)' : '0 4px 14px rgba(139, 69, 19, 0.1)')
                     : (isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(139, 69, 19, 0.08)'),
-                '&:hover': {
-                    boxShadow: isLandscape 
-                        ? (isDark ? '0 12px 32px rgba(0, 0, 0, 0.4)' : '0 12px 32px rgba(139, 69, 19, 0.18)')
-                        : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(139, 69, 19, 0.12)'),
-                    transform: isLandscape ? 'translateY(-2px)' : 'none',
-                    borderTopColor: '#d4a574'
-                }
             }}
         >
             <Box sx={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                mb: { xs: 1.5, sm: 2, md: 2.5, lg: 3, xl: 3.5 },
-                transition: 'all 0.3s ease',
+                alignItems: 'center',
+                gap: 1,
+                mb: isLandscape ? 1 : 1.25,
                 width: '100%',
-                pb: 1.5,
-                borderBottom: `2px solid ${isDark ? 'rgba(212, 165, 116, 0.3)' : 'rgba(139, 69, 19, 0.1)'}`
+                pb: isLandscape ? 0.75 : 1,
+                borderBottom: `1px solid ${isDark ? 'rgba(212, 165, 116, 0.25)' : 'rgba(139, 69, 19, 0.1)'}`
             }}>
                 <Typography 
                     variant="h6" 
                     sx={{ 
-                        fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.35rem', lg: '1.5rem', xl: '1.65rem' },
+                        fontSize: isLandscape
+                            ? '0.95rem'
+                            : { xs: '0.95rem', sm: '1.05rem' },
                         fontWeight: 700,
                         color: isDark ? '#e4c09c' : '#2c1810',
                         letterSpacing: '-0.01em',
-                        transition: 'font-size 0.3s ease'
+                        lineHeight: 1.2,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
                     }}
                 >
                     {title}
                 </Typography>
+
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {isSmallScreen ? (
+                        <Box
+                            onClick={() => !disabled && setSearchDialogOpen(true)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    if (!disabled) setSearchDialogOpen(true);
+                                }
+                            }}
+                            aria-label={`Search cards for ${title}`}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.75,
+                                minHeight: 36,
+                                px: 1,
+                                borderRadius: 1,
+                                border: isDark
+                                    ? '1px solid rgba(200, 113, 55, 0.35)'
+                                    : '1px solid rgba(139, 69, 19, 0.25)',
+                                backgroundColor: isDark ? '#1a0f0a' : '#ffffff',
+                                cursor: disabled ? 'default' : 'pointer',
+                                opacity: disabled ? 0.6 : 1,
+                            }}
+                        >
+                            <SearchIcon sx={{
+                                fontSize: '1rem',
+                                color: isDark ? '#d4a574' : '#8b4513',
+                            }} />
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: isDark ? 'rgba(212, 165, 116, 0.75)' : 'rgba(93, 58, 26, 0.55)',
+                                    fontSize: '0.8125rem',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                Search cards…
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <SearchInput
+                            label=""
+                            placeholder="Search cards…"
+                            items={cardOptions || []}
+                            value={inputValue || ''}
+                            onChange={onInputChange}
+                            onSelect={onAddCard}
+                            disabled={disabled}
+                            fullWidth
+                            size="small"
+                            placement="bottom"
+                            keepOpenOnSelect
+                            keepInputOnSelect
+                        />
+                    )}
+                </Box>
             </Box>
             
-            {/* List of Added Cards with Search Input */}
             <CardList
                 cards={cards}
                 onRemoveCard={onRemoveCard}
                 onUpdateQuantity={onUpdateQuantity}
-                cardOptions={cardOptions}
-                inputValue={inputValue}
-                onInputChange={onInputChange}
-                onAddCard={onAddCard}
-                title={title}
                 disabled={disabled}
+                viewMode={viewMode}
+                isLandscape={isLandscape}
+            />
+
+            <SearchDialog
+                open={searchDialogOpen}
+                onClose={() => setSearchDialogOpen(false)}
+                title={`Search Cards for ${title}`}
+                items={cardOptions || []}
+                onSelect={(card) => {
+                    if (card) onAddCard(card);
+                }}
+                keepOpenOnSelect
+                keepInputOnSelect
             />
         </Paper>
     );
