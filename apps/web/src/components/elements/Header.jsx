@@ -48,13 +48,13 @@ const Header = ({ lastUpdatedTimestamp }) => {
                     px: { xs: 0.75, sm: 1.5, md: 2 },
                     py: 0.5,
                     minHeight: { xs: 48, sm: 52 },
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto 1fr',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 1,
+                    columnGap: 1,
                 }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0, justifySelf: 'start' }}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
@@ -129,9 +129,9 @@ const Header = ({ lastUpdatedTimestamp }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 0.75,
-                        flexGrow: 1,
                         minWidth: 0,
                         textDecoration: 'none',
+                        justifySelf: 'center',
                     }}
                 >
                     <Box
@@ -162,7 +162,7 @@ const Header = ({ lastUpdatedTimestamp }) => {
                 </Box>
 
                 {/* Right side: Dark mode toggle and Login */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifySelf: 'end' }}>
                     <Tooltip title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
                         <IconButton
                             onClick={toggleMode}
