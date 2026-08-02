@@ -33,14 +33,23 @@ import { useThemeMode } from '../contexts/ThemeContext.jsx';
 import { getUserTrades, deleteTrade } from '../services/tradeHistory';
 import { useCardData } from '../hooks/useCardData.jsx';
 import { FreeLimits } from '../utils/freeLimits.js';
-import { formatCurrency } from '../utils/helpers.js';
 import { normalizeTradeList, tradeDisplayName } from '../utils/tradeItems.js';
 import { CardThumbnail } from '../components/ui/CardImagePreview.jsx';
 import Header from '../components/elements/Header.jsx';
+import SignInDialog from '../components/auth/SignInDialog.jsx';
+
+/** Format an amount with a trade's currency_symbol when present (mobile trades). */
+function formatTradeMoney(amount, currencySymbol = '$') {
+    const n = Number(amount);
+    if (!Number.isFinite(n)) return `${currencySymbol || '$'}0`;
+    const symbol = currencySymbol || '$';
+    const abs = Math.abs(n).toFixed(2);
+    return n < 0 ? `-${symbol}${abs}` : `${symbol}${abs}`;
+}
 
 const TradeHistory = () => {
     const navigate = useNavigate();
-    const { user, signInWithDiscord } = useAuth();
+    const { user } = useAuth();
     const { isPro, loading: entitlementLoading } = useEntitlement();
     const { pricesUpdatedAt: lastUpdatedTimestamp } = useCardData();
     const { isDark } = useThemeMode();
@@ -51,6 +60,7 @@ const TradeHistory = () => {
     const [deletingId, setDeletingId] = useState(null);
     const [confirmDeleteTrade, setConfirmDeleteTrade] = useState(null);
     const [deleteError, setDeleteError] = useState('');
+    const [signInOpen, setSignInOpen] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -158,18 +168,14 @@ const TradeHistory = () => {
                             Sign In Required
                         </Typography>
                         <Typography variant="body1" sx={{ mb: 3, color: mutedColor }}>
-                            Sign in with Discord to save trades and view your trade history.
+                            Sign in to save trades and view your trade history.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
                             <Button
                                 variant="contained"
-                                onClick={signInWithDiscord}
-                                sx={{
-                                    background: '#5865F2',
-                                    '&:hover': { background: '#4752C4' }
-                                }}
+                                onClick={() => setSignInOpen(true)}
                             >
-                                Sign in with Discord
+                                Sign in
                             </Button>
                             <Button
                                 variant="outlined"
@@ -189,6 +195,7 @@ const TradeHistory = () => {
                         </Box>
                     </Paper>
                 </Container>
+                <SignInDialog open={signInOpen} onClose={() => setSignInOpen(false)} />
             </Box>
         );
     }
@@ -387,9 +394,24 @@ const TradeHistory = () => {
                                                     wantList={trade.want_list}
                                                     haveCash={trade.have_cash}
                                                     wantCash={trade.want_cash}
+                                                    currencySymbol={trade.currency_symbol}
                                                     textColor={textColor}
                                                     mutedColor={mutedColor}
                                                 />
+
+                                                {trade.notes ? (
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: mutedColor,
+                                                            mt: 1.25,
+                                                            fontStyle: 'italic',
+                                                            whiteSpace: 'pre-wrap',
+                                                        }}
+                                                    >
+                                                        {trade.notes}
+                                                    </Typography>
+                                                ) : null}
 
                                                 {/* Diff colors match the trade calculator:
                                                     positive = your side is worth more (primary),
@@ -397,7 +419,7 @@ const TradeHistory = () => {
                                                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.5 }}>
                                                     <Chip
                                                         size="small"
-                                                        label={`Diff: ${parseFloat(trade.diff) > 0 ? '+' : ''}${formatCurrency(parseFloat(trade.diff).toFixed(2))}`}
+                                                        label={`Diff: ${parseFloat(trade.diff) > 0 ? '+' : ''}${formatTradeMoney(trade.diff, trade.currency_symbol)}`}
                                                         color={parseFloat(trade.diff) > 0 ? 'primary' : parseFloat(trade.diff) < 0 ? 'success' : 'default'}
                                                         sx={{ fontWeight: 600 }}
                                                     />
@@ -489,7 +511,15 @@ const TradeHistory = () => {
     );
 };
 
-function TradeCardLists({ haveList, wantList, haveCash, wantCash, textColor, mutedColor }) {
+function TradeCardLists({
+    haveList,
+    wantList,
+    haveCash,
+    wantCash,
+    currencySymbol = '$',
+    textColor,
+    mutedColor,
+}) {
     const haveCards = normalizeTradeList(haveList);
     const wantCards = normalizeTradeList(wantList);
     const cashHave = Number(haveCash) || 0;
@@ -502,6 +532,7 @@ function TradeCardLists({ haveList, wantList, haveCash, wantCash, textColor, mut
                     label="Gave"
                     cards={haveCards}
                     cash={cashHave}
+                    currencySymbol={currencySymbol}
                     textColor={textColor}
                     mutedColor={mutedColor}
                 />
@@ -511,6 +542,7 @@ function TradeCardLists({ haveList, wantList, haveCash, wantCash, textColor, mut
                     label="Got"
                     cards={wantCards}
                     cash={cashWant}
+                    currencySymbol={currencySymbol}
                     textColor={textColor}
                     mutedColor={mutedColor}
                 />
@@ -519,7 +551,7 @@ function TradeCardLists({ haveList, wantList, haveCash, wantCash, textColor, mut
     );
 }
 
-function TradeSideList({ label, cards, cash, textColor, mutedColor }) {
+function TradeSideList({ label, cards, cash, currencySymbol = '$', textColor, mutedColor }) {
     return (
         <Box>
             <Typography
@@ -563,14 +595,17 @@ function TradeSideList({ label, cards, cash, textColor, mutedColor }) {
                                 {card.subTypeName ? ` (${card.subTypeName})` : ''}
                             </Typography>
                             <Typography variant="caption" sx={{ color: mutedColor }}>
-                                {formatCurrency(Number(card.price || 0).toFixed(2))} ea
+                                {formatTradeMoney(card.price || 0, currencySymbol)} ea
                             </Typography>
                         </Box>
                         <Typography
                             variant="body2"
                             sx={{ color: textColor, fontWeight: 700, flexShrink: 0 }}
                         >
-                            {formatCurrency((Number(card.price || 0) * Number(card.quantity || 1)).toFixed(2))}
+                            {formatTradeMoney(
+                                Number(card.price || 0) * Number(card.quantity || 1),
+                                currencySymbol,
+                            )}
                         </Typography>
                     </Box>
                 ))}
@@ -580,7 +615,7 @@ function TradeSideList({ label, cards, cash, textColor, mutedColor }) {
                             Cash
                         </Typography>
                         <Typography variant="body2" sx={{ color: textColor, fontWeight: 700 }}>
-                            {formatCurrency(cash.toFixed(2))}
+                            {formatTradeMoney(cash, currencySymbol)}
                         </Typography>
                     </Box>
                 )}

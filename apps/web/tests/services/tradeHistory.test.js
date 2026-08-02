@@ -88,6 +88,26 @@ describe('saveTradeToHistory', () => {
     expect(error.message).toMatch(/name is required/i);
   });
 
+  test('allows unnamed saves for Confirm Trade', async () => {
+    asUser('user-42');
+    const saved = { id: 't1', name: null };
+    const chains = mockTables({
+      trades: [{ data: saved, error: null }, existingTrades(1)],
+      entitlements: asFree(),
+    });
+
+    const { data, error } = await saveTradeToHistory(null, [], [], totals, { unnamed: true });
+
+    expect(error).toBeNull();
+    expect(data).toEqual(saved);
+    expect(chains.trades[0].insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        user_id: 'user-42',
+        name: null,
+      }),
+    ]);
+  });
+
   test('inserts the trade and returns saved data on success', async () => {
     asUser('user-42');
     const saved = { id: 't1', name: 'My Trade' };

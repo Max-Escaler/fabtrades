@@ -74,22 +74,30 @@ async function trimToFreeWindow(userId) {
  * Free accounts keep a rolling window of the most recent trades; `trimmed` says
  * how many rolled off, so the UI can say so rather than let them vanish quietly.
  *
- * @param {string} name - The name/title of the trade
+ * Confirm Trade writes unnamed rows (`options.unnamed`), matching mobile. The
+ * Save dialog still requires a name.
+ *
+ * @param {string|null} name - The name/title of the trade
  * @param {Array} haveList - Array of cards the user has
  * @param {Array} wantList - Array of cards the user wants
  * @param {Object} totals - Object containing haveTotal, wantTotal, and diff
+ * @param {{ unnamed?: boolean }} [options]
  * @returns {Object} - { data, error, trimmed }
  */
-export async function saveTradeToHistory(name, haveList, wantList, totals) {
+export async function saveTradeToHistory(name, haveList, wantList, totals, options = {}) {
     try {
         const { user, error: authError } = await requireAuthenticatedUser('You must be logged in to save trades');
         if (authError) {
             return { data: null, error: authError, trimmed: 0 };
         }
 
-        // Validate input
-        if (!name || name.trim() === '') {
-            return { data: null, error: { message: 'Trade name is required' }, trimmed: 0 };
+        const unnamed = Boolean(options.unnamed);
+        let tradeName = null;
+        if (!unnamed) {
+            if (!name || name.trim() === '') {
+                return { data: null, error: { message: 'Trade name is required' }, trimmed: 0 };
+            }
+            tradeName = name.trim();
         }
 
         // `client_id` is how the mobile app addresses a row it has not yet seen a
@@ -98,7 +106,7 @@ export async function saveTradeToHistory(name, haveList, wantList, totals) {
         const tradeData = {
             user_id: user.id,
             client_id: crypto.randomUUID(),
-            name: name.trim(),
+            name: tradeName,
             have_list: haveList,
             want_list: wantList,
             have_total: totals.haveTotal,

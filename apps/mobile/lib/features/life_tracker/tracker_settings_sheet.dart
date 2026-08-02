@@ -142,7 +142,7 @@ class _TrackerSettingsSheet extends ConsumerWidget {
         title: const Text('Reset game?'),
         content: const Text(
           'Both life totals return to their starting values, '
-          'history is cleared, and the round timer resets.',
+          'history is cleared, and the round timer restarts.',
         ),
         actions: [
           TextButton(
