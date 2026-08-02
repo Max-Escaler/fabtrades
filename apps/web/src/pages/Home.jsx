@@ -73,7 +73,7 @@ const Home = () => {
         <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            height: '100vh', 
+            height: 'calc(100vh - 28px)', 
             width: '100%',
             background: bgGradient,
             backgroundAttachment: 'fixed'

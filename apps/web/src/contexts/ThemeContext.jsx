@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { createTheme } from '@mui/material/styles';
+import brandPalette from '../../../../packages/contracts/brand_palette.json';
 
 const ThemeContext = createContext();
 
@@ -11,26 +12,35 @@ export const useThemeMode = () => {
     return context;
 };
 
-// FAB color palette
-// Primary: Rich brown/saddle brown
-// Accent: Gold/tan
-// Secondary: Warm cream
+// FAB brand palette — pinned by packages/contracts/brand_palette.json (matches
+// mobile AppTheme: saddle brown, tan, cream / espresso).
+const {
+    brown,
+    brownBright,
+    brownDeep,
+    tan,
+    tanBright,
+    tanDeep,
+    cream,
+    espresso,
+    espressoDeep,
+} = brandPalette.tokens;
 
 // Light theme - FAB earthy warm tones
 const lightTheme = createTheme({
     palette: {
         mode: 'light',
         primary: {
-            main: '#8b4513',      // Saddle brown
-            light: '#a0643f',
-            dark: '#5d2f0d',
+            main: brown,
+            light: brownBright,
+            dark: brownDeep,
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#d4a574',      // Tan/gold
-            light: '#e4c09c',
-            dark: '#a8824e',
-            contrastText: '#2c1810',
+            main: tan,
+            light: tanBright,
+            dark: tanDeep,
+            contrastText: espresso,
         },
         success: {
             main: '#2e7d32',
@@ -53,11 +63,11 @@ const lightTheme = createTheme({
             dark: '#01579b',
         },
         background: {
-            default: '#f5f1ed',   // Light cream
+            default: cream,
             paper: '#ffffff',
         },
         text: {
-            primary: '#2c1810',
+            primary: espresso,
             secondary: '#5d3a1a',
         },
     },
@@ -80,9 +90,9 @@ const lightTheme = createTheme({
                     boxShadow: 'none',
                 },
                 contained: {
-                    background: 'linear-gradient(135deg, #8b4513 0%, #a0643f 100%)',
+                    background: `linear-gradient(135deg, ${brown} 0%, ${brownBright} 100%)`,
                     '&:hover': {
-                        background: 'linear-gradient(135deg, #5d2f0d 0%, #8b4513 100%)',
+                        background: `linear-gradient(135deg, ${brownDeep} 0%, ${brown} 100%)`,
                     },
                 },
             },
@@ -94,7 +104,7 @@ const lightTheme = createTheme({
                     borderRadius: 8,
                 },
                 colorPrimary: {
-                    background: 'linear-gradient(135deg, #8b4513 0%, #a0643f 100%)',
+                    background: `linear-gradient(135deg, ${brown} 0%, ${brownBright} 100%)`,
                 },
                 colorSuccess: {
                     background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
@@ -111,14 +121,14 @@ const darkTheme = createTheme({
         primary: {
             main: '#c87137',      // Lighter brown for visibility
             light: '#e09050',
-            dark: '#a0643f',
-            contrastText: '#1a0f0a',
+            dark: brownBright,
+            contrastText: espressoDeep,
         },
         secondary: {
-            main: '#e4c09c',      // Light tan
+            main: tanBright,
             light: '#f0d4b8',
-            dark: '#d4a574',
-            contrastText: '#1a0f0a',
+            dark: tan,
+            contrastText: espressoDeep,
         },
         success: {
             main: '#4caf50',
@@ -141,12 +151,12 @@ const darkTheme = createTheme({
             dark: '#0288d1',
         },
         background: {
-            default: '#1a0f0a',   // Deep brown-black
-            paper: '#2c1810',
+            default: espressoDeep,
+            paper: espresso,
         },
         text: {
-            primary: '#f5f1ed',
-            secondary: '#d4a574',
+            primary: cream,
+            secondary: tan,
         },
     },
     typography: {
@@ -168,9 +178,9 @@ const darkTheme = createTheme({
                     boxShadow: 'none',
                 },
                 contained: {
-                    background: 'linear-gradient(135deg, #8b4513 0%, #c87137 100%)',
+                    background: `linear-gradient(135deg, ${brown} 0%, #c87137 100%)`,
                     '&:hover': {
-                        background: 'linear-gradient(135deg, #a0643f 0%, #e09050 100%)',
+                        background: `linear-gradient(135deg, ${brownBright} 0%, #e09050 100%)`,
                     },
                 },
             },
@@ -182,7 +192,7 @@ const darkTheme = createTheme({
                     borderRadius: 8,
                 },
                 colorPrimary: {
-                    background: 'linear-gradient(135deg, #8b4513 0%, #c87137 100%)',
+                    background: `linear-gradient(135deg, ${brown} 0%, #c87137 100%)`,
                 },
                 colorSuccess: {
                     background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',

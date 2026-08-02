@@ -1,15 +1,21 @@
 # Sign-in providers
 
-FAB Trades offers Apple, Google, Discord, and email/password on mobile. Sign-in
-is always optional — the app and site work fully without an account, and an
-account only adds cloud sync and Pro entitlements. Email/password exists so App
-Review (and anyone without a third-party identity) has a username/password path;
-see [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md).
+FAB Trades offers Apple, Google, Discord, and email/password on **mobile and
+web**. Sign-in is always optional — the app and site work fully without an
+account, and an account only adds cloud sync and Pro entitlements.
+Email/password exists so App Review (and anyone without a third-party identity)
+has a username/password path; see [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md).
 
 Application code lives in
 [auth_repository.dart](../apps/mobile/lib/core/data/auth_repository.dart) for mobile
-and [AuthContext.jsx](../apps/web/src/contexts/AuthContext.jsx) for web. This
+and [AuthContext.jsx](../apps/web/src/contexts/AuthContext.jsx) /
+[SignInDialog.jsx](../apps/web/src/components/auth/SignInDialog.jsx) for web. This
 document covers the parts that live in dashboards instead of in the repo.
+
+Using the **same provider** on web and mobile yields the same Supabase
+`auth.users` row automatically. Linking different providers that share an email
+depends on the project's identity-linking settings — do not change those
+silently; flag surprises instead.
 
 ## Why these three
 
@@ -77,7 +83,8 @@ that in a different way:
 
 ### Redirect URLs
 
-Authentication → URL Configuration → Redirect URLs must contain:
+Authentication → URL Configuration → Redirect URLs must contain (also mirrored in
+[supabase/config.toml](../supabase/config.toml)):
 
 ```
 https://fabtrades.net
@@ -85,6 +92,14 @@ https://fabtrades.net/**
 fabtrades://login-callback
 http://localhost:5173/**
 ```
+
+Add Netlify deploy-preview origins (or a wildcard your plan allows) if you need
+to test OAuth on preview URLs. Staging uses
+`https://staging--fabtrades.netlify.app` (see `[remotes.staging.auth]` in
+`config.toml`).
+
+Web OAuth `redirectTo` is `window.location.origin` from
+[AuthContext.jsx](../apps/web/src/contexts/AuthContext.jsx).
 
 ### Apple
 
@@ -94,20 +109,31 @@ Two Apple identifiers are involved, and both must be listed in Supabase's Apple
 - `com.fabtrades.app` — the iOS bundle id. The native sheet mints an identity token
   audienced to the bundle, so leaving this out makes native sign-in fail as an
   invalid audience even though the provider is enabled.
-- A Services ID (for example `com.fabtrades.web`) — used by web and by any browser
-  fallback.
+- A **Services ID** (for example `com.fabtrades.web`) — **required for web** (and
+  any browser fallback). Native-app Apple config alone is not enough for
+  `signInWithOAuth({ provider: 'apple' })` on fabtrades.net.
 
 In the Apple Developer portal:
 
 1. Certificates, Identifiers & Profiles → Identifiers → `com.fabtrades.app` → enable
    **Sign In with Apple**. The matching entitlement is already committed at
    [Runner.entitlements](../apps/mobile/ios/Runner/Runner.entitlements).
-2. Create a Services ID, enable Sign In with Apple on it, and register the return
-   URL `https://tenrvaghaspwdvnwvgrh.supabase.co/auth/v1/callback`.
-3. Keys → create a **Sign in with Apple** key. Supabase needs the resulting client
-   secret JWT, which expires after at most six months, so this is a recurring
-   maintenance task rather than a one-off.
-4. Profiles → regenerate the App Store profile for `com.fabtrades.app`, then replace
+2. Create a Services ID, enable Sign In with Apple on it, and configure:
+   - Domains: `tenrvaghaspwdvnwvgrh.supabase.co` (the Supabase project host —
+     not fabtrades.net; Apple posts back to Supabase, which then redirects to
+     the site)
+   - Return URL: `https://tenrvaghaspwdvnwvgrh.supabase.co/auth/v1/callback`
+3. Put that Services ID into Supabase → Authentication → Providers → Apple →
+   **Client IDs**. Order matters for web: Services ID **first**, then the iOS
+   bundle id — e.g. `com.fabtrades.web,com.fabtrades.app`. Supabase uses the
+   first ID as the OAuth client; if the bundle id is first, Apple returns
+   `invalid_client` after consent and the user lands unsigned-in.
+4. Keys → create a **Sign in with Apple** key. Generate the client-secret JWT
+   with `sub` = the **Services ID** (not the bundle id). Paste it into Secret
+   Key. It expires after at most six months, so this is a recurring maintenance
+   task rather than a one-off. A wrong or expired JWT also surfaces as
+   `invalid_client` on `/auth/v1/callback`.
+5. Profiles → regenerate the App Store profile for `com.fabtrades.app`, then replace
    the stored copy in Codemagic → Team settings → codemagic.yaml settings → Code
    signing identities. Enabling a capability leaves existing profiles untouched, and
    the iOS workflow signs with the copy Codemagic has stored rather than whatever the
@@ -126,9 +152,14 @@ falling back through the email local part.
    flow even when launched from the app).
 2. Authorized redirect URI:
    `https://tenrvaghaspwdvnwvgrh.supabase.co/auth/v1/callback`.
-3. Paste the client id and secret into Supabase → Authentication → Providers →
+3. **Authorized JavaScript origins** must include the web origins that start the
+   flow, at least:
+   - `https://fabtrades.net`
+   - `http://localhost:5173`
+   - staging / Netlify preview origins you care about
+4. Paste the client id and secret into Supabase → Authentication → Providers →
    Google.
-4. Complete the OAuth consent screen. An app in *Testing* only admits accounts on
+5. Complete the OAuth consent screen. An app in *Testing* only admits accounts on
    its test-user list, which looks exactly like a broken sign-in to everyone else.
 
 ### Discord
@@ -153,6 +184,11 @@ Mobile calls `signInWithPassword` from
 [auth_repository.dart](../apps/mobile/lib/core/data/auth_repository.dart). The
 sign-in sheet exposes it under **Sign in with email**.
 
+Web exposes both **sign in** and **sign up** (`signInWithPassword` /
+`signUp`) in [SignInDialog.jsx](../apps/web/src/components/auth/SignInDialog.jsx).
+When email confirmation is enabled, sign-up returns a user without a session and
+the dialog tells the customer to confirm before signing in.
+
 ## Verifying
 
 `flutter test` covers the provider list, outcome handling, and account labels
@@ -167,3 +203,8 @@ are worth checking by hand once per environment:
   `flutter test` can prove the dismissal was requested but not that it landed.
 - Sign out on mobile and confirm a web session in another browser survives it. Mobile
   signs out with `SignOutScope.local` precisely so it does not.
+- On web, complete Google and Apple sign-in from fabtrades.net (or a deploy
+  preview with matching redirect / JS origins) and confirm the same `auth.users`
+  row as mobile when using the same provider account.
+- On web, create an email account and confirm the confirmation-email path when
+  Confirm email is enabled.

@@ -7,16 +7,42 @@
  * the oldest rows, so a higher cap on web would look to the customer like mobile
  * eating trades they had saved.
  *
- * `binderCards`, `wantListCards`, and `loanedCards` are listed for completeness —
- * web has no binder or lend yet, so nothing reads them beyond the contract test
- * that keeps them honest.
+ * Binder and want-list caps refuse new distinct cards (never trim existing rows).
+ * Raising quantity on a card that is already listed is never capped — same as
+ * mobile's `_canAddNewCard`.
  */
 export const FreeLimits = {
-    binderCards: 5,
-    wantListCards: 4,
+    binderCards: 50,
+    wantListCards: 50,
     savedTrades: 3,
     loanedCards: 1,
 };
+
+/**
+ * Distinct-card cap for binder vs want list.
+ *
+ * @param {{ isWanted: boolean }} opts
+ * @returns {number}
+ */
+export function cardsFor({ isWanted }) {
+    return isWanted ? FreeLimits.wantListCards : FreeLimits.binderCards;
+}
+
+/**
+ * Whether a free account may add another distinct card to binder or want list.
+ *
+ * Matches mobile: Pro always allowed; free accounts are blocked once they already
+ * hold the cap. Callers that are only raising quantity on an existing entry should
+ * not use this — that path is uncapped.
+ *
+ * @param {number} existingDistinctCount - How many distinct cards are already listed
+ * @param {{ isWanted: boolean, isPro?: boolean }} opts
+ * @returns {boolean}
+ */
+export function canAddDistinctCard(existingDistinctCount, { isWanted, isPro = false } = {}) {
+    if (isPro) return true;
+    return existingDistinctCount < cardsFor({ isWanted });
+}
 
 /**
  * How many of the oldest trades have to roll off to fit inside the free window.

@@ -8,10 +8,10 @@ class FreeLimits {
 
   /// Distinct cards a free binder holds. Raising the quantity of a card that's
   /// already there is never capped, so no existing entry can be stranded.
-  static const binderCards = 5;
+  static const binderCards = 50;
 
   /// Distinct cards a free want list holds.
-  static const wantListCards = 4;
+  static const wantListCards = 50;
 
   /// Cards currently lent out across all lend groups.
   ///

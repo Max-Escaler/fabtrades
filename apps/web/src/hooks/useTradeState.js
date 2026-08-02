@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { calculateTotal, calculateLowTotal, calculateDiff } from "../utils/trade.js";
 import { 
     decodeTradeFromURL, 
@@ -7,6 +7,7 @@ import {
     clearTradeFromURL
 } from "../utils/urlEncoding.js";
 import { normalizeTradeList } from "../utils/tradeItems.js";
+import { loadTradeDraft, saveTradeDraft } from "../utils/tradeDraft.js";
 
 export function useTradeState(cardGroups, cardIdLookup = {}) {
     const [haveList, setHaveList] = useState([]);
@@ -15,9 +16,53 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
     const [wantInput, setWantInput] = useState("");
     const [urlTradeData, setUrlTradeData] = useState(null);
     const [hasLoadedFromURL, setHasLoadedFromURL] = useState(false);
+    const [draftReady, setDraftReady] = useState(false);
+    const skipNextPersist = useRef(false);
 
     const getCardGroup = (cardName) =>
         cardGroups.find(group => group.name === cardName) || null;
+
+    const reconstructFromDraftList = (cardList) => {
+        return (cardList || []).map((savedCard) => {
+            let cardGroup = null;
+            let selectedEdition = null;
+
+            if (savedCard.uniqueId && cardIdLookup[savedCard.uniqueId]) {
+                const matched = cardIdLookup[savedCard.uniqueId];
+                cardGroup = getCardGroup(matched.displayName);
+                if (cardGroup) {
+                    selectedEdition = cardGroup.editions.find(
+                        (e) => e.uniqueId === savedCard.uniqueId,
+                    ) || null;
+                }
+            }
+
+            if (!cardGroup) {
+                cardGroup = getCardGroup(savedCard.name);
+            }
+            if (!cardGroup || !cardGroup.editions?.length) return null;
+
+            if (!selectedEdition && savedCard.subTypeName) {
+                selectedEdition = cardGroup.editions.find(
+                    (e) => e.subTypeName === savedCard.subTypeName,
+                ) || null;
+            }
+            selectedEdition = selectedEdition || cardGroup.editions[0];
+
+            return {
+                name: cardGroup.name,
+                price: selectedEdition.cardPrice,
+                lowPrice: selectedEdition.lowPrice,
+                quantity: Math.max(1, Math.min(6, Number(savedCard.quantity) || 1)),
+                cardGroup,
+                availableEditions: cardGroup.editions,
+                subTypeName: selectedEdition.subTypeName || 'Normal',
+                uniqueId: selectedEdition.uniqueId,
+                imageUrl: selectedEdition.imageUrl || '',
+                imageUrlFallback: selectedEdition.imageUrlFallback || '',
+            };
+        }).filter(Boolean);
+    };
 
     const addCard = (list, setList, cardNameOrObject, inputSetter) => {
         // Handle both string (for backwards compatibility/manual input) and object (from autocomplete)
@@ -127,23 +172,51 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
         setWantList(prevList => updateListPrices(prevList));
     }, [cardGroups]);
 
-    // Load trade data from URL when cardGroups are available
+    // Load trade data from URL, else hydrate the local draft, once catalog is ready.
     useEffect(() => {
-        if (cardGroups.length > 0 && !hasLoadedFromURL && hasTradeDataInURL()) {
+        if (cardGroups.length === 0 || draftReady) return;
+
+        if (!hasLoadedFromURL && hasTradeDataInURL()) {
             const tradeData = decodeTradeFromURL();
             if (tradeData) {
                 setUrlTradeData(tradeData);
-                
-                // Reconstruct cards from URL data using ID lookup
-                const reconstructedHave = reconstructCardsFromURLData(tradeData.have, cardGroups, cardIdLookup);
-                const reconstructedWant = reconstructCardsFromURLData(tradeData.want, cardGroups, cardIdLookup);
-                
+                const reconstructedHave = reconstructCardsFromURLData(
+                    tradeData.have,
+                    cardGroups,
+                    cardIdLookup,
+                );
+                const reconstructedWant = reconstructCardsFromURLData(
+                    tradeData.want,
+                    cardGroups,
+                    cardIdLookup,
+                );
+                skipNextPersist.current = false;
                 setHaveList(reconstructedHave);
                 setWantList(reconstructedWant);
                 setHasLoadedFromURL(true);
+                setDraftReady(true);
+                return;
             }
         }
-    }, [cardGroups, cardIdLookup, hasLoadedFromURL]);
+
+        const draft = loadTradeDraft();
+        if (draft && (draft.have.length > 0 || draft.want.length > 0)) {
+            skipNextPersist.current = true;
+            setHaveList(reconstructFromDraftList(draft.have));
+            setWantList(reconstructFromDraftList(draft.want));
+        }
+        setDraftReady(true);
+    }, [cardGroups, cardIdLookup, hasLoadedFromURL, draftReady]);
+
+    // Keep the draft in sync so Shared Binder → Calculator navigation retains cards.
+    useEffect(() => {
+        if (!draftReady) return;
+        if (skipNextPersist.current) {
+            skipNextPersist.current = false;
+            return;
+        }
+        saveTradeDraft(haveList, wantList);
+    }, [haveList, wantList, draftReady]);
 
     // Clear URL trade data
     const clearURLTradeData = () => {
@@ -211,6 +284,11 @@ export function useTradeState(cardGroups, cardIdLookup = {}) {
 
         setHaveList(reconstructedHave);
         setWantList(reconstructedWant);
+
+        // Mobile trades may also carry have_cash / want_cash / notes /
+        // currency_symbol. The web calculator has no cash inputs, so those
+        // fields are left on the history row and only shown there — loading
+        // cards into the calculator must tolerate them without throwing.
 
         // Clear URL data when loading from history
         clearURLTradeData();
