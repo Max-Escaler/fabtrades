@@ -211,7 +211,6 @@ const BinderCollection = ({ isWanted = false }) => {
     const [busyCardId, setBusyCardId] = useState(null);
     const [limitMessage, setLimitMessage] = useState('');
     const [toast, setToast] = useState('');
-    const [confirmRemove, setConfirmRemove] = useState(null);
     const [previewCard, setPreviewCard] = useState(null);
     const [shareOpen, setShareOpen] = useState(false);
     const [share, setShare] = useState(null);
@@ -468,9 +467,7 @@ const BinderCollection = ({ isWanted = false }) => {
         setToast(`Changed to ${newCard.subTypeName || 'new version'}`);
     };
 
-    const handleConfirmRemove = async () => {
-        const entry = confirmRemove;
-        setConfirmRemove(null);
+    const handleRemove = async (entry) => {
         if (!entry) return;
         setBusyCardId(entry.cardId);
         const { error: delError } = await removeEntry(entry.cardId, isWanted);
@@ -737,12 +734,15 @@ const BinderCollection = ({ isWanted = false }) => {
                             <SearchInput
                                 label=""
                                 size="small"
-                                placeholder={`Search to add cards…`}
+                                placeholder={
+                                    atFreeLimit
+                                        ? 'Search your binder…'
+                                        : 'Search to add cards…'
+                                }
                                 items={cardOptions}
                                 value={searchQuery}
                                 onChange={(_e, value) => setSearchQuery(value || '')}
                                 onSelect={handleAddCard}
-                                disabled={atFreeLimit}
                                 keepOpenOnSelect
                                 keepInputOnSelect
                             />
@@ -1073,7 +1073,7 @@ const BinderCollection = ({ isWanted = false }) => {
                                                 <IconButton
                                                     size="small"
                                                     disabled={busy}
-                                                    onClick={() => setConfirmRemove(entry)}
+                                                    onClick={() => handleRemove(entry)}
                                                     aria-label="remove card"
                                                     sx={{ color: 'error.main', p: 0.35, ml: 'auto' }}
                                                 >
@@ -1100,26 +1100,6 @@ const BinderCollection = ({ isWanted = false }) => {
                 fallbackUrl={previewCard?.imageUrlFallback}
                 cardName={previewCard?.name}
             />
-
-            <Dialog
-                open={Boolean(confirmRemove)}
-                onClose={() => setConfirmRemove(null)}
-                maxWidth="xs"
-                fullWidth
-            >
-                <DialogTitle>Remove card?</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Remove &quot;{confirmRemove?.card?.name}&quot; from your {listLabel.toLowerCase()}?
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 2 }}>
-                    <Button onClick={() => setConfirmRemove(null)}>Cancel</Button>
-                    <Button onClick={handleConfirmRemove} color="error" variant="contained">
-                        Remove
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
             <Dialog
                 open={shareOpen}

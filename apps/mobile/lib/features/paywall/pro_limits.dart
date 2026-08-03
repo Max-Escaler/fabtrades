@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,6 +36,7 @@ Future<bool> addToBinderOrUpsell(
 
   if (binder.add(card, quantity: quantity, isWanted: isWanted)) {
     _captureAdded(ref, card, isWanted: isWanted, source: source);
+    _syncBinderSoon(ref);
     if (successMessage != null) _showMessage(context, successMessage);
     return true;
   }
@@ -56,6 +59,7 @@ Future<bool> addToBinderOrUpsell(
     onUpgraded: () {
       binder.add(card, quantity: quantity, isWanted: isWanted);
       _captureAdded(ref, card, isWanted: isWanted, source: source);
+      _syncBinderSoon(ref);
       if (context.mounted) {
         _showMessage(
           context,
@@ -64,6 +68,16 @@ Future<bool> addToBinderOrUpsell(
         );
       }
     },
+  );
+}
+
+/// Push the journaled binder write when signed in. Rate-limited + coalesced
+/// inside [SyncNotifier] so multi-add / scan bursts share one reconcile.
+void _syncBinderSoon(WidgetRef ref) {
+  final account = ref.read(accountProvider).value;
+  if (account == null) return;
+  unawaited(
+    ref.read(syncProvider.notifier).syncAfterBinderMutation(account.id),
   );
 }
 

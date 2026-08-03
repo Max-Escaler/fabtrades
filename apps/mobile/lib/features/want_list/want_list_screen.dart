@@ -13,6 +13,7 @@ import '../onboarding/showcase_theme.dart';
 import '../onboarding/tour_copy.dart';
 import '../paywall/pro_limits.dart';
 import '../search/card_picker.dart';
+import '../sync/binder_refresh.dart';
 
 /// Show-mode collage of Want List cards — embedded as the Want List tab inside
 /// [BinderScreen], or usable standalone with its own scaffold.
@@ -43,7 +44,14 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
             key: OnboardingKeys.wantListPane,
             title: TourCopy.wantListTitle,
             description: TourCopy.wantListBody,
-            child: _EmptyState(onAdd: widget.onAdd ?? () => _defaultAdd(context)),
+            child: RefreshIndicator(
+              onRefresh: () => refreshBinderSync(context, ref),
+              child: _ScrollableCenter(
+                child: _EmptyState(
+                  onAdd: widget.onAdd ?? () => _defaultAdd(context),
+                ),
+              ),
+            ),
           )
         : ShowcaseTheme.mark(
             key: OnboardingKeys.wantListPane,
@@ -65,7 +73,10 @@ class _WantListPaneState extends ConsumerState<WantListPane> {
                   ),
                 ),
                 Expanded(
-                  child: _WantGrid(entries: wanted, editing: _editing),
+                  child: RefreshIndicator(
+                    onRefresh: () => refreshBinderSync(context, ref),
+                    child: _WantGrid(entries: wanted, editing: _editing),
+                  ),
                 ),
               ],
             ),
@@ -110,6 +121,7 @@ class _WantGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -125,6 +137,25 @@ class _WantGrid extends ConsumerWidget {
         onRemove: () => ref
             .read(binderProvider.notifier)
             .remove(entries[i].card.id, true),
+      ),
+    );
+  }
+}
+
+/// Always-scrollable wrapper so pull-to-refresh works on the empty want list.
+class _ScrollableCenter extends StatelessWidget {
+  const _ScrollableCenter({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(child: child),
+        ),
       ),
     );
   }

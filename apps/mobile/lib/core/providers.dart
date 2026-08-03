@@ -35,6 +35,7 @@ import 'models/subscription_status.dart';
 import 'models/trade.dart';
 import 'scan/card_hash_index.dart';
 import 'sync/sync_journal.dart';
+import 'sync/sync_rate_limiter.dart';
 import 'sync/sync_service.dart';
 
 /// Overridden in main() with the real instance.
@@ -308,9 +309,24 @@ class SyncStatus {
 ///
 /// Signed out this does nothing at all, which is the point: the app has always
 /// worked without an account and continues to.
+///
+/// Opportunistic syncs (binder adds, pull-to-refresh) are rate-limited via
+/// [SyncRateLimiter] so a scan burst or repeated swipe cannot hammer Supabase.
+/// Settings "Sync now" and sign-in always run immediately.
 class SyncNotifier extends Notifier<SyncStatus> {
+  final SyncRateLimiter _rateLimit = SyncRateLimiter();
+
+  Timer? _deferredMutation;
+  String? _deferredMutationUserId;
+  bool _mutationQueuedDuringSync = false;
+
   @override
   SyncStatus build() {
+    ref.onDispose(() {
+      _deferredMutation?.cancel();
+      _deferredMutation = null;
+    });
+
     final account = ref.watch(accountProvider).value;
     if (account != null) {
       // Deferred so the notifier finishes building before anything it might
@@ -320,8 +336,79 @@ class SyncNotifier extends Notifier<SyncStatus> {
     return const SyncStatus();
   }
 
+  /// Push local binder/want-list writes ASAP, coalesced under the mutation
+  /// cooldown so rapid adds (e.g. multi-select or scan) share one reconcile.
+  Future<void> syncAfterBinderMutation(String userId) =>
+      sync(userId, trigger: 'binder_add');
+
+  /// Binder pull-to-refresh. Rate-limited separately from mutation syncs.
+  Future<PullSyncResult> syncFromPullToRefresh(String userId) async {
+    if (state.isSyncing) return PullSyncResult.alreadySyncing;
+    if (_rateLimit.pullWait() > Duration.zero) {
+      return PullSyncResult.rateLimited;
+    }
+    await _runSync(userId, trigger: 'pull_to_refresh', markPull: true);
+    return PullSyncResult.completed;
+  }
+
   Future<void> sync(String userId, {String trigger = 'auto'}) async {
+    if (trigger == 'binder_add') {
+      await _syncMutation(userId);
+      return;
+    }
+    if (trigger == 'pull_to_refresh') {
+      await syncFromPullToRefresh(userId);
+      return;
+    }
+
+    // Manual / sign-in / other: no cooldown, but quiet opportunistic paths after.
     if (state.isSyncing) return;
+    await _runSync(userId, trigger: trigger, markAll: true);
+  }
+
+  Future<void> _syncMutation(String userId) async {
+    if (state.isSyncing) {
+      _deferredMutationUserId = userId;
+      _mutationQueuedDuringSync = true;
+      return;
+    }
+
+    final wait = _rateLimit.mutationWait();
+    if (wait > Duration.zero) {
+      _scheduleDeferredMutation(userId, wait);
+      return;
+    }
+
+    await _runSync(userId, trigger: 'binder_add', markMutation: true);
+  }
+
+  void _scheduleDeferredMutation(String userId, Duration wait) {
+    _deferredMutationUserId = userId;
+    _deferredMutation?.cancel();
+    _deferredMutation = Timer(wait, () {
+      _deferredMutation = null;
+      final id = _deferredMutationUserId;
+      if (id == null) return;
+      unawaited(sync(id, trigger: 'binder_add'));
+    });
+  }
+
+  Future<void> _runSync(
+    String userId, {
+    required String trigger,
+    bool markMutation = false,
+    bool markPull = false,
+    bool markAll = false,
+  }) async {
+    if (state.isSyncing) return;
+
+    if (markAll) {
+      _rateLimit.markAll();
+    } else {
+      if (markMutation) _rateLimit.markMutation();
+      if (markPull) _rateLimit.markPull();
+    }
+
     state = SyncStatus(isSyncing: true, lastSyncedAt: state.lastSyncedAt);
 
     final stopwatch = Stopwatch()..start();
@@ -345,6 +432,15 @@ class SyncNotifier extends Notifier<SyncStatus> {
         'error_type': e.runtimeType.toString(),
       });
       ref.read(analyticsProvider).captureException(e, StackTrace.current);
+    } finally {
+      if (_mutationQueuedDuringSync) {
+        _mutationQueuedDuringSync = false;
+        final id = _deferredMutationUserId;
+        if (id != null) {
+          // Coalesce writes that landed mid-flight into one follow-up sync.
+          _scheduleDeferredMutation(id, SyncRateLimiter.mutationCooldown);
+        }
+      }
     }
   }
 

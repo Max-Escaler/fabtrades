@@ -23,6 +23,7 @@ import '../onboarding/tour_copy.dart';
 import '../paywall/pro_limits.dart';
 import '../scan/scan_screen.dart';
 import '../search/card_picker.dart';
+import '../sync/binder_refresh.dart';
 import '../want_list/want_list_screen.dart';
 
 class BinderScreen extends ConsumerStatefulWidget {
@@ -276,23 +277,28 @@ class _BinderListState extends ConsumerState<_BinderList> {
     final pricing = widget.pricing;
 
     if (all.isEmpty) {
-      return _BinderEmptyState(
-        onScan: () {
-          if (context.mounted) ScanScreen.forBinder(context);
-        },
-        onSearch: () async {
-          await CardPickerScreen.showMulti(
-            context,
-            title: 'Add to Binder',
-            onPick: (card) => addToBinderOrUpsell(
-              context,
-              ref,
-              card,
-              successMessage: 'Added ${card.name} to Binder',
-              source: 'search',
-            ),
-          );
-        },
+      return RefreshIndicator(
+        onRefresh: () => refreshBinderSync(context, ref),
+        child: _ScrollableCenter(
+          child: _BinderEmptyState(
+            onScan: () {
+              if (context.mounted) ScanScreen.forBinder(context);
+            },
+            onSearch: () async {
+              await CardPickerScreen.showMulti(
+                context,
+                title: 'Add to Binder',
+                onPick: (card) => addToBinderOrUpsell(
+                  context,
+                  ref,
+                  card,
+                  successMessage: 'Added ${card.name} to Binder',
+                  source: 'search',
+                ),
+              );
+            },
+          ),
+        ),
       );
     }
 
@@ -347,21 +353,46 @@ class _BinderListState extends ConsumerState<_BinderList> {
           ),
         ),
         Expanded(
-          child: visible.isEmpty
-              ? _BinderNoMatches(
-                  hasQuery: hasQuery || filters.hasActiveFilters,
-                  onClear: _clearFilters,
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: visible.length,
-                  separatorBuilder: (_, _) =>
-                      const Divider(height: 1, indent: 72),
-                  itemBuilder: (context, i) =>
-                      _EntryRow(entry: visible[i], pricing: pricing),
-                ),
+          child: RefreshIndicator(
+            onRefresh: () => refreshBinderSync(context, ref),
+            child: visible.isEmpty
+                ? _ScrollableCenter(
+                    child: _BinderNoMatches(
+                      hasQuery: hasQuery || filters.hasActiveFilters,
+                      onClear: _clearFilters,
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 96),
+                    itemCount: visible.length,
+                    separatorBuilder: (_, _) =>
+                        const Divider(height: 1, indent: 72),
+                    itemBuilder: (context, i) =>
+                        _EntryRow(entry: visible[i], pricing: pricing),
+                  ),
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Always-scrollable wrapper so pull-to-refresh works on empty / no-match views.
+class _ScrollableCenter extends StatelessWidget {
+  const _ScrollableCenter({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(child: child),
+        ),
+      ),
     );
   }
 }
