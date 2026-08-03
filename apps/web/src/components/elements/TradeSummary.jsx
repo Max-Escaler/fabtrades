@@ -21,12 +21,10 @@ import {
     Clear as ClearIcon,
     ContentCopy as ContentCopyIcon,
     Forum as ForumIcon,
-    BookmarkAdd as BookmarkAddIcon,
     CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import {formatCurrency} from "../../utils/helpers.js";
 import { generateTradeOffer } from "../../utils/tradeOffer.js";
-import { saveTradeToHistory } from "../../services/tradeHistory.js";
 import { confirmTrade } from "../../services/confirmTrade.js";
 import { FreeLimits } from "../../utils/freeLimits.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
@@ -102,9 +100,6 @@ const TradeSummary = ({
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showTradeOffer, setShowTradeOffer] = useState(false);
     const [tradeOfferText, setTradeOfferText] = useState('');
-    const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [tradeName, setTradeName] = useState('');
-    const [saving, setSaving] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [removeGiven, setRemoveGiven] = useState(true);
     const [addReceived, setAddReceived] = useState(true);
@@ -146,39 +141,6 @@ const TradeSummary = ({
             console.error('Failed to copy trade offer:', err);
             setSnackbar({ open: true, message: 'Could not copy — select the text and copy it manually', severity: 'error' });
         }
-    };
-
-    const handleOpenSaveDialog = () => {
-        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        setTradeName(`Trade ${today}`);
-        setShowSaveDialog(true);
-    };
-
-    const handleSaveTrade = async () => {
-        setSaving(true);
-        const { error, trimmed } = await saveTradeToHistory(tradeName, haveList, wantList, {
-            haveTotal,
-            wantTotal,
-            diff
-        });
-        setSaving(false);
-        if (error) {
-            setSnackbar({ open: true, message: error.message || 'Failed to save trade', severity: 'error' });
-            return;
-        }
-        setShowSaveDialog(false);
-        // Say so when older trades rolled off. A history that silently shortens is
-        // indistinguishable from a bug.
-        setSnackbar(
-            trimmed > 0
-                ? {
-                    open: true,
-                    message: `Trade saved — your ${trimmed === 1 ? 'oldest trade' : `${trimmed} oldest trades`} `
-                        + `rolled off the free ${FreeLimits.savedTrades}-trade history`,
-                    severity: 'info',
-                }
-                : { open: true, message: 'Trade saved — find it under Trade History', severity: 'success' },
-        );
     };
 
     const handleOpenConfirmDialog = () => {
@@ -258,9 +220,9 @@ const TradeSummary = ({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 0.35,
-        flex: isLandscape ? 'none' : 1,
+        flex: 1,
         minWidth: 0,
-        px: isLandscape ? 0 : 0.25
+        px: 0.25
     };
 
     const haveColumn = (
@@ -284,9 +246,8 @@ const TradeSummary = ({
             sx={{
                 ...totalColumnSx,
                 ...(isLandscape ? {
-                    py: 0.75,
-                    px: 0.75,
-                    my: 0.25,
+                    py: 0.5,
+                    px: 0.5,
                     background: isDark
                         ? 'linear-gradient(135deg, #1a0f0a 0%, #2c1810 100%)'
                         : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
@@ -335,10 +296,9 @@ const TradeSummary = ({
                         sx={{
                             color: 'warning.main',
                             p: 0.25,
-                            position: isLandscape ? 'static' : 'absolute',
-                            top: isLandscape ? 'auto' : -2,
-                            right: isLandscape ? 'auto' : -4,
-                            mt: isLandscape ? 0.5 : 0
+                            position: 'absolute',
+                            top: -2,
+                            right: -4
                         }}
                     >
                         <ClearIcon fontSize="small" />
@@ -379,25 +339,25 @@ const TradeSummary = ({
             borderBottom: isLandscape ? 'none' : `3px solid #d4a574`,
             borderRadius: isLandscape ? 2 : 0,
             border: isLandscape ? `1px solid ${isDark ? 'rgba(212, 165, 116, 0.28)' : 'rgba(139, 69, 19, 0.15)'}` : 'none',
-            width: isLandscape ? '200px' : '100%',
-            minWidth: isLandscape ? '200px' : 'auto',
-            maxWidth: isLandscape ? '220px' : '100%',
+            width: isLandscape ? '320px' : '100%',
+            minWidth: isLandscape ? '300px' : 'auto',
+            maxWidth: isLandscape ? '360px' : '100%',
             flexShrink: 0,
             boxSizing: 'border-box',
             boxShadow: isLandscape 
                 ? (isDark ? '0 4px 14px rgba(0, 0, 0, 0.25)' : '0 4px 14px rgba(139, 69, 19, 0.1)')
                 : (isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(139, 69, 19, 0.08)')
         }}>
-            {/* Totals: horizontal on mobile, stacked in landscape sidebar */}
+            {/* Totals: always left-to-right so My vs Their diffs scan in one glance */}
             <Box sx={{
                 display: 'flex',
-                flexDirection: isLandscape ? 'column' : 'row',
+                flexDirection: 'row',
                 justifyContent: 'space-between',
-                alignItems: isLandscape ? 'stretch' : 'center',
+                alignItems: 'center',
                 width: '100%',
-                gap: isLandscape ? 0.75 : 0.5,
+                gap: 0.5,
                 px: isLandscape ? 0.5 : { xs: 0.75, sm: 1 },
-                py: isLandscape ? 0.25 : { xs: 0.5, sm: 0.65 }
+                py: isLandscape ? 0.5 : { xs: 0.5, sm: 0.65 }
             }}>
                 {haveColumn}
                 {differenceColumn}
@@ -423,7 +383,7 @@ const TradeSummary = ({
                 </Box>
             )}
 
-            {/* Confirm / Save (logged-in only) */}
+            {/* Confirm (logged-in only) */}
             {user && (
                 <Box sx={{
                     display: 'flex',
@@ -465,32 +425,6 @@ const TradeSummary = ({
                                 }}
                             >
                                 Confirm Trade
-                            </Button>
-                        </span>
-                    </Tooltip>
-                    <Tooltip title="Save this trade to your history without changing your Binder">
-                        <span>
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<BookmarkAddIcon />}
-                                onClick={handleOpenSaveDialog}
-                                disabled={!canGenerateTradeOffer}
-                                sx={{
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    px: 1.5,
-                                    py: 0.25,
-                                    minHeight: 28,
-                                    color: isDark ? '#e4c09c' : '#8b4513',
-                                    borderColor: isDark ? 'rgba(212, 165, 116, 0.4)' : 'rgba(139, 69, 19, 0.35)',
-                                    '&:hover': {
-                                        borderColor: isDark ? '#d4a574' : '#8b4513',
-                                        backgroundColor: isDark ? 'rgba(200, 113, 55, 0.12)' : 'rgba(139, 69, 19, 0.06)'
-                                    }
-                                }}
-                            >
-                                Save
                             </Button>
                         </span>
                     </Tooltip>
@@ -617,47 +551,6 @@ const TradeSummary = ({
                     }}
                 >
                     Copy to Clipboard
-                </Button>
-            </DialogActions>
-        </Dialog>
-
-        {/* Save Trade Dialog */}
-        <Dialog
-            open={showSaveDialog}
-            onClose={() => !saving && setShowSaveDialog(false)}
-            fullWidth
-            maxWidth="xs"
-        >
-            <DialogTitle>Save Trade</DialogTitle>
-            <DialogContent>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Name this trade so you can find it in your history.
-                </Typography>
-                <TextField
-                    autoFocus
-                    fullWidth
-                    label="Trade name"
-                    value={tradeName}
-                    onChange={(e) => setTradeName(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && tradeName.trim() && !saving) {
-                            handleSaveTrade();
-                        }
-                    }}
-                    disabled={saving}
-                />
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={() => setShowSaveDialog(false)} disabled={saving}>
-                    Cancel
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={handleSaveTrade}
-                    disabled={saving || !tradeName.trim()}
-                    startIcon={<BookmarkAddIcon />}
-                >
-                    {saving ? 'Saving…' : 'Save Trade'}
                 </Button>
             </DialogActions>
         </Dialog>
