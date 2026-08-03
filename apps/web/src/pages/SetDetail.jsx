@@ -26,6 +26,7 @@ import {
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/elements/Header.jsx';
 import { CardThumbnail, CardImageModal } from '../components/ui/CardImagePreview.jsx';
+import TcgplayerBuyLink from '../components/ui/TcgplayerBuyLink.jsx';
 import { useSets } from '../hooks/useSets.js';
 import { useCardData } from '../hooks/useCardData.jsx';
 import { useThemeMode } from '../contexts/ThemeContext.jsx';
@@ -535,6 +536,11 @@ const SetDetail = () => {
                                                     )}
                                                 </Box>
                                             </Box>
+
+                                            <TcgplayerBuyLink
+                                                productId={card.productId}
+                                                subTypeName={card.subTypeName}
+                                            />
 
                                             <Box sx={{
                                                 display: 'flex',
