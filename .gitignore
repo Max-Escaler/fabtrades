@@ -15,6 +15,10 @@ build/
 .env.test.local
 .env.production.local
 
+# Local secrets / ASC API keys (never commit)
+.local/
+apps/mobile/env/*.local.json
+
 # IDE and editor files
 .vscode/
 .idea/

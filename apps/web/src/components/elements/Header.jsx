@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import { 
     AppBar, Toolbar, Typography, Box, IconButton, Button, Drawer, List, 
-    ListItem, ListItemButton, ListItemText, Tooltip, Divider 
+    ListItem, ListItemButton, ListItemIcon, ListItemText, Tooltip, Divider 
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { DarkMode, LightMode, ChevronRight } from '@mui/icons-material';
+import {
+    DarkMode,
+    LightMode,
+    ChevronRight,
+    SwapHoriz,
+    CollectionsBookmark,
+    History,
+    BookmarkBorder,
+    Style,
+    PrivacyTipOutlined,
+    DescriptionOutlined,
+} from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { formatTimestamp } from "../../utils/helpers.js";
 import { useThemeMode } from "../../contexts/ThemeContext.jsx";
@@ -12,6 +23,19 @@ import { useSets } from "../../hooks/useSets.js";
 import LoginButton from '../auth/LoginButton.jsx';
 
 const RECENT_SETS_LIMIT = 8;
+
+const NAV_ITEMS = [
+    { label: 'Trade Calculator', to: '/', icon: SwapHoriz, match: (path) => path === '/' },
+    { label: 'My Binder', to: '/binder', icon: CollectionsBookmark, match: (path) => path === '/binder' },
+    { label: 'Trade History', to: '/history', icon: History, match: (path) => path === '/history' },
+    { label: 'Want List', to: '/wants', icon: BookmarkBorder, match: (path) => path === '/wants' },
+    { label: 'Browse Sets', to: '/sets', icon: Style, match: (path) => path.startsWith('/sets') },
+];
+
+const LEGAL_ITEMS = [
+    { label: 'Privacy Policy', to: '/privacy', icon: PrivacyTipOutlined, match: (path) => path === '/privacy' },
+    { label: 'Terms of Use', to: '/terms', icon: DescriptionOutlined, match: (path) => path === '/terms' },
+];
 
 const Header = ({ lastUpdatedTimestamp }) => {
     const location = useLocation();
@@ -256,201 +280,78 @@ const Header = ({ lastUpdatedTimestamp }) => {
                     </Typography>
                 </Box>
                 <List sx={{ px: 1 }}>
-                    <ListItem disablePadding sx={{ mb: 1 }}>
-                        <ListItemButton 
-                            component={Link} 
-                            to="/"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/' 
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText 
-                                primary="Trade Calculator" 
-                                sx={{ 
-                                    fontWeight: location.pathname === '/' ? 700 : 500,
-                                    color: location.pathname === '/' 
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': {
-                                        fontSize: '1rem'
-                                    }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding sx={{ mb: 1 }}>
-                        <ListItemButton
-                            component={Link}
-                            to="/binder"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/binder'
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText
-                                primary="My Binder"
-                                sx={{
-                                    fontWeight: location.pathname === '/binder' ? 700 : 500,
-                                    color: location.pathname === '/binder'
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': {
-                                        fontSize: '1rem'
-                                    }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding sx={{ mb: 1 }}>
-                        <ListItemButton 
-                            component={Link} 
-                            to="/history"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/history' 
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText 
-                                primary="Trade History"
-                                sx={{ 
-                                    fontWeight: location.pathname === '/history' ? 700 : 500,
-                                    color: location.pathname === '/history' 
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': {
-                                        fontSize: '1rem'
-                                    }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding sx={{ mb: 1 }}>
-                        <ListItemButton
-                            component={Link}
-                            to="/wants"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/wants'
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText
-                                primary="Want List"
-                                sx={{
-                                    fontWeight: location.pathname === '/wants' ? 700 : 500,
-                                    color: location.pathname === '/wants'
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': { fontSize: '1rem' }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={Link}
-                            to="/sets"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/sets'
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText
-                                primary="Browse Sets"
-                                sx={{
-                                    fontWeight: location.pathname.startsWith('/sets') ? 700 : 500,
-                                    color: location.pathname.startsWith('/sets')
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': { fontSize: '1rem' }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding sx={{ mt: 1 }}>
-                        <ListItemButton
-                            component={Link}
-                            to="/privacy"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/privacy'
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText
-                                primary="Privacy Policy"
-                                sx={{
-                                    fontWeight: location.pathname === '/privacy' ? 700 : 500,
-                                    color: location.pathname === '/privacy'
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': { fontSize: '0.875rem' }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding sx={{ mt: 1 }}>
-                        <ListItemButton
-                            component={Link}
-                            to="/terms"
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname === '/terms'
-                                    ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
-                                    : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
-                                },
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                        >
-                            <ListItemText
-                                primary="Terms of Use"
-                                sx={{
-                                    fontWeight: location.pathname === '/terms' ? 700 : 500,
-                                    color: location.pathname === '/terms'
-                                        ? (isDark ? '#e4c09c' : '#8b4513')
-                                        : (isDark ? '#f5f1ed' : '#2c1810'),
-                                    '& .MuiTypography-root': { fontSize: '0.875rem' }
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
+                    {NAV_ITEMS.map(({ label, to, icon: Icon, match }) => {
+                        const active = match(location.pathname);
+                        const accent = active
+                            ? (isDark ? '#e4c09c' : '#8b4513')
+                            : (isDark ? '#f5f1ed' : '#2c1810');
+                        return (
+                            <ListItem key={to} disablePadding sx={{ mb: 1 }}>
+                                <ListItemButton
+                                    component={Link}
+                                    to={to}
+                                    sx={{
+                                        borderRadius: 2,
+                                        backgroundColor: active
+                                            ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                            : 'transparent',
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
+                                        },
+                                        transition: 'all 0.2s ease-in-out'
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 36, color: accent }}>
+                                        <Icon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={label}
+                                        sx={{
+                                            fontWeight: active ? 700 : 500,
+                                            color: accent,
+                                            '& .MuiTypography-root': { fontSize: '1rem' }
+                                        }}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        );
+                    })}
+                    {LEGAL_ITEMS.map(({ label, to, icon: Icon, match }) => {
+                        const active = match(location.pathname);
+                        const accent = active
+                            ? (isDark ? '#e4c09c' : '#8b4513')
+                            : (isDark ? '#f5f1ed' : '#2c1810');
+                        return (
+                            <ListItem key={to} disablePadding sx={{ mt: 1 }}>
+                                <ListItemButton
+                                    component={Link}
+                                    to={to}
+                                    sx={{
+                                        borderRadius: 2,
+                                        backgroundColor: active
+                                            ? (isDark ? 'rgba(200, 113, 55, 0.2)' : 'rgba(139, 69, 19, 0.1)')
+                                            : 'transparent',
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(200, 113, 55, 0.25)' : 'rgba(139, 69, 19, 0.15)',
+                                        },
+                                        transition: 'all 0.2s ease-in-out'
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 36, color: accent }}>
+                                        <Icon sx={{ fontSize: '1.1rem' }} />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={label}
+                                        sx={{
+                                            fontWeight: active ? 700 : 500,
+                                            color: accent,
+                                            '& .MuiTypography-root': { fontSize: '0.875rem' }
+                                        }}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        );
+                    })}
                 </List>
 
                 {recentSets.length > 0 && (
