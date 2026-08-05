@@ -99,6 +99,8 @@ describe('isSealedProduct', () => {
     expect(isSealedProduct({ name: 'Alpha Booster Box' })).toBe(true);
     expect(isSealedProduct({ name: 'Welcome Bundle' })).toBe(true);
     expect(isSealedProduct({ name: 'Blitz Deck - Rhinar' })).toBe(true);
+    expect(isSealedProduct({ name: 'Monarch Blitz Deck Display' })).toBe(true);
+    expect(isSealedProduct({ name: 'Monarch Blitz Deck Display Case' })).toBe(true);
   });
 
   it('flags sealed products detected via subTypeName', () => {
@@ -108,6 +110,35 @@ describe('isSealedProduct', () => {
   it('does not flag individual cards', () => {
     expect(isSealedProduct({ name: 'Lightning, Legend of Storms', subTypeName: 'Normal' })).toBe(false);
     expect(isSealedProduct({ name: 'Ember, Fate Aflame', subTypeName: 'Rainbow Foil' })).toBe(false);
+  });
+
+  // Regression: bare sealed-token substrings used to hide real cards from the
+  // catalog (fetchCatalogRows filters is_sealed=false).
+  it('does not flag singles whose names contain sealed-looking substrings', () => {
+    const singles = [
+      { name: 'Duty Bound Blitz', extCardType: 'Action' },
+      { name: 'Duty Bound Blitz (Red)', extCardType: 'Action' },
+      { name: 'Battlefield Blitz (Blue)', extCardType: 'Action' },
+      { name: 'Blitz Kicks', extCardType: 'Equipment' },
+      { name: 'Display Loyalty', extCardType: 'Action' },
+      { name: 'Deadly Display (Red)', extCardType: 'Attack Reaction' },
+      { name: 'Display of Artistry (Yellow)', extCardType: 'Attack Reaction' },
+      { name: 'Quelling Sleeves', extCardType: 'Equipment' },
+      { name: 'Dyed Silk Sleeves', extCardType: 'Equipment' },
+      { name: 'Encase', extCardType: 'Action' },
+      { name: 'First Strike (Red)', extCardType: 'Action' },
+    ];
+    for (const row of singles) {
+      expect(isSealedProduct({ ...row, subTypeName: 'Normal' })).toBe(false);
+    }
+  });
+
+  it('treats any row with a card type as a single, even if the name matches a product pattern', () => {
+    expect(isSealedProduct({
+      name: 'Hypothetical Blitz Deck Card',
+      extCardType: 'Action',
+      subTypeName: 'Normal',
+    })).toBe(false);
   });
 
   it('is safe on rows missing name/subTypeName', () => {

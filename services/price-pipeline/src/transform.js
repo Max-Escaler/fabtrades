@@ -1,15 +1,24 @@
 import { normalizeCardName } from './cardmarket.js';
 
 // Products that are not individual cards (booster packs, boxes, accessories, ...).
+// Keep these specific: bare tokens like "blitz", "display", "case", or "sleeves"
+// also appear in real card names (Duty Bound Blitz, Display Loyalty, Encase,
+// Quelling Sleeves) and used to mark those printings sealed — which hid them
+// from the catalog (`is_sealed=eq.false`).
 const SEALED_PATTERNS = [
   'booster box', 'booster pack', 'booster display', 'starter deck', 'starter kit',
-  'bundle', 'collector box', 'case', 'display', 'prerelease', 'deck box',
+  'bundle', 'collector box', 'display case', 'deck display', 'prerelease', 'deck box',
   'playmat', 'sleeves',
   'blitz deck', 'classic battles', 'ultimate pit fight', 'armory deck', 'hero deck',
-  'booster', 'blitz', 'first strike', 'mixed booster'
+  'booster', 'mixed booster'
 ];
 
 export function isSealedProduct(row) {
+  // TCGCSV always attaches a card type to singles; sealed products leave it
+  // empty. Prefer that signal so card-name substrings cannot false-positive.
+  const cardType = (row.extCardType || row.cardType || '').trim();
+  if (cardType) return false;
+
   const name = (row.name || '').toLowerCase();
   const subTypeName = (row.subTypeName || '').toLowerCase();
   return SEALED_PATTERNS.some((p) => name.includes(p) || subTypeName.includes(p));
