@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../../app/app.dart';
+import '../../app/card_filter_bar.dart';
 import '../../app/printing_picker.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
@@ -310,46 +311,14 @@ class _BinderListState extends ConsumerState<_BinderList> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  onChanged: _onChanged,
-                  textInputAction: TextInputAction.search,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: 'Search binder…',
-                    prefixIcon: const Icon(Icons.search, size: 20),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 40,
-                      minHeight: 36,
-                    ),
-                    suffixIcon: _controller.text.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            onPressed: _clearQuery,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              _BinderFilterControls(
-                filters: filters,
-                onFoilOnly: (v) =>
-                    ref.read(binderFiltersProvider.notifier).setFoilOnly(v),
-                onSort: (s) =>
-                    ref.read(binderFiltersProvider.notifier).setSort(s),
-                onClear: _clearFilters,
-              ),
-            ],
+          child: CardSearchBar(
+            controller: _controller,
+            hintText: 'Search binder…',
+            dense: true,
+            onChanged: _onChanged,
+            onClear: _clearQuery,
+            sort: filters.sort,
+            onSort: (s) => ref.read(binderFiltersProvider.notifier).setSort(s),
           ),
         ),
         Expanded(
@@ -504,67 +473,6 @@ class _BinderValueChip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Compact foil / sort / clear controls that sit beside the binder search field.
-class _BinderFilterControls extends StatelessWidget {
-  const _BinderFilterControls({
-    required this.filters,
-    required this.onFoilOnly,
-    required this.onSort,
-    required this.onClear,
-  });
-
-  final CardFilters filters;
-  final ValueChanged<bool> onFoilOnly;
-  final ValueChanged<CardSort> onSort;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          tooltip: 'Foil only',
-          isSelected: filters.foilOnly,
-          onPressed: () => onFoilOnly(!filters.foilOnly),
-          icon: const Icon(Icons.auto_awesome, size: 20),
-          visualDensity: VisualDensity.compact,
-          style: IconButton.styleFrom(
-            foregroundColor: filters.foilOnly ? scheme.onPrimary : null,
-            backgroundColor: filters.foilOnly ? scheme.primary : null,
-          ),
-        ),
-        PopupMenuButton<CardSort>(
-          tooltip: 'Sort',
-          initialValue: filters.sort,
-          onSelected: onSort,
-          itemBuilder: (_) => CardSort.values
-              .map((s) => PopupMenuItem(value: s, child: Text(s.label)))
-              .toList(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Icon(
-              Icons.sort,
-              size: 20,
-              color: filters.sort != CardSort.nameAsc
-                  ? scheme.primary
-                  : scheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        if (filters.hasActiveFilters)
-          IconButton(
-            tooltip: 'Clear filters',
-            onPressed: onClear,
-            icon: const Icon(Icons.filter_alt_off, size: 20),
-            visualDensity: VisualDensity.compact,
-          ),
-      ],
     );
   }
 }

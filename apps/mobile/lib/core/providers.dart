@@ -720,7 +720,7 @@ final priceUpdatedAtProvider = Provider<DateTime?>((ref) {
 // Binder & want lists
 // ---------------------------------------------------------------------------
 
-/// Search / foil / sort for the Binder tab (independent of Browse filters).
+/// Search / sort for the Binder tab (independent of Browse filters).
 final binderFiltersProvider =
     NotifierProvider<BinderFiltersNotifier, CardFilters>(
         BinderFiltersNotifier.new);
@@ -735,7 +735,7 @@ class BinderFiltersNotifier extends Notifier<CardFilters> {
   void clear() => state = const CardFilters();
 }
 
-/// Binder-tab entries (`!isWanted`) after the same query / foil / sort rules
+/// Binder-tab entries (`!isWanted`) after the same query / sort rules
 /// as Browse. Non-card products are kept if the user already added them.
 final filteredBinderProvider = Provider<List<BinderEntry>>((ref) {
   final entries = ref.watch(binderProvider).where((e) => !e.isWanted);

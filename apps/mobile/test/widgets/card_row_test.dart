@@ -88,6 +88,30 @@ void main() {
       );
       expect(find.byType(CardThumbnail), findsNothing);
     });
+
+    testWidgets('does not overflow with a long secondary label on a narrow row',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpApp(
+        tester,
+        Scaffold(
+          body: SizedBox(
+            width: 300,
+            child: CardRow(
+              card: buildCard(name: 'Ravenous Rabble'),
+              priceLabel: '\$111.17',
+              secondaryLabel: 'Low \$109.00 · \$1.21 over',
+              onAdd: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('\$111.17'), findsOneWidget);
+    });
   });
 
   group('CardMetaLine', () {

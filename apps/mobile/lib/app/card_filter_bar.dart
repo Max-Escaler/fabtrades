@@ -2,95 +2,116 @@ import 'package:flutter/material.dart';
 
 import '../core/data/card_repository.dart';
 
-/// Horizontal foil + sort chips shared by Browse (set view) and Binder.
-class CardFilterBar extends StatelessWidget {
-  const CardFilterBar({
+/// Search field with an in-bar clear (X) and a sort dropdown beside it.
+/// Shared by Browse, set catalog, card picker, and Binder.
+class CardSearchBar extends StatelessWidget {
+  const CardSearchBar({
     super.key,
-    required this.filters,
-    required this.onFoilOnly,
-    required this.onSort,
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
     required this.onClear,
+    required this.sort,
+    required this.onSort,
+    this.autofocus = false,
+    this.dense = false,
   });
 
-  final CardFilters filters;
-  final ValueChanged<bool> onFoilOnly;
-  final ValueChanged<CardSort> onSort;
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String> onChanged;
   final VoidCallback onClear;
+  final CardSort sort;
+  final ValueChanged<CardSort> onSort;
+  final bool autofocus;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          FilterChip(
-            label: const Text('Foil'),
-            avatar: const Icon(Icons.auto_awesome, size: 16),
-            selected: filters.foilOnly,
-            onSelected: onFoilOnly,
-          ),
-          const SizedBox(width: 8),
-          _DropChip<CardSort>(
-            label: 'Sort',
-            selected: filters.sort != CardSort.nameAsc,
-            value: filters.sort,
-            icon: Icons.sort,
-            items: CardSort.values
-                .map((s) => PopupMenuItem(value: s, child: Text(s.label)))
-                .toList(),
-            onSelected: onSort,
-          ),
-          if (filters.hasActiveFilters) ...[
-            const SizedBox(width: 8),
-            ActionChip(
-              label: const Text('Clear'),
-              avatar: const Icon(Icons.close, size: 16),
-              onPressed: onClear,
+    final theme = Theme.of(context);
+    final hasText = controller.text.isNotEmpty;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            autofocus: autofocus,
+            onChanged: onChanged,
+            textInputAction: TextInputAction.search,
+            style: dense ? theme.textTheme.bodyMedium : null,
+            decoration: InputDecoration(
+              isDense: dense,
+              hintText: hintText,
+              prefixIcon: Icon(Icons.search, size: dense ? 20 : 24),
+              prefixIconConstraints: dense
+                  ? const BoxConstraints(minWidth: 40, minHeight: 36)
+                  : null,
+              suffixIcon: hasText
+                  ? IconButton(
+                      icon: Icon(Icons.clear, size: dense ? 18 : 24),
+                      tooltip: 'Clear search',
+                      onPressed: onClear,
+                      visualDensity:
+                          dense ? VisualDensity.compact : VisualDensity.standard,
+                    )
+                  : null,
+              contentPadding: dense
+                  ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+                  : null,
             ),
-          ],
-        ],
-      ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _SortDropdown(sort: sort, onSort: onSort, dense: dense),
+      ],
     );
   }
 }
 
-class _DropChip<T> extends StatelessWidget {
-  const _DropChip({
-    required this.label,
-    required this.selected,
-    required this.value,
-    required this.items,
-    required this.onSelected,
-    this.icon,
+class _SortDropdown extends StatelessWidget {
+  const _SortDropdown({
+    required this.sort,
+    required this.onSort,
+    this.dense = false,
   });
 
-  final String label;
-  final bool selected;
-  final T value;
-  final List<PopupMenuEntry<T>> items;
-  final ValueChanged<T> onSelected;
-  final IconData? icon;
+  final CardSort sort;
+  final ValueChanged<CardSort> onSort;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return PopupMenuButton<T>(
-      initialValue: value,
-      onSelected: onSelected,
-      itemBuilder: (_) => items,
-      child: Chip(
-        backgroundColor: selected ? scheme.primaryContainer : null,
-        label: Row(
+    final nonDefault = sort != CardSort.nameAsc;
+
+    return PopupMenuButton<CardSort>(
+      tooltip: 'Sort',
+      initialValue: sort,
+      onSelected: onSort,
+      itemBuilder: (_) => CardSort.values
+          .map((s) => PopupMenuItem(value: s, child: Text(s.label)))
+          .toList(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: dense ? 6 : 8,
+          vertical: dense ? 8 : 10,
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16),
-              const SizedBox(width: 4),
-            ],
-            Text(label),
-            const Icon(Icons.arrow_drop_down, size: 18),
+            Icon(
+              Icons.sort,
+              size: dense ? 20 : 22,
+              color: nonDefault ? scheme.primary : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down,
+              size: dense ? 18 : 20,
+              color: nonDefault ? scheme.primary : scheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),

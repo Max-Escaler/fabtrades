@@ -74,14 +74,27 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   late final TourController _tours;
   int? _activeTourTab;
 
+  // One navigator per tab so pushed screens (set catalog, card detail, picker,
+  // etc.) stay inside the shell and keep the bottom NavigationBar visible.
+  final _navKeys = List<GlobalKey<NavigatorState>>.generate(
+    4,
+    (_) => GlobalKey<NavigatorState>(),
+  );
+  final _navObservers = List<NavigatorObserver>.generate(
+    4,
+    (_) => PosthogObserver(),
+  );
+
   // Note: the Scan feature (ScanScreen) is still implemented and can be
   // opened via Browse / Binder add paths — it is not a top-level tab.
-  static const _screens = [
+  static const _tabRoots = [
     BrowseScreen(),
     TradeScreen(),
     BinderScreen(),
     LendScreen(),
   ];
+
+  static const _tabScreenNames = ['Browse', 'Trade', 'Binder', 'Lend'];
 
   @override
   void initState() {
@@ -122,10 +135,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     if (id != null) _tours.markSeen(id);
   }
 
-  static const _tabScreenNames = ['Browse', 'Trade', 'Binder', 'Lend'];
+  NavigatorState? get _activeNav => _navKeys[_index].currentState;
 
   void _selectTab(int i) {
-    if (i == _index) return;
+    if (i == _index) {
+      // Re-tapping the current tab pops back to its root.
+      _activeNav?.popUntil((r) => r.isFirst);
+      return;
+    }
     // Cancel any in-progress tour before leaving the tab — IndexedStack keeps
     // every Showcase mounted, so a mid-tour switch would highlight the wrong
     // screen. dismiss() invokes onDismiss → _onTourFinished synchronously,
@@ -174,49 +191,82 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     });
   }
 
+  Widget _tabNavigator(int i) {
+    return Navigator(
+      key: _navKeys[i],
+      observers: [_navObservers[i]],
+      onGenerateInitialRoutes: (navigator, initialRoute) {
+        return [
+          MaterialPageRoute<void>(
+            builder: (_) => _tabRoots[i],
+            settings: RouteSettings(name: _tabScreenNames[i]),
+          ),
+        ];
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(tradeDraftProvider);
     final tradeCount = draft.haveCount + draft.wantCount;
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: IndexedStack(index: _index, children: _screens),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _selectTab,
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view),
-            label: 'Browse',
+    // System back pops the active tab stack before leaving the app.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final nav = _activeNav;
+        if (nav != null && nav.canPop()) {
+          nav.pop();
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: IndexedStack(
+            index: _index,
+            children: [
+              for (var i = 0; i < _tabRoots.length; i++) _tabNavigator(i),
+            ],
           ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: tradeCount > 0,
-              label: Text('$tradeCount'),
-              child: const Icon(Icons.swap_horiz_outlined),
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: _selectTab,
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.grid_view_outlined),
+              selectedIcon: Icon(Icons.grid_view),
+              label: 'Browse',
             ),
-            selectedIcon: Badge(
-              isLabelVisible: tradeCount > 0,
-              label: Text('$tradeCount'),
-              child: const Icon(Icons.swap_horiz),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: tradeCount > 0,
+                label: Text('$tradeCount'),
+                child: const Icon(Icons.swap_horiz_outlined),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: tradeCount > 0,
+                label: Text('$tradeCount'),
+                child: const Icon(Icons.swap_horiz),
+              ),
+              label: 'Trade',
             ),
-            label: 'Trade',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Binder',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.sync_alt_outlined),
-            selectedIcon: Icon(Icons.sync_alt),
-            label: 'Lend',
-          ),
-        ],
+            const NavigationDestination(
+              icon: Icon(Icons.menu_book_outlined),
+              selectedIcon: Icon(Icons.menu_book),
+              label: 'Binder',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.sync_alt_outlined),
+              selectedIcon: Icon(Icons.sync_alt),
+              label: 'Lend',
+            ),
+          ],
+        ),
       ),
     );
   }

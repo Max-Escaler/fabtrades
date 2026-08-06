@@ -34,6 +34,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   final _controller = TextEditingController();
   Timer? _debounce;
   String _query = '';
+  CardSort _sort = CardSort.nameAsc;
 
   @override
   void dispose() {
@@ -50,7 +51,10 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
       setState(() => _query = query);
       if (query.isEmpty) return;
       final catalog = ref.read(catalogProvider).asData?.value ?? const [];
-      final resultsCount = filterCards(catalog, CardFilters(query: query)).length;
+      final resultsCount = filterCards(
+        catalog,
+        CardFilters(query: query, sort: _sort),
+      ).length;
       ref.read(analyticsProvider).capture('search_performed', {
         'search_query': query,
         'query_length': query.length,
@@ -92,27 +96,20 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-            child: TextField(
+            child: CardSearchBar(
               controller: _controller,
+              hintText: 'Search all cards…',
               onChanged: _onChanged,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Search all cards…',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _controller.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: _clear,
-                      ),
-              ),
+              onClear: _clear,
+              sort: _sort,
+              onSort: (s) => setState(() => _sort = s),
             ),
           ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refresh,
               child: searching
-                  ? _GlobalSearchResults(query: _query)
+                  ? _GlobalSearchResults(query: _query, sort: _sort)
                   : const _SetList(),
             ),
           ),
@@ -352,8 +349,9 @@ class _SetTileState extends ConsumerState<_SetTile>
 /// search bar. Each finish/version is its own row so prices are visible
 /// without opening card detail.
 class _GlobalSearchResults extends ConsumerWidget {
-  const _GlobalSearchResults({required this.query});
+  const _GlobalSearchResults({required this.query, required this.sort});
   final String query;
+  final CardSort sort;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -367,7 +365,8 @@ class _GlobalSearchResults extends ConsumerWidget {
         ),
       ),
       data: (all) {
-        final filtered = filterCards(all, CardFilters(query: query));
+        final filtered =
+            filterCards(all, CardFilters(query: query, sort: sort));
         if (filtered.isEmpty) {
           return const _ScrollableCenter(child: _EmptyView());
         }
@@ -378,7 +377,7 @@ class _GlobalSearchResults extends ConsumerWidget {
 }
 
 /// Cards within a single set — every printing listed individually — with
-/// search / foil / sort and pull-to-refresh.
+/// search / sort and pull-to-refresh.
 class SetCardsScreen extends ConsumerStatefulWidget {
   const SetCardsScreen({super.key, required this.setName});
 
@@ -450,35 +449,16 @@ class _SetCardsScreenState extends ConsumerState<SetCardsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-            child: TextField(
+            child: CardSearchBar(
               controller: _controller,
+              hintText: 'Search in ${widget.setName}…',
               onChanged: _onChanged,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Search in ${widget.setName}…',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _controller.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: _clearQuery,
-                      ),
-              ),
+              onClear: _clearQuery,
+              sort: filters.sort,
+              onSort: (s) =>
+                  ref.read(searchFiltersProvider.notifier).setSort(s),
             ),
           ),
-          CardFilterBar(
-            filters: filters,
-            onFoilOnly: (v) =>
-                ref.read(searchFiltersProvider.notifier).setFoilOnly(v),
-            onSort: (s) => ref.read(searchFiltersProvider.notifier).setSort(s),
-            onClear: () {
-              _debounce?.cancel();
-              _controller.clear();
-              ref.read(searchFiltersProvider.notifier).clear();
-              setState(() {});
-            },
-          ),
-          const SizedBox(height: 4),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refresh,

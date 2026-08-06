@@ -63,68 +63,77 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(_selected.name)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      body: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _CardArtThumb(
-                card: _selected,
-                onTap: () => _openArtViewer(context, _selected),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_selected.name,
-                        style: theme.textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 6),
-                    CardMetaLine(
-                        card: _selected,
-                        style: theme.textTheme.bodyMedium,
-                        maxLines: 2),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        FinishBadge(card: _selected),
-                        if (owned > 0)
-                          GestureDetector(
-                            onTap: () => _editBinderQty(context, owned),
-                            child: PillBadge(
-                                label: 'Own $owned',
-                                color: AppTheme.positive,
-                                icon: Icons.check),
-                          ),
-                        if (wanted)
-                          PillBadge(
-                              label: 'Wanted',
-                              color: AppTheme.wantAccent,
-                              icon: Icons.favorite),
-                      ],
+                    _CardArtThumb(
+                      card: _selected,
+                      onTap: () => _openArtViewer(context, _selected),
                     ),
-                    if (printings.length >= 2) ...[
-                      const SizedBox(height: 12),
-                      _PrintingSelector(
-                        printings: printings,
-                        selectedId: _selected.id,
-                        onSelect: _select,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_selected.name,
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 6),
+                          CardMetaLine(
+                              card: _selected,
+                              style: theme.textTheme.bodyMedium,
+                              maxLines: 2),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              FinishBadge(card: _selected),
+                              if (owned > 0)
+                                GestureDetector(
+                                  onTap: () => _editBinderQty(context, owned),
+                                  child: PillBadge(
+                                      label: 'Own $owned',
+                                      color: AppTheme.positive,
+                                      icon: Icons.check),
+                                ),
+                              if (wanted)
+                                PillBadge(
+                                    label: 'Wanted',
+                                    color: AppTheme.wantAccent,
+                                    icon: Icons.favorite),
+                            ],
+                          ),
+                          if (printings.length >= 2) ...[
+                            const SizedBox(height: 12),
+                            _PrintingSelector(
+                              printings: printings,
+                              selectedId: _selected.id,
+                              onSelect: _select,
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
+                    ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                _PriceCard(
+                    card: _selected, settings: settings, pricing: pricing),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          _PriceCard(card: _selected, settings: settings, pricing: pricing),
+          // Column footer (not Scaffold.bottomNavigationBar) so it sits above
+          // the shell tab bar instead of competing with it.
+          _ActionBar(card: _selected),
         ],
       ),
-      bottomNavigationBar: _ActionBar(card: _selected),
     );
   }
 
@@ -178,7 +187,8 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 void _openArtViewer(BuildContext context, CardModel card) {
   final url = card.largeImageUrl ?? card.imageUrl;
   if (url == null || url.isEmpty) return;
-  Navigator.of(context).push(
+  // Root navigator so the immersive viewer covers the tab bar too.
+  Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
       opaque: false,
       barrierColor: Colors.black87,
@@ -616,7 +626,9 @@ class _ActionBar extends ConsumerWidget {
             SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
     }
 
-    return SafeArea(
+    return Material(
+      elevation: 2,
+      color: Theme.of(context).colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Row(

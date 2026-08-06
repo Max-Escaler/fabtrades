@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/card_filter_bar.dart';
 import '../../app/widgets.dart';
 import '../../core/data/card_repository.dart';
 import '../../core/models/card_model.dart';
@@ -55,7 +56,7 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
   final _controller = TextEditingController();
   Timer? _debounce;
   String _query = '';
-  bool _foilOnly = false;
+  CardSort _sort = CardSort.nameAsc;
   bool _adding = false;
   int _addedCount = 0;
   final Set<String> _recentlyAdded = {};
@@ -70,10 +71,17 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
   }
 
   void _onChanged(String value) {
+    setState(() {}); // refresh clear button
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 200), () {
       setState(() => _query = value);
     });
+  }
+
+  void _clear() {
+    _debounce?.cancel();
+    _controller.clear();
+    setState(() => _query = '');
   }
 
   Future<void> _onCardTap(CardModel card) async {
@@ -131,26 +139,14 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: TextField(
+            child: CardSearchBar(
               controller: _controller,
+              hintText: 'Search cards…',
               autofocus: true,
               onChanged: _onChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search cards…',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: FilterChip(
-                label: const Text('Foil only'),
-                avatar: const Icon(Icons.auto_awesome, size: 16),
-                selected: _foilOnly,
-                onSelected: (v) => setState(() => _foilOnly = v),
-              ),
+              onClear: _clear,
+              sort: _sort,
+              onSort: (s) => setState(() => _sort = s),
             ),
           ),
           Expanded(
@@ -161,11 +157,7 @@ class _CardPickerScreenState extends ConsumerState<CardPickerScreen> {
               data: (all) {
                 final cards = filterCards(
                   all,
-                  CardFilters(
-                    query: _query,
-                    foilOnly: _foilOnly,
-                    sort: CardSort.nameAsc,
-                  ),
+                  CardFilters(query: _query, sort: _sort),
                 );
                 if (cards.isEmpty) {
                   return const Center(child: Text('No cards found.'));

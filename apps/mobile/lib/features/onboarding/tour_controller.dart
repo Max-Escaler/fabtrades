@@ -11,7 +11,8 @@ import 'onboarding_provider.dart';
 /// Starts and finishes just-in-time onboarding sequences for each screen.
 ///
 /// Home-shell tours share [OnboardingKeys.homeScope]. Scan uses its own scope
-/// because it is a pushed route outside [HomeShell].
+/// so its showcase is independent of the tab tours (Scan is pushed inside a
+/// tab navigator, not a top-level tab).
 class TourController {
   TourController(this.ref);
 

@@ -62,8 +62,10 @@ finishes), `set_id`, `unique_id`, `name`, `clean_name`, `image_url`, `tcgplayer_
   (legacy key `collection_entries`), and trade history (small data, fully offline).
   Card catalog comes from Supabase (+ `cached_network_image` for art). Heavier
   drift/sqflite intentionally avoided for now.
-- **Navigation:** bottom nav shell (Browse · Trade · Binder · Lend) via IndexedStack;
-  Settings + card detail + scan are pushed routes.
+- **Navigation:** bottom nav shell (Browse · Trade · Binder · Lend) via IndexedStack
+  with a nested Navigator per tab, so pushed screens (set catalog, card detail,
+  picker, scan, settings, …) keep the tab bar. Card art viewer uses the root
+  navigator to cover everything.
 - **Charts:** `fl_chart`. **Scan:** `camera` + `google_mlkit_text_recognition`.
 - Money: store canonical value per printing = selected source/type (settings). USD default.
 
@@ -106,9 +108,11 @@ finishes), `set_id`, `unique_id`, `name`, `clean_name`, `image_url`, `tcgplayer_
 
 ## Gotchas / decisions made
 - State mgmt: Riverpod 3.x (Notifier/NotifierProvider). No codegen.
-- Do NOT put a nested `Scaffold.bottomNavigationBar` inside the IndexedStack tab screens —
-  it expands to full height. Use a Column with the bar as the last child (Confirm Trade
-  footer on TradeScreen follows this).
+- Do NOT put a nested `Scaffold.bottomNavigationBar` inside tab content that
+  sits under the shell `NavigationBar` — it stacks awkwardly (and used to expand
+  to full height on IndexedStack tab roots). Use a Column with the bar as the
+  last child (Confirm Trade footer on TradeScreen and card-detail action bar
+  follow this).
 - Trade draft is in-memory (resets on app restart, by design). Binder + trade history
   persist via SharedPreferences (binder key still `collection_entries`).
 - Android manifest: added CAMERA/INTERNET permissions + mlkit `ocr` DEPENDENCIES meta-data.

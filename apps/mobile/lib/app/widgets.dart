@@ -505,84 +505,115 @@ class CardRow extends ConsumerWidget {
             label: 'Wanted', color: AppTheme.wantAccent, icon: Icons.favorite),
     ];
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        child: Row(
-          children: [
-            if (showThumbnail) ...[
-              CardThumbnail(url: card.imageUrl, foil: card.isFoil),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(card.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 3),
-                  if (inlineBadges)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        CardMetaLine(card: card),
-                        FinishBadge(card: card),
-                        ...ownership,
-                      ],
-                    )
-                  else ...[
-                    CardMetaLine(card: card),
-                    if (card.finishBadgeLabel != null || ownership.isNotEmpty) ...[
-                      const SizedBox(height: 5),
-                      Wrap(
-                        spacing: 5,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (card.finishBadgeLabel != null)
-                            FinishBadge(card: card),
-                          ...ownership,
-                        ],
-                      ),
-                    ],
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Cap the price column so long secondary labels (e.g. "Low $109 ·
+        // $1.21 over") ellipsize instead of overflowing the row. Expanded
+        // then takes all leftover space for the name.
+        final trailingMax =
+            (constraints.maxWidth * 0.38).clamp(96.0, 148.0);
+
+        return InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(
               children: [
-                Text(priceLabel,
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800)),
-                if (secondaryLabel != null)
-                  Text(secondaryLabel!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
-                if (priceSource != null) ...[
-                  const SizedBox(height: 2),
-                  PriceSourceTag(source: priceSource!),
+                if (showThumbnail) ...[
+                  CardThumbnail(url: card.imageUrl, foil: card.isFoil),
+                  const SizedBox(width: 12),
                 ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(card.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 3),
+                      if (inlineBadges)
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            CardMetaLine(card: card),
+                            FinishBadge(card: card),
+                            ...ownership,
+                          ],
+                        )
+                      else ...[
+                        CardMetaLine(card: card),
+                        if (card.finishBadgeLabel != null ||
+                            ownership.isNotEmpty) ...[
+                          const SizedBox(height: 5),
+                          Wrap(
+                            spacing: 5,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (card.finishBadgeLabel != null)
+                                FinishBadge(card: card),
+                              ...ownership,
+                            ],
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: trailingMax),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        priceLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      if (secondaryLabel != null)
+                        Text(
+                          secondaryLabel!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      if (priceSource != null) ...[
+                        const SizedBox(height: 2),
+                        PriceSourceTag(source: priceSource!),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 4),
+                  trailing!
+                ],
+                if (trailing == null && onAdd != null)
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: theme.colorScheme.primary,
+                    onPressed: onAdd,
+                    visualDensity: VisualDensity.compact,
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
+                    padding: EdgeInsets.zero,
+                  ),
               ],
             ),
-            if (trailing != null) ...[const SizedBox(width: 4), trailing!],
-            if (trailing == null && onAdd != null)
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                color: theme.colorScheme.primary,
-                onPressed: onAdd,
-              ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
