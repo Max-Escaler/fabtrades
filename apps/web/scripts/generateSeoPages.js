@@ -40,6 +40,7 @@ import {
     termsSections,
     TERMS_EFFECTIVE_DATE
 } from '../src/content/termsOfUse.js';
+import { SUPPORT_CONTACT_EMAIL } from '../src/content/support.js';
 
 // Written by scripts/generateCatalog.js earlier in the build.
 const SNAPSHOT_METADATA_FILE = path.resolve(
@@ -491,6 +492,40 @@ const buildTermsPage = (template) =>
         jsonLdName: 'FAB Trades Terms of Use'
     });
 
+const buildSupportPage = (template) => {
+    const title = 'Support | FAB Trades';
+    const description =
+        'Contact FAB Trades support. Send a message with your name, email, ' +
+        'and issue description — we typically reply within a few business days.';
+    const canonicalPath = '/support';
+    const bodyHtml = `
+    <h1>Support</h1>
+    <p class="meta">Contact FAB Trades at
+      <a href="mailto:${escapeAttr(SUPPORT_CONTACT_EMAIL)}">${escapeHtml(SUPPORT_CONTACT_EMAIL)}</a>
+      or use the form below.
+    </p>
+    <form name="support" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="support" />
+      <p style="display:none">
+        <label>Don't fill this out: <input name="bot-field" /></label>
+      </p>
+      <p><label>Name <input type="text" name="name" required /></label></p>
+      <p><label>E-mail <input type="email" name="email" required /></label></p>
+      <p><label>Issue description <textarea name="message" required rows="5"></textarea></label></p>
+      <p><button type="submit">Send message</button></p>
+    </form>`;
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ContactPage',
+        name: 'FAB Trades Support',
+        url: `${SITE_URL}${canonicalPath}`,
+        description
+    };
+
+    return renderPage(template, { title, description, canonicalPath, jsonLd, bodyHtml });
+};
+
 // ---------------------------------------------------------------------------
 // Sitemap + robots
 // ---------------------------------------------------------------------------
@@ -500,6 +535,7 @@ const buildSitemap = (sets, metadata) => {
     const urls = [
         { loc: `${SITE_URL}/`, priority: '1.0' },
         { loc: `${SITE_URL}/sets`, priority: '0.9' },
+        { loc: `${SITE_URL}/support`, priority: '0.4' },
         { loc: `${SITE_URL}/privacy`, priority: '0.3' },
         { loc: `${SITE_URL}/terms`, priority: '0.3' },
         ...sets.map((s) => ({ loc: `${SITE_URL}/sets/${s.slug}`, priority: '0.8' }))
@@ -574,6 +610,12 @@ const main = async () => {
     await writeFile(
         path.join(DIST, 'terms', 'index.html'),
         buildTermsPage(template),
+        'utf8'
+    );
+    await mkdir(path.join(DIST, 'support'), { recursive: true });
+    await writeFile(
+        path.join(DIST, 'support', 'index.html'),
+        buildSupportPage(template),
         'utf8'
     );
 

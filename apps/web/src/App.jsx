@@ -7,6 +7,7 @@ import SetList from './pages/SetList.jsx';
 import SetDetail from './pages/SetDetail.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsOfUse from './pages/TermsOfUse.jsx';
+import Support from './pages/Support.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { EntitlementProvider } from './contexts/EntitlementContext.jsx';
 
@@ -26,6 +27,7 @@ function App() {
                         <Route path="/sets/:groupId" element={<SetDetail />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfUse />} />
+                        <Route path="/support" element={<Support />} />
                     </Routes>
                 </Router>
             </EntitlementProvider>

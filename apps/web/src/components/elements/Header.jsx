@@ -14,6 +14,7 @@ import {
     Style,
     PrivacyTipOutlined,
     DescriptionOutlined,
+    SupportAgentOutlined,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { formatTimestamp } from "../../utils/helpers.js";
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
 ];
 
 const LEGAL_ITEMS = [
+    { label: 'Support', to: '/support', icon: SupportAgentOutlined, match: (path) => path === '/support' },
     { label: 'Privacy Policy', to: '/privacy', icon: PrivacyTipOutlined, match: (path) => path === '/privacy' },
     { label: 'Terms of Use', to: '/terms', icon: DescriptionOutlined, match: (path) => path === '/terms' },
 ];
