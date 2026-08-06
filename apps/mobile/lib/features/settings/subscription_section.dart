@@ -11,10 +11,11 @@ import '../../core/models/entitlement.dart';
 import '../../core/providers.dart';
 import '../paywall/pro_gate.dart';
 import '../paywall/pro_paywall.dart';
+import 'manage_subscription_screen.dart';
 import 'settings_screen.dart' show SettingsSectionLabel;
 
 /// Subscription block on My Account: current status, and the entry points to
-/// the paywall, the Customer Center and restore.
+/// the paywall, plan management, and restore.
 ///
 /// Hides itself entirely on builds without a RevenueCat API key, so nothing
 /// offers a purchase that can't complete.
@@ -51,15 +52,15 @@ class SubscriptionSection extends ConsumerWidget {
   }
 }
 
-/// Active subscriber: what they're on, when it renews, and one button into the
-/// Customer Center for everything else.
-class _ProStatusCard extends ConsumerWidget {
+/// Active subscriber: what they're on, when it renews, and one button into
+/// subscription management for everything else.
+class _ProStatusCard extends StatelessWidget {
   const _ProStatusCard({required this.entitlement});
 
   final Entitlement entitlement;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
@@ -122,9 +123,8 @@ class _ProStatusCard extends ConsumerWidget {
               ],
             ),
           ),
-          // The Customer Center works on the store account that bought the
-          // subscription. Offering it for a purchase made on the other platform
-          // would open a screen with nothing in it.
+          // Plan changes and cancellation need this store's purchase. Offering
+          // management for a purchase made on the other platform would dead-end.
           if (entitlement.knowsRenewalIntent) ...[
             const Divider(height: 1),
             ListTile(
@@ -132,7 +132,12 @@ class _ProStatusCard extends ConsumerWidget {
               title: const Text('Manage subscription'),
               subtitle: const Text('Change plan, cancel, or get help'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => presentProCustomerCenter(context, ref),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ManageSubscriptionScreen(),
+                  settings: const RouteSettings(name: 'ManageSubscription'),
+                ),
+              ),
             ),
           ],
         ],

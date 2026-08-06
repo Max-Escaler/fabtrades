@@ -31,9 +31,11 @@ import '../models/account.dart';
 /// comes back, because whoever opened the browser is the only one who can close
 /// it again. Call [dispose] to give that up early.
 class AuthRepository {
-  AuthRepository(this._auth);
+  AuthRepository(this._client);
 
-  final GoTrueClient _auth;
+  final SupabaseClient _client;
+
+  GoTrueClient get _auth => _client.auth;
 
   /// Long enough for someone to make a Discord account or fetch a 2FA code
   /// part-way through, short enough that an abandoned attempt does not leave a
@@ -265,6 +267,62 @@ class AuthRepository {
     }
   }
 
+  /// Permanently deletes the signed-in account and its server-side data.
+  ///
+  /// Calls the `delete-account` edge function, which verifies the session JWT
+  /// and removes the auth user. Cascading FKs clear synced binder, trades,
+  /// settings, and entitlements. The local session is cleared afterwards so a
+  /// deleted account cannot keep acting as if it still exists.
+  ///
+  /// Does not cancel an App Store / Play subscription — those must be managed
+  /// through the store, and the confirmation UI says so.
+  Future<DeleteAccountOutcome> deleteAccount() async {
+    final session = _auth.currentSession;
+    if (session == null) {
+      return const DeleteAccountFailed('Sign in before deleting your account.');
+    }
+
+    try {
+      final response = await _client.functions.invoke('delete-account');
+      if (response.status >= 200 && response.status < 300) {
+        // The server already revoked the user; local sign-out just clears the
+        // cached session so the UI flips to signed-out without a 401 loop.
+        try {
+          await _auth.signOut(scope: SignOutScope.local);
+        } catch (_) {}
+        return const DeleteAccountSucceeded();
+      }
+
+      final error = _functionErrorMessage(response.data);
+      debugPrint('Auth: delete-account returned ${response.status}: $error');
+      return DeleteAccountFailed(error);
+    } on FunctionException catch (e) {
+      debugPrint('Auth: delete-account FunctionException — ${e.status}');
+      return DeleteAccountFailed(_functionErrorMessage(e.details));
+    } catch (e, s) {
+      debugPrint('Auth: unexpected delete-account error — $e');
+      Analytics().captureException(e, s, {'source': 'auth_delete_account'});
+      return const DeleteAccountFailed(
+        "Couldn't delete your account. Please try again.",
+      );
+    }
+  }
+
+  static String _functionErrorMessage(Object? data) {
+    if (data is Map && data['error'] is String) {
+      final error = data['error'] as String;
+      return switch (error) {
+        'unauthorized' => 'Sign in again, then try deleting your account.',
+        'not configured' =>
+          'Account deletion is temporarily unavailable. Please try again later.',
+        'deletion failed' =>
+          "Couldn't delete your account. Please try again, or email support.",
+        _ => "Couldn't delete your account. Please try again.",
+      };
+    }
+    return "Couldn't delete your account. Please try again.";
+  }
+
   static String _appleErrorMessage(AuthorizationErrorCode code) =>
       switch (code) {
         AuthorizationErrorCode.notHandled ||
@@ -298,4 +356,19 @@ class AuthRepository {
     }
     return "Couldn't sign in. Please try again.";
   }
+}
+
+/// Result of a self-service account deletion attempt.
+sealed class DeleteAccountOutcome {
+  const DeleteAccountOutcome();
+}
+
+final class DeleteAccountSucceeded extends DeleteAccountOutcome {
+  const DeleteAccountSucceeded();
+}
+
+final class DeleteAccountFailed extends DeleteAccountOutcome {
+  const DeleteAccountFailed(this.message);
+
+  final String message;
 }

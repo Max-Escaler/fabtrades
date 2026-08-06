@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'account_section.dart';
+import 'delete_account_section.dart';
 import 'subscription_section.dart';
 
 /// Dedicated account page: who is signed in, sync, and subscription.
@@ -16,6 +17,7 @@ class AccountScreen extends StatelessWidget {
         children: const [
           AccountSection(),
           SubscriptionSection(),
+          DeleteAccountSection(),
         ],
       ),
     );

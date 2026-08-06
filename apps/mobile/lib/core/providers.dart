@@ -233,7 +233,7 @@ final pricingProvider =
 /// Requires `Supabase.initialize` to have run, which main() guarantees. Widget
 /// tests never reach it because [accountProvider] is overridden instead.
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final auth = AuthRepository(ref.watch(supabaseClientProvider).auth);
+  final auth = AuthRepository(ref.watch(supabaseClientProvider));
   ref.onDispose(auth.dispose);
   return auth;
 });

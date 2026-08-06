@@ -136,7 +136,7 @@ export const privacySections = [
             {
                 type: 'ul',
                 items: [
-                    'Saved trades, synced lists, and account data are retained until you delete them. You can delete individual trades from Trade History where available. To delete your account and all associated data, email us at the address below and we will remove it within 30 days.',
+                    'Saved trades, synced lists, and account data are retained until you delete them. You can delete individual trades from Trade History where available. To delete your account and all associated data, use Delete account in the App under My Account (you will be asked to type DELETE to confirm), or email us at the address below and we will remove it within 30 days.',
                     'Local-only App data (when signed out) lives on your device. You can erase it by clearing the App\u2019s storage or uninstalling the App.',
                     'Subscription records needed for entitlement and fraud prevention may be retained for as long as required to provide Pro access and comply with store or legal obligations.',
                     'Google Analytics data is retained according to our analytics settings and then automatically deleted by Google.'

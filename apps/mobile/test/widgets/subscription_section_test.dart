@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/harness.dart';
@@ -94,6 +95,7 @@ void main() {
         willRenew: true,
         expiresAt: DateTime(2027, 3, 14),
         productIdentifier: 'yearly',
+        store: Store.appStore,
       ),
     );
 
@@ -188,5 +190,26 @@ void main() {
     expect(find.text('See plans'), findsNothing);
     // The rest of My Account is unaffected.
     expect(find.text('ACCOUNT'), findsOneWidget);
+  });
+
+  testWidgets('opens Manage subscription into the plan-change screen',
+      (tester) async {
+    await _pumpAccount(
+      tester,
+      status: SubscriptionStatus(
+        isPro: true,
+        willRenew: true,
+        expiresAt: DateTime(2027, 3, 14),
+        productIdentifier: 'yearly',
+        store: Store.appStore,
+      ),
+    );
+
+    await tester.tap(find.text('Manage subscription'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Switch to monthly'), findsOneWidget);
+    expect(find.text('Cancel subscription'), findsOneWidget);
+    expect(find.text('Get help'), findsOneWidget);
   });
 }

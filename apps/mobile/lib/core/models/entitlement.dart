@@ -1,3 +1,5 @@
+import 'package:purchases_flutter/purchases_flutter.dart' show Store;
+
 import 'subscription_status.dart';
 
 /// What the server says about this account's access to FABTrades Pro.
@@ -79,6 +81,7 @@ class Entitlement {
     this.productIdentifier,
     this.purchasedFrom,
     this.managementUrl,
+    this.store,
     this.isConfirmedByServer = false,
     this.knowsRenewalIntent = false,
   });
@@ -113,6 +116,7 @@ class Entitlement {
         productIdentifier: device.productIdentifier,
         purchasedFrom: server?.sourceLabel,
         managementUrl: device.managementUrl,
+        store: device.store,
         isConfirmedByServer: serverActive,
         knowsRenewalIntent: true,
       );
@@ -167,6 +171,9 @@ class Entitlement {
   /// Deep link to the store's own subscription management screen.
   final String? managementUrl;
 
+  /// Which store granted the device-side entitlement, when known.
+  final Store? store;
+
   /// Whether the server has an active row for this. False with [isPro] true
   /// means a purchase the webhook has not landed yet, which is normal for a few
   /// seconds and worth investigating if it persists.
@@ -179,6 +186,24 @@ class Entitlement {
   /// "access ends on the 14th" is a much worse thing to say wrongly than
   /// "active until the 14th".
   final bool knowsRenewalIntent;
+
+  /// Whether this device can change plan or cancel through the store.
+  ///
+  /// Promotional grants and cross-platform access have no App Store / Play
+  /// subscription to manage here — offering those actions would dead-end.
+  bool get canManageInStore {
+    if (!knowsRenewalIntent) return false;
+    return switch (store) {
+      Store.appStore ||
+      Store.macAppStore ||
+      Store.playStore ||
+      Store.amazon ||
+      Store.testStore ||
+      Store.galaxy =>
+        true,
+      _ => false,
+    };
+  }
 
   bool get isLifetime => isPro && expiresAt == null;
 
@@ -199,6 +224,7 @@ class Entitlement {
       other.productIdentifier == productIdentifier &&
       other.purchasedFrom == purchasedFrom &&
       other.managementUrl == managementUrl &&
+      other.store == store &&
       other.isConfirmedByServer == isConfirmedByServer &&
       other.knowsRenewalIntent == knowsRenewalIntent;
 
@@ -213,6 +239,7 @@ class Entitlement {
         productIdentifier,
         purchasedFrom,
         managementUrl,
+        store,
         isConfirmedByServer,
         knowsRenewalIntent,
       );

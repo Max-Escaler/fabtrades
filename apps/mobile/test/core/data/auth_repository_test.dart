@@ -10,6 +10,8 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 
 class _MockGoTrueClient extends Mock implements GoTrueClient {}
 
+class _MockSupabaseClient extends Mock implements SupabaseClient {}
+
 /// Stands in for the browser the OAuth handoff opens, and records whether
 /// anyone asked for it back.
 class _FakeBrowser extends UrlLauncherPlatform {
@@ -34,6 +36,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _MockGoTrueClient auth;
+  late _MockSupabaseClient client;
   late _FakeBrowser browser;
   late StreamController<AuthState> authStates;
   late AuthRepository repository;
@@ -42,10 +45,12 @@ void main() {
 
   setUp(() {
     auth = _MockGoTrueClient();
+    client = _MockSupabaseClient();
     browser = _FakeBrowser();
     UrlLauncherPlatform.instance = browser;
     authStates = StreamController<AuthState>.broadcast();
 
+    when(() => client.auth).thenReturn(auth);
     when(
       () => auth.getOAuthSignInUrl(
         provider: any(named: 'provider'),
@@ -61,7 +66,7 @@ void main() {
     );
     when(() => auth.onAuthStateChange).thenAnswer((_) => authStates.stream);
 
-    repository = AuthRepository(auth);
+    repository = AuthRepository(client);
     addTearDown(repository.dispose);
     addTearDown(authStates.close);
   });

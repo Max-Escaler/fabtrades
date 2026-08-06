@@ -62,6 +62,23 @@ class RevenueCatConfig {
     'monthly', // Test Store
   };
 
+  /// Whether [productId] is one of the monthly plans (including Play's
+  /// `subscription:base_plan` form).
+  static bool isMonthlyProduct(String? productId) =>
+      _matchesProduct(productId, monthlyProductIds);
+
+  /// Whether [productId] is one of the yearly plans.
+  static bool isYearlyProduct(String? productId) =>
+      _matchesProduct(productId, yearlyProductIds);
+
+  static bool _matchesProduct(String? productId, Set<String> ids) {
+    if (productId == null || productId.isEmpty) return false;
+    for (final id in ids) {
+      if (productId == id || productId.startsWith('$id:')) return true;
+    }
+    return false;
+  }
+
   /// Test Store key. Safe to commit: it only ever transacts against
   /// RevenueCat's simulated store, and is rejected for release builds below.
   static const _testStoreApiKey = 'test_lyucRxsDUQbbqxATXoXZuPJvEBr';
